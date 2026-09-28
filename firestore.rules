@@ -1,0 +1,658 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(
+        /databases/$(database)/documents/users/$(request.auth.uid)
+      ).data;
+    }
+
+    function isActive() {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && profile().is_active == true;
+    }
+
+    function hasRole(roleName) {
+      return isActive()
+        && profile().role == roleName;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isEditor() {
+      return hasRole('editor');
+    }
+
+    function isReviewer() {
+      return hasRole('reviewer');
+    }
+
+    function canEditOwnedContent(contentId) {
+      let content = getAfter(
+        /databases/$(database)/documents/contents/$(contentId)
+      ).data;
+
+      return isEditor()
+        && content.created_by == request.auth.token.email
+        && content.workflow_status in ['draft', 'review'];
+    }
+
+    function canReadContent(contentId) {
+      let content = get(
+        /databases/$(database)/documents/contents/$(contentId)
+      ).data;
+
+      return isAdmin()
+        || isReviewer()
+        || (
+          isEditor()
+          && content.created_by == request.auth.token.email
+        )
+        || (
+          isActive()
+          && content.workflow_status == 'published'
+          && content.access_level in ['public', 'internal']
+        );
+    }
+
+    // ข้อมูลผู้ใช้งาน
+    match /users/{userId} {
+      allow read: if isActive()
+        && (
+          request.auth.uid == userId
+          || isAdmin()
+        );
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    // หมวดหมู่
+    match /categories/{documentId} {
+      allow read: if isActive();
+
+      allow create, update, delete: if isAdmin();
+    }
+
+    // เนื้อหาหลักและ Workflow
+    match /contents/{documentId} {
+      // การเปิดเอกสารรายชิ้นตรวจสิทธิจากเอกสารเป้าหมายได้โดยตรง
+      allow get: if canReadContent(documentId);
+
+      // Collection Query ต้องใช้ resource.data เพื่อให้ Rules ตรวจสอบ
+      // เงื่อนไข where ของ Query ได้ โดยไม่เรียก get() กลับมายังเอกสารเดิม
+      allow list: if isAdmin()
+        || isReviewer()
+        || (
+          isEditor()
+          && resource.data.created_by == request.auth.token.email
+        )
+        || (
+          isActive()
+          && resource.data.workflow_status == 'published'
+          && resource.data.access_level in ['public', 'internal']
+        );
+
+      allow create: if isAdmin()
+        || (
+          isEditor()
+          && request.resource.data.created_by
+            == request.auth.token.email
+          && request.resource.data.workflow_status
+            in ['draft', 'review']
+        );
+
+      allow update: if isAdmin()
+        || (
+          isEditor()
+          && resource.data.created_by
+            == request.auth.token.email
+          && resource.data.workflow_status
+            in ['draft', 'review']
+          && request.resource.data.created_by
+            == resource.data.created_by
+          && request.resource.data.content_id
+            == resource.data.content_id
+          && request.resource.data.content_type
+            == resource.data.content_type
+          && request.resource.data.workflow_status
+            in ['draft', 'review']
+        )
+        || (
+          isReviewer()
+          && resource.data.workflow_status == 'review'
+          && request.resource.data.workflow_status == 'approved'
+          && request.resource.data.approved_by
+            == request.auth.token.email
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly([
+              'workflow_status',
+              'approved_by',
+              'approved_at',
+              'updated_at'
+            ])
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    // ข้อมูลรายละเอียดของเนื้อหา
+    match /{collectionName}/{documentId} {
+      allow read: if collectionName in [
+          'laws',
+          'guides',
+          'lessons',
+          'lessonUnits',
+          'files'
+        ]
+        && canReadContent(resource.data.content_id)
+        ;
+
+      allow create: if
+        collectionName in [
+          'laws',
+          'guides',
+          'lessons',
+          'lessonUnits',
+          'files'
+        ]
+        && (
+          isAdmin()
+          || canEditOwnedContent(request.resource.data.content_id)
+        );
+
+      allow update: if collectionName in [
+          'laws',
+          'guides',
+          'lessons',
+          'lessonUnits',
+          'files'
+        ]
+        && (
+          isAdmin()
+          || (
+            canEditOwnedContent(resource.data.content_id)
+            && request.resource.data.content_id
+              == resource.data.content_id
+          )
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    match /questions/{questionId} {
+      allow read: if canReadContent(resource.data.content_id);
+
+      allow create: if isAdmin()
+        || canEditOwnedContent(request.resource.data.content_id);
+
+      allow update: if isAdmin()
+        || (
+          canEditOwnedContent(resource.data.content_id)
+          && request.resource.data.content_id == resource.data.content_id
+        )
+        || (
+          isReviewer()
+          && request.resource.data.accepted_answer_id is string
+          && exists(
+            /databases/$(database)/documents/answers/$(request.resource.data.accepted_answer_id)
+          )
+          && getAfter(
+            /databases/$(database)/documents/answers/$(request.resource.data.accepted_answer_id)
+          ).data.question_id == questionId
+          && getAfter(
+            /databases/$(database)/documents/answers/$(request.resource.data.accepted_answer_id)
+          ).data.is_accepted == true
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['accepted_answer_id', 'updated_at'])
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    // ความก้าวหน้าการเรียนรายบัญชี
+    match /learningProgress/{progressId} {
+      allow read: if isActive()
+        && (
+          isAdmin()
+          || resource.data.user_email
+            == request.auth.token.email
+        );
+
+      allow create: if isActive()
+        && (
+          isAdmin()
+          || request.resource.data.user_email
+            == request.auth.token.email
+        );
+
+      allow update: if isActive()
+        && (
+          isAdmin()
+          || (
+            resource.data.user_email
+              == request.auth.token.email
+            && request.resource.data.user_email
+              == request.auth.token.email
+          )
+        );
+
+      allow delete: if isAdmin();
+    }
+
+    // รายการที่บันทึกไว้รายบัญชี
+    match /savedItems/{savedId} {
+      allow read: if isActive()
+        && (
+          isAdmin()
+          || resource.data.user_email
+            == request.auth.token.email
+        );
+
+      allow create: if isActive()
+        && request.resource.data.user_email
+          == request.auth.token.email;
+
+      allow update: if isActive()
+        && resource.data.user_email
+          == request.auth.token.email
+        && request.resource.data.user_email
+          == request.auth.token.email
+        && request.resource.data.content_id
+          == resource.data.content_id;
+
+      allow delete: if isAdmin()
+        || (
+          isActive()
+          && resource.data.user_email
+            == request.auth.token.email
+        );
+    }
+
+match /comments/{commentId} {
+  allow read: if isActive()
+    && canReadContent(resource.data.target_id)
+    && (
+      isAdmin()
+      || isReviewer()
+      || resource.data.moderation_status == 'approved'
+      || resource.data.commented_by
+        == request.auth.token.email
+    );
+
+  allow create: if isActive()
+    && canReadContent(request.resource.data.target_id)
+    && request.resource.data.target_type == 'content'
+    && request.resource.data.commented_by
+      == request.auth.token.email
+    && request.resource.data.moderation_status
+      == 'pending';
+
+  allow update: if isAdmin()
+    || (
+      isReviewer()
+      && request.resource.data.moderation_status in ['approved', 'rejected']
+      && request.resource.data.moderated_by == request.auth.token.email
+      && request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['moderation_status', 'moderated_by', 'moderated_at'])
+    )
+    || (
+      isActive()
+      && resource.data.commented_by
+        == request.auth.token.email
+      && resource.data.moderation_status == 'pending'
+      && request.resource.data.commented_by
+        == resource.data.commented_by
+      && request.resource.data.moderation_status
+        == 'pending'
+      && request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['comment_text', 'updated_at'])
+    );
+
+  allow delete: if isAdmin()
+    || (
+      isActive()
+      && resource.data.commented_by
+        == request.auth.token.email
+    );
+}
+
+match /answers/{answerId} {
+  allow read: if isActive()
+    && canReadContent(resource.data.question_id)
+    && (
+      isAdmin()
+      || isReviewer()
+      || resource.data.is_accepted == true
+      || resource.data.answered_by == request.auth.token.email
+    );
+
+  allow create: if isActive()
+    && (
+      isAdmin()
+      || canReadContent(request.resource.data.question_id)
+      || canEditOwnedContent(request.resource.data.question_id)
+    )
+    && request.resource.data.answered_by
+      == request.auth.token.email
+    && (
+      request.resource.data.is_accepted == false
+      || (
+        isAdmin()
+        && request.resource.data.is_accepted == true
+        && request.resource.data.accepted_by == request.auth.token.email
+      )
+    );
+
+  allow update: if isAdmin()
+    || (
+      isReviewer()
+      && resource.data.is_accepted == false
+      && request.resource.data.is_accepted == true
+      && request.resource.data.accepted_by == request.auth.token.email
+      && request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['is_accepted', 'accepted_by', 'accepted_at'])
+    )
+    || (
+      isActive()
+      && resource.data.answered_by
+        == request.auth.token.email
+      && resource.data.is_accepted == false
+      && request.resource.data.answered_by
+        == resource.data.answered_by
+      && request.resource.data.is_accepted == false
+      && request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['answer_text', 'updated_at'])
+    );
+
+  allow delete: if isAdmin()
+    || (
+      isActive()
+      && resource.data.answered_by
+        == request.auth.token.email
+      && resource.data.is_accepted == false
+    );
+}
+
+// ชุดองค์ความรู้งานทะเบียนที่ดิน
+match /knowledgePackages/{packageId} {
+  allow read: if isActive();
+
+  allow create: if isAdmin()
+    || (
+      isEditor()
+      && request.resource.data.created_by == request.auth.token.email
+      && request.resource.data.package_id == packageId
+      && request.resource.data.workflow_status in ['draft', 'review']
+    );
+
+  allow update: if isAdmin()
+    || (
+      isEditor()
+      && resource.data.created_by == request.auth.token.email
+      && resource.data.workflow_status in ['draft', 'review']
+      && request.resource.data.created_by == resource.data.created_by
+      && request.resource.data.package_id == resource.data.package_id
+      && request.resource.data.workflow_status in ['draft', 'review']
+    )
+    || (
+      isReviewer()
+      && resource.data.workflow_status == 'review'
+      && request.resource.data.workflow_status == 'approved'
+      && request.resource.data.approved_by == request.auth.token.email
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'workflow_status',
+        'approved_by',
+        'approved_at',
+        'updated_at'
+      ])
+    );
+
+  allow delete: if isAdmin();
+}
+
+// ตัวนับเลขฉบับแบบ Transaction ป้องกันเลขซ้ำ
+match /versionCounters/{contentId} {
+  allow read: if isAdmin()
+    || isReviewer()
+    || (
+      isEditor()
+      && get(
+        /databases/$(database)/documents/contents/$(contentId)
+      ).data.created_by == request.auth.token.email
+    );
+
+  allow create: if (
+      isAdmin()
+      || isReviewer()
+      || canEditOwnedContent(contentId)
+    )
+    && request.resource.data.content_id == contentId
+    && request.resource.data.next_version is int
+    && request.resource.data.next_version > 0
+    && request.resource.data.updated_by == request.auth.token.email;
+
+  allow update: if (
+      isAdmin()
+      || isReviewer()
+      || canEditOwnedContent(contentId)
+    )
+    && request.resource.data.content_id == resource.data.content_id
+    && request.resource.data.next_version is int
+    && request.resource.data.next_version > resource.data.next_version
+    && request.resource.data.updated_by == request.auth.token.email
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+      'next_version',
+      'updated_by',
+      'updated_at'
+    ]);
+
+  allow delete: if false;
+}
+
+// ประวัติฉบับแบบแก้ไขไม่ได้
+match /contentVersions/{versionId} {
+  allow read: if isAdmin()
+    || isReviewer()
+    || (
+      isEditor()
+      && resource.data.created_by == request.auth.token.email
+    );
+
+  allow create: if (
+      isAdmin()
+      || (
+        isEditor()
+        && canEditOwnedContent(request.resource.data.content_id)
+        && request.resource.data.created_by == request.auth.token.email
+      )
+      || (
+        isReviewer()
+        && request.resource.data.action in ['baseline', 'approve']
+      )
+    )
+    && request.resource.data.version_id == versionId
+    && request.resource.data.editor_email == request.auth.token.email
+    && request.resource.data.content_id is string
+    && exists(
+      /databases/$(database)/documents/contents/$(request.resource.data.content_id)
+    )
+    && request.resource.data.created_by == get(
+      /databases/$(database)/documents/contents/$(request.resource.data.content_id)
+    ).data.created_by
+    && request.resource.data.content_type == get(
+      /databases/$(database)/documents/contents/$(request.resource.data.content_id)
+    ).data.content_type
+    && request.resource.data.schema_version == 2
+    && request.resource.data.snapshot_status == 'building'
+    && request.resource.data.version_number == getAfter(
+      /databases/$(database)/documents/versionCounters/$(request.resource.data.content_id)
+    ).data.next_version
+    && request.resource.data.snapshot.content.content_id
+      == request.resource.data.content_id
+    && request.resource.data.version_number is int
+    && request.resource.data.version_number > 0;
+
+  allow update: if isActive()
+    && resource.data.editor_email == request.auth.token.email
+    && resource.data.snapshot_status == 'building'
+    && request.resource.data.snapshot_status in ['complete', 'failed']
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+      'snapshot_status',
+      'completed_at',
+      'failed_at'
+    ]);
+
+  allow delete: if false;
+
+  match /{subcollection}/{itemId} {
+    allow read: if isAdmin()
+      || isReviewer()
+      || (
+        isEditor()
+        && get(
+          /databases/$(database)/documents/contentVersions/$(versionId)
+        ).data.created_by == request.auth.token.email
+      );
+
+    allow create: if isActive()
+      && subcollection in ['lessonUnits', 'answers', 'files']
+      && getAfter(
+        /databases/$(database)/documents/contentVersions/$(versionId)
+      ).data.editor_email == request.auth.token.email
+      && getAfter(
+        /databases/$(database)/documents/contentVersions/$(versionId)
+      ).data.snapshot_status == 'building';
+
+    allow update, delete: if false;
+  }
+}
+
+match /issueReports/{reportId} {
+  allow read: if isAdmin()
+    || isReviewer()
+    || resource.data.reported_by == request.auth.token.email;
+
+  allow create: if isActive()
+    && request.resource.data.report_id == reportId
+    && request.resource.data.reported_by == request.auth.token.email
+    && request.resource.data.status == 'open';
+
+  allow update: if (isAdmin() || isReviewer())
+    && request.resource.data.report_id == resource.data.report_id
+    && request.resource.data.reported_by == resource.data.reported_by;
+
+  allow delete: if isAdmin();
+}
+
+match /knowledgeGaps/{gapId} {
+  allow read: if isAdmin() || isReviewer();
+
+  allow create: if (isAdmin() || isReviewer())
+    && request.resource.data.gap_id == gapId
+    && request.resource.data.gap_type in [
+      'missing_search',
+      'unanswered_question',
+      'thin_category',
+      'repeated_issue'
+    ]
+    && request.resource.data.status in [
+      'open',
+      'assigned',
+      'in_progress',
+      'resolved',
+      'dismissed'
+    ]
+    && request.resource.data.priority in ['low', 'medium', 'high', 'urgent']
+    && request.resource.data.created_by == request.auth.token.email
+    && request.resource.data.updated_by == request.auth.token.email;
+
+  allow update: if (isAdmin() || isReviewer())
+    && request.resource.data.gap_id == resource.data.gap_id
+    && request.resource.data.gap_type == resource.data.gap_type
+    && request.resource.data.source_key == resource.data.source_key
+    && request.resource.data.created_by == resource.data.created_by
+    && request.resource.data.status in [
+      'open',
+      'assigned',
+      'in_progress',
+      'resolved',
+      'dismissed'
+    ]
+    && request.resource.data.priority in ['low', 'medium', 'high', 'urgent']
+    && request.resource.data.updated_by == request.auth.token.email;
+
+  allow delete: if isAdmin();
+}
+
+match /usageStats/{statId} {
+  allow read: if isActive();
+
+  allow create: if isActive()
+    && statId.matches(request.auth.uid + '_.*')
+    && request.resource.data.user_id == request.auth.uid
+    && request.resource.data.count == 1
+    && request.resource.data.keys().hasOnly([
+      'user_id',
+      'action',
+      'target_type',
+      'target_id',
+      'count',
+      'last_used_at'
+    ]);
+
+  allow update: if isActive()
+    && statId.matches(request.auth.uid + '_.*')
+    && resource.data.user_id == request.auth.uid
+    && request.resource.data.user_id == resource.data.user_id
+    && request.resource.data.action == resource.data.action
+    && request.resource.data.target_type == resource.data.target_type
+    && request.resource.data.target_id == resource.data.target_id
+    && request.resource.data.count == resource.data.count + 1
+    && request.resource.data.diff(resource.data).affectedKeys()
+      .hasOnly(['count', 'last_used_at']);
+
+  allow delete: if isAdmin();
+}
+
+match /usageAggregates/{aggregateId} {
+  allow read: if isActive();
+
+  allow create: if isActive()
+    && request.resource.data.count == 1
+    && request.resource.data.keys().hasOnly([
+      'action',
+      'target_type',
+      'target_id',
+      'count',
+      'last_used_at'
+    ]);
+
+  allow update: if isActive()
+    && request.resource.data.action == resource.data.action
+    && request.resource.data.target_type == resource.data.target_type
+    && request.resource.data.target_id == resource.data.target_id
+    && request.resource.data.count == resource.data.count + 1
+    && request.resource.data.diff(resource.data).affectedKeys()
+      .hasOnly(['count', 'last_used_at']);
+
+  allow delete: if isAdmin();
+}
+
+    // ปฏิเสธ Collection อื่นที่ไม่ได้กำหนดไว้
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+  }
+}

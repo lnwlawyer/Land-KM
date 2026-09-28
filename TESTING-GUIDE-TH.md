@@ -1,0 +1,62 @@
+# คู่มือทดสอบอัตโนมัติ Land KM — ขั้นที่ 11
+
+ชุดทดสอบนี้ใช้ **Firebase Local Emulator Suite** ฐานข้อมูลทดสอบมี Project ID `demo-land-km` จึงไม่เขียนหรือแก้ข้อมูลในระบบจริง
+
+## ไฟล์ที่ต้องอยู่ใน `C:\Land-KM`
+
+- `Land-KM-UX-Prototype.html`
+- `firestore.rules`
+- `firebase.json`
+- `.firebaserc`
+- `package.json`
+- โฟลเดอร์ `tests`
+
+## เตรียมเครื่องครั้งแรก
+
+1. ติดตั้ง Node.js รุ่น LTS และ Java JDK 21 หรือใหม่กว่า
+2. เปิด PowerShell ที่โฟลเดอร์โครงการ
+
+```powershell
+cd C:\Land-KM
+npm install
+```
+
+## รันทดสอบทั้งหมด
+
+```powershell
+npm test
+```
+
+ระบบจะเปิด Firestore Emulator ชั่วคราว รันทดสอบ แล้วปิด Emulator ให้อัตโนมัติ หากทุกข้อผ่านจะเห็นจำนวน `pass` และไม่มี `fail`
+
+## คำสั่งแยกส่วน
+
+ตรวจโครงสร้างหน้าเว็บโดยไม่เปิด Emulator:
+
+```powershell
+npm run test:app
+```
+
+ตรวจเฉพาะ Firestore Security Rules:
+
+```powershell
+npm run test:rules
+```
+
+## สิ่งที่ทดสอบ
+
+- ผู้ไม่เข้าสู่ระบบและบัญชีที่ปิดใช้งานถูกปฏิเสธ
+- ผู้ใช้งานอ่านเฉพาะเนื้อหาที่เผยแพร่
+- ผู้เขียนเห็นและแก้เฉพาะงานของตนตาม Workflow
+- ผู้ตรวจสอบอนุมัติได้โดยแก้เฉพาะฟิลด์ที่กำหนด
+- ผู้ดูแลมีสิทธิบริหารระบบ
+- Saved Items และ Learning Progress แยกตามบัญชี
+- ความคิดเห็นต้องเข้าคิว `pending`
+- Knowledge Gap จำกัดเฉพาะบทบาทที่กำหนด
+- Usage Stats เพิ่มค่าครั้งละ 1 และผูกกับ UID
+- Collection ที่ไม่ได้ประกาศใน Rules ถูกปฏิเสธ
+- หน้าเว็บไม่มีค่าเริ่มต้นและเหตุการณ์จำลองเดิม
+
+## ก่อน Deploy ทุกครั้ง
+
+ให้รัน `npm test` ก่อน หากมี `fail` ห้าม Deploy จนกว่าจะแก้ไขและทดสอบผ่านทั้งหมด การรันทดสอบไม่ใช่คำสั่ง Deploy และไม่เปลี่ยนข้อมูล Production

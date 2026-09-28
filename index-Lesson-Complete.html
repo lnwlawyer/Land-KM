@@ -1,0 +1,1402 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Land KM — ต้นแบบหน้าจอปรับปรุง</title>
+  <style>
+    :root{--ink:#17233b;--muted:#667085;--line:#e3e8ef;--soft:#f5f8fb;--brand:#087f73;--brand2:#0ba88f;--white:#fff;--warn:#b54708}
+    *{box-sizing:border-box} body{margin:0;font-family:"Noto Sans Thai","Tahoma",sans-serif;background:#f5f7fa;color:var(--ink)}
+    button,input,select{font:inherit} button{cursor:pointer}.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+    aside{background:#fff;border-right:1px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+    .brand{display:flex;align-items:center;gap:10px;padding:0 10px 24px;font-weight:800;font-size:20px}.brand i{display:grid;place-items:center;width:38px;height:38px;background:#d9f7f0;color:var(--brand);border-radius:11px;font-style:normal}
+    .nav-label{font-size:11px;color:#98a2b3;font-weight:700;padding:10px;text-transform:uppercase;letter-spacing:.05em}.nav{display:grid;gap:4px}.nav button{border:0;background:transparent;padding:11px 12px;border-radius:10px;text-align:left;color:#475467;display:flex;gap:11px;align-items:center}.nav button.active,.nav button:hover{background:#eaf7f4;color:#07675f;font-weight:700}.account{margin-top:auto;border-top:1px solid var(--line);padding:18px 9px 0;display:flex;gap:10px;align-items:center}.avatar{width:36px;height:36px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:700}.account small{display:block;color:var(--muted)}
+    main{min-width:0}.topbar{height:67px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:4}.crumb{color:var(--muted);font-size:14px}.top-actions{display:flex;gap:8px}.iconbtn,.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 13px;color:var(--ink)}.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}.btn:hover{filter:brightness(.97)}
+    .page{padding:30px;max-width:1280px;margin:auto}.view{display:none}.view.active{display:block}.hero{background:linear-gradient(120deg,#0d756d,#119b83);border-radius:19px;padding:33px;color:#fff;box-shadow:0 12px 35px rgba(8,127,115,.18)}.hero h1{font-size:30px;margin:0 0 7px}.hero p{margin:0 0 22px;color:#d8fff6}.search{display:flex;background:#fff;padding:6px;border-radius:12px;max-width:820px;box-shadow:0 6px 20px #07584f33}.search input{flex:1;border:0;outline:0;padding:10px 13px;min-width:0}.search button{border:0;background:#17233b;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip{border:1px solid #ffffff55;background:#ffffff17;color:#fff;padding:7px 11px;border-radius:99px}.section-title{display:flex;align-items:end;justify-content:space-between;margin:27px 0 13px}.section-title h2{margin:0;font-size:20px}.section-title a{color:var(--brand);font-size:14px}.category-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.category{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;text-align:left}.category:hover{border-color:#77c9bd;transform:translateY(-2px)}.category b{display:block;margin:8px 0 4px}.category small{color:var(--muted)}
+    .two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);font-weight:800;display:flex;justify-content:space-between}.doc{display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:15px 18px;border-bottom:1px solid #edf0f3;align-items:start}.doc:last-child{border-bottom:0}.file{width:40px;height:40px;border-radius:9px;background:#eaf7f4;color:var(--brand);display:grid;place-items:center}.doc-title{font-weight:700;margin-bottom:4px}.doc-meta,.snippet{color:var(--muted);font-size:13px;line-height:1.55}.tag{display:inline-block;padding:4px 8px;border-radius:99px;background:#edf7f4;color:#087568;font-size:11px;font-weight:700}.tag.orange{background:#fff3e8;color:#b54708}.save{border:0;background:transparent;font-size:19px;color:#98a2b3}.empty-note{padding:15px;border-radius:10px;background:#fff8eb;color:#8d5207;font-size:13px}
+    .results-layout{display:grid;grid-template-columns:235px 1fr;gap:18px}.filters{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;height:max-content}.filters h3{margin:0 0 14px}.filter{border-top:1px solid var(--line);padding:14px 0}.filter label{display:block;font-size:13px;margin:8px 0;color:#475467}.results-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.select{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}.result-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;margin-bottom:11px;display:grid;grid-template-columns:1fr auto;gap:12px}.result-card:hover{border-color:#8bd1c6}.result-card h3{margin:7px 0 6px;font-size:17px}.result-card mark{background:#fff1a8;padding:0 2px}.result-actions{display:flex;gap:7px;align-items:start}
+    .detail-wrap{display:grid;grid-template-columns:1fr 260px;gap:18px}.detail{background:#fff;border:1px solid var(--line);border-radius:14px;padding:25px}.detail h1{font-size:26px;margin:9px 0}.status{background:#ecfdf3;color:#027a48;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:700}.detail-meta{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:13px;padding-bottom:19px;border-bottom:1px solid var(--line)}.callout{background:#eef9f7;border-left:4px solid var(--brand);padding:15px 17px;margin:20px 0;border-radius:6px}.detail h2{font-size:18px;margin-top:25px}.detail p,.detail li{line-height:1.8;color:#344054}.side-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:12px}.side-card h3{font-size:15px;margin:0 0 12px}.side-card .btn{display:block;width:100%;margin-top:8px}.related{font-size:13px;padding:10px 0;border-bottom:1px solid var(--line);line-height:1.5}.related:last-child{border:0}
+    .toast{position:fixed;right:24px;bottom:24px;background:#17233b;color:#fff;padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(15px);pointer-events:none;transition:.25s}.toast.show{opacity:1;transform:none}.mobile-menu{display:none}.page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.page-head h1{margin:0 0 4px;font-size:26px}.page-head p{margin:0;color:var(--muted)}.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow:auto}.tabs button{white-space:nowrap;border:0;background:transparent;padding:11px 14px;color:var(--muted)}.tabs button.active{color:var(--brand);font-weight:700;border-bottom:2px solid var(--brand)}.table-wrap{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);font-size:13px}th{background:#f8fafc;color:#475467}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}.stat-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px}.stat-card small{color:var(--muted)}.stat-card strong{display:block;font-size:27px;margin-top:7px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}.field small{display:block;color:var(--muted);margin-top:5px}.field.full{grid-column:1/-1}.qa-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:11px}.qa-card h3{margin:8px 0}.progress{height:7px;background:#edf0f3;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:var(--brand)}.category-picker{margin-top:9px}.category-search{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:9px}.popular-cats{display:flex;flex-wrap:wrap;gap:6px}.cat-pill{border:1px solid #b8ddd7;background:#f5fffc;color:#07675f;border-radius:99px;padding:6px 9px;font-size:12px}.cat-pill.selected{background:var(--brand);border-color:var(--brand);color:#fff}.category-box{border:1px solid var(--line);border-radius:9px;margin-top:10px;max-height:285px;overflow:auto;background:#fff}.category-group{border-bottom:1px solid var(--line)}.category-group:last-child{border:0}.category-group summary{padding:10px 11px;font-size:12px;font-weight:800;background:#fafbfc;cursor:pointer;position:sticky;top:0}.category-options{padding:4px 10px 8px}.category-options label{padding:6px 2px;margin:0}.selected-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.selected-item{border:0;background:#e8f6f3;color:#06665d;padding:5px 8px;border-radius:7px;font-size:12px}.filter-actions{display:flex;gap:7px;position:sticky;bottom:0;background:#fff;padding-top:10px}.filter-count{background:var(--brand);color:#fff;border-radius:99px;padding:2px 7px;font-size:11px}.form-type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px}.form-type{border:1px solid var(--line);background:#fff;border-radius:11px;padding:13px 9px;text-align:center;color:#475467}.form-type span{display:block;font-size:22px;margin-bottom:5px}.form-type.active{border-color:var(--brand);background:#eaf8f5;color:#07675f;font-weight:800}.form-section-title{grid-column:1/-1;border-bottom:1px solid var(--line);padding:7px 0 9px;margin-top:5px;font-weight:800;color:#344054}.specific-fields{display:none;grid-column:1/-1;grid-template-columns:1fr 1fr;gap:14px}.specific-fields.active{display:grid}.upload-zone{border:1.5px dashed #aebcca;border-radius:10px;padding:18px;text-align:center;background:#fafcfd;color:var(--muted)}.form-footer{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px;margin-top:7px}.required-note{font-size:12px;color:var(--muted)}
+    .guide-toolbar{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:15px}.guide-toolbar>label{font-size:13px;font-weight:800;white-space:nowrap}.multi-dropdown{position:relative;flex:1}.dropdown-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;border:1px solid #cfd7e2;background:#fff;border-radius:9px;padding:10px 12px;text-align:left}.dropdown-trigger.open{border-color:var(--brand);box-shadow:0 0 0 3px #dff5f1}.dropdown-panel{display:none;position:absolute;z-index:12;top:calc(100% + 7px);left:0;width:min(660px,90vw);background:#fff;border:1px solid var(--line);box-shadow:0 18px 45px #17233b26;border-radius:13px;padding:14px}.dropdown-panel.open{display:block}.guide-category-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:280px;overflow:auto;margin-top:10px}.guide-cat{display:flex;gap:7px;align-items:center;padding:8px;border-radius:7px;font-size:13px}.guide-cat:hover{background:#f2faf8}.guide-selected{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.guide-selected:empty{display:none}.guide-result-label{font-size:13px;color:var(--muted);margin-left:auto;white-space:nowrap}.course-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.course-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.2s}.course-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px #17233b16}.course-cover{height:135px;padding:16px;display:flex;align-items:flex-end;justify-content:space-between;background:linear-gradient(135deg,#dff7f2,#bdeade);color:#075f57}.course-cover.video{background:linear-gradient(135deg,#e8e8ff,#d7d2ff);color:#5146a5}.course-cover.slide{background:linear-gradient(135deg,#fff0d7,#ffe0a8);color:#a15c08}.course-cover.quiz{background:linear-gradient(135deg,#ffe7ef,#ffd1df);color:#a92f57}.media-icon{font-size:36px}.course-body{padding:16px}.course-body h3{font-size:16px;margin:8px 0}.course-body p{font-size:13px;color:var(--muted);line-height:1.55;min-height:40px}.course-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:12px 0}.course-body .btn{width:100%}.learning-banner{background:#17233b;color:#fff;border-radius:15px;padding:19px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.learning-banner p{color:#cbd5e1;margin:5px 0 0}.learning-banner .progress{width:260px;background:#ffffff22}.learning-banner .progress i{background:#50d6be}.comments{margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}.comment-compose{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:13px}.comment-compose textarea,.answer-form textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;resize:vertical}.compose-actions,.comment-actions{display:flex;gap:7px;align-items:center;margin-top:8px}.comment-item{display:grid;grid-template-columns:36px 1fr;gap:10px;padding:16px 0;border-bottom:1px solid var(--line)}.comment-item.reply{margin-left:45px}.comment-item p{margin:4px 0!important;line-height:1.6!important}.comment-actions button{border:0;background:transparent;color:var(--muted);padding:3px;font-size:12px}.comment-actions button:hover{color:var(--brand)}.answer-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;margin-bottom:13px}.answer-card.accepted{border:2px solid #3eaf8e;background:#fbfffd}.answer-head{display:flex;justify-content:space-between;gap:10px}.answer-form{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px}.moderation{background:#fff8eb;border:1px solid #fed7aa;border-radius:11px;padding:13px}.qa-card{cursor:pointer}.qa-card:hover{border-color:#76c5b9}@media(max-width:900px){.app{grid-template-columns:1fr}aside{display:none}.page{padding:20px}.mobile-menu{display:block}.category-grid{grid-template-columns:repeat(2,1fr)}.two-col,.detail-wrap{grid-template-columns:1fr}.results-layout{grid-template-columns:1fr}.filters{display:none}.topbar{padding:0 18px}.hero{padding:24px}.hero h1{font-size:24px}.guide-toolbar{align-items:stretch;flex-direction:column}.guide-category-grid{grid-template-columns:1fr 1fr}.dropdown-panel{width:100%}.guide-result-label{margin-left:0}.course-grid{grid-template-columns:1fr 1fr}.learning-banner{align-items:flex-start;gap:15px;flex-direction:column}.learning-banner .progress{width:100%}.form-type-grid{grid-template-columns:repeat(2,1fr)}.form-grid,.specific-fields{grid-template-columns:1fr}.field.full,.form-section-title,.specific-fields,.form-footer{grid-column:1}.form-footer{align-items:stretch;flex-direction:column}.form-footer>div{flex-wrap:wrap}}@media(max-width:560px){.course-grid{grid-template-columns:1fr}.comment-item.reply{margin-left:20px}}
+    .auth-gate{position:fixed;inset:0;z-index:100;background:linear-gradient(135deg,#f5f8fb,#dff7f2);display:grid;place-items:center;padding:20px}.auth-gate[hidden]{display:none}.auth-card{width:min(440px,100%);background:#fff;border:1px solid var(--line);border-radius:20px;padding:34px;text-align:center;box-shadow:0 24px 70px #17233b24}.auth-logo{width:62px;height:62px;margin:0 auto 16px;border-radius:18px;background:#d9f7f0;color:var(--brand);display:grid;place-items:center;font-size:29px}.auth-card h1{margin:0 0 8px}.auth-card p{color:var(--muted);line-height:1.65}.auth-card .btn{width:100%;margin-top:12px;padding:12px}.auth-error{min-height:20px;margin-top:12px;color:#b42318;font-size:13px}.app.auth-pending{visibility:hidden}
+  </style>
+</head>
+<body>
+<section class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="auth-logo">⌂</div>
+    <h1>Land KM</h1>
+    <p>ระบบคลังความรู้งานทะเบียนที่ดิน<br>ช่วงทดลองใช้งานสำหรับผู้ดูแลระบบเท่านั้น</p>
+    <button class="btn primary" id="googleSignIn">เข้าสู่ระบบด้วย Google</button>
+    <div class="auth-error" id="authError" role="alert"></div>
+  </div>
+</section>
+<div class="app auth-pending" id="appShell">
+  <aside>
+    <div class="brand"><i>⌂</i><div>Land <span style="color:var(--brand)">KM</span></div></div>
+    <div class="nav-label">การใช้งาน</div>
+    <nav class="nav">
+      <button class="active" data-view="home" data-title="หน้าแรก">⌂ หน้าแรก</button><button data-view="searchView" data-title="ค้นหาความรู้">⌕ ค้นหาความรู้</button><button data-view="lawsView" data-title="กฎหมายและหนังสือเวียน">⚖ กฎหมายและหนังสือเวียน</button><button data-view="guidesView" data-title="คู่มือและแนวทางปฏิบัติ">▤ คู่มือและแนวทางปฏิบัติ</button><button data-view="learningView" data-title="บทเรียนออนไลน์">▷ บทเรียนออนไลน์</button><button data-view="qaView" data-title="ถาม–ตอบ">◎ ถาม–ตอบ</button><button data-view="savedView" data-title="รายการที่บันทึกไว้">♡ รายการที่บันทึกไว้</button>
+    </nav>
+    <div class="nav-label">ผู้ดูแลระบบ</div>
+    <nav class="nav"><button data-view="manageView" data-title="จัดการเนื้อหา">☷ จัดการเนื้อหา <span style="margin-left:auto" class="tag orange">7 รอตรวจ</span></button><button data-view="usersView" data-title="ผู้ใช้งานและสิทธิ">♙ ผู้ใช้งานและสิทธิ</button><button data-view="reportsView" data-title="รายงานการใช้งาน">▥ รายงานการใช้งาน</button></nav>
+    <div class="account"><div class="avatar" id="userAvatar">P</div><div><b id="userName">ผู้ดูแลระบบ</b><small id="userEmail">ยังไม่ได้เข้าสู่ระบบ</small></div></div>
+  </aside>
+  <main>
+    <header class="topbar"><div><button class="iconbtn mobile-menu">☰</button> <span class="crumb">ระบบจัดการความรู้ › <b id="pageName">หน้าแรก</b></span></div><div class="top-actions"><span class="tag orange" id="firebaseStatus">กำลังเชื่อม Firebase…</span><button class="iconbtn">🔔</button><button class="btn primary" id="propose">＋ เสนอองค์ความรู้</button><button class="btn" id="signOutButton">ออกจากระบบ</button></div></header>
+    <div class="page">
+      <section class="view active" id="home">
+        <div class="hero"><h1>ค้นคำตอบสำหรับงานทะเบียนที่ดิน</h1><p>ค้นจากกฎหมาย หนังสือเวียน คู่มือ แนววินิจฉัย และประสบการณ์ของผู้เชี่ยวชาญ</p><form class="search" id="heroSearch"><input id="heroInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่หนังสือ มาตรา หรือคำสำคัญ…"><button>ค้นหา</button></form><div class="chips"><button class="chip">มรดก</button><button class="chip">คนต่างด้าว</button><button class="chip">นิติบุคคล</button><button class="chip">ภาระจำยอม</button><button class="chip">ปิดประกาศ 30 วัน</button></div></div>
+        <div class="section-title"><h2>เลือกตามประเภทความรู้</h2></div>
+        <div class="category-grid"><button class="category"><span>⚖️</span><b>กฎหมาย</b><small>128 รายการ</small></button><button class="category"><span>📨</span><b>หนังสือเวียน</b><small>436 รายการ</small></button><button class="category"><span>📘</span><b>คู่มือปฏิบัติงาน</b><small>82 รายการ</small></button><button class="category"><span>💡</span><b>แนววินิจฉัย</b><small>196 รายการ</small></button><button class="category"><span>🗂️</span><b>แบบฟอร์ม</b><small>45 รายการ</small></button></div>
+        <div class="section-title"><h2>เนื้อหาที่ควรรู้</h2><a href="#">ดูทั้งหมด →</a></div>
+        <div class="two-col"><div class="panel"><div class="panel-head"><span>ประกาศและเอกสารล่าสุด</span><small>ปรับปรุงวันนี้</small></div>
+          <div class="doc open-doc"><div class="file">PDF</div><div><span class="tag">แนวทางปฏิบัติ</span><div class="doc-title">แนวทางตรวจสอบการถือครองที่ดินแทนคนต่างด้าว</div><div class="doc-meta">มท 0515.2/ว 19097 • 25 สิงหาคม 2569</div></div><button class="save">☆</button></div>
+          <div class="doc"><div class="file">PDF</div><div><span class="tag orange">หนังสือเวียน</span><div class="doc-title">หลักเกณฑ์การปิดประกาศ 30 วัน</div><div class="doc-meta">ปรับปรุงล่าสุด 8 กันยายน 2569</div></div><button class="save">☆</button></div>
+          <div class="doc"><div class="file">KM</div><div><span class="tag">องค์ความรู้</span><div class="doc-title">การจดทะเบียนโอนตามกฎหมาย</div><div class="doc-meta">ตรวจสอบโดยสำนักมาตรฐานการทะเบียนที่ดิน</div></div><button class="save">☆</button></div>
+        </div><div><div class="panel"><div class="panel-head">ใช้บ่อยในช่วงนี้</div><div class="doc"><div class="file">01</div><div><div class="doc-title">การโอนมรดกที่ดิน</div><div class="doc-meta">เปิดอ่าน 1,284 ครั้ง</div></div></div><div class="doc"><div class="file">02</div><div><div class="doc-title">การสอบสวนตามมาตรา 74</div><div class="doc-meta">เปิดอ่าน 968 ครั้ง</div></div></div><div class="doc"><div class="file">03</div><div><div class="doc-title">Checklist เอกสารนิติบุคคล</div><div class="doc-meta">เปิดอ่าน 741 ครั้ง</div></div></div></div><div class="empty-note" style="margin-top:12px">💡 คำค้นที่ยังไม่พบคำตอบจะถูกส่งให้ผู้ดูแลพิจารณาเพิ่มองค์ความรู้</div></div></div>
+      </section>
+
+      <section class="view" id="searchView">
+        <div class="section-title" style="margin-top:0"><div><h2>ผลการค้นหา</h2><div class="doc-meta" id="resultsSummary">ค้นหา “<b id="queryLabel">การโอนมรดก</b>” พบ 24 รายการ</div></div><form class="search" id="resultSearch" style="width:500px;border:1px solid var(--line);box-shadow:none"><input id="resultInput" value="การโอนมรดก"><button>ค้นหา</button></form></div>
+        <div class="results-layout"><aside class="filters" style="display:block;position:static;height:auto"><h3>ตัวกรอง <span class="filter-count" id="filterCount">1</span></h3><div class="filter" style="padding-top:0;border:0"><b>หมวดเนื้อหา</b><div class="doc-meta">เลือกได้หลายหมวด จากทั้งหมด 58 หมวด</div><div class="category-picker"><input class="category-search" id="categorySearch" placeholder="⌕ พิมพ์ค้นหาหมวด เช่น จำนอง"><div class="doc-meta" style="margin-bottom:6px">หมวดที่ใช้บ่อย</div><div class="popular-cats" id="popularCats"></div><div class="selected-wrap" id="selectedCats"></div><div class="category-box" id="categoryBox"></div></div></div><div class="filter"><b>ประเภทเอกสาร</b><label><input type="checkbox"> หนังสือเวียน (8)</label><label><input type="checkbox"> คู่มือ (6)</label><label><input type="checkbox"> แนววินิจฉัย (10)</label><label><input type="checkbox"> กฎหมาย/ระเบียบ (12)</label></div><div class="filter"><b>ปี พ.ศ.</b><label><input type="checkbox"> 2569 (12)</label><label><input type="checkbox"> 2568 (7)</label><label><input type="checkbox"> ก่อนปี 2568 (5)</label></div><div class="filter"><b>สถานะ</b><label><input type="checkbox" checked> ใช้บังคับ</label><label><input type="checkbox"> ยกเลิกแล้ว</label></div><div class="filter-actions"><button class="btn" id="clearFilters" style="flex:1">ล้างทั้งหมด</button><button class="btn primary" id="applyFilters" style="flex:1">แสดงผล</button></div></aside>
+          <div><div class="results-head"><b>เรียงตามความเกี่ยวข้อง</b><select class="select"><option>เกี่ยวข้องมากที่สุด</option><option>ใหม่ที่สุด</option><option>เปิดอ่านมากที่สุด</option></select></div>
+            <article class="result-card open-doc"><div><span class="tag">คู่มือปฏิบัติงาน</span><h3>การจดทะเบียนโอน<mark>มรดก</mark>ที่ดิน</h3><div class="snippet">สรุปขั้นตอน เอกสาร และระยะเวลาดำเนินการ ทั้งกรณีมีผู้จัดการมรดกและไม่มีผู้จัดการมรดก...</div><div class="doc-meta">ตรวจสอบล่าสุด 9 กันยายน 2569 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
+            <article class="result-card"><div><span class="tag orange">หนังสือเวียน</span><h3>แนวทางปฏิบัติกรณีรับ<mark>มรดก</mark>ตามหลักฐาน น.ส.3</h3><div class="snippet">แนวทางพิจารณาคำขอ การประกาศ และการจดทะเบียนสิทธิของทายาท...</div><div class="doc-meta">เลขที่ มท 0708/ว 23959 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
+            <article class="result-card"><div><span class="tag">แนววินิจฉัย</span><h3>ผู้จัดการ<mark>มรดก</mark>สามารถโอนให้ตนเองได้หรือไม่</h3><div class="snippet">รวบรวมข้อกฎหมาย หลักการ และข้อควรระวังสำหรับพนักงานเจ้าหน้าที่...</div><div class="doc-meta">ตรวจสอบล่าสุด 2 กันยายน 2569 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
+          </div></div>
+      </section>
+
+      <section class="view" id="detailView"><div class="detail-wrap"><article class="detail"><button class="btn" id="back">← กลับไปผลการค้นหา</button><div style="margin-top:18px"><span class="tag">แนวทางปฏิบัติ</span> <span class="status">● ใช้บังคับ</span></div><h1>การจดทะเบียนโอนมรดกที่ดิน</h1><div class="detail-meta"><span>ปรับปรุงล่าสุด 9 กันยายน 2569</span><span>เจ้าของเนื้อหา: สำนักมาตรฐานการทะเบียนที่ดิน</span><span>เวอร์ชัน 3</span></div><div class="callout"><b>สรุปสาระสำคัญ</b><br>การโอนมรดกดำเนินการได้ทั้งกรณีมีและไม่มีผู้จัดการมรดก โดยเอกสาร ขั้นตอน และระยะเวลาดำเนินการแตกต่างกัน</div><h2>กรณีมีผู้จัดการมรดก</h2><p>ตรวจสอบคำสั่งศาล หลักฐานแสดงสิทธิในที่ดิน เอกสารประจำตัว และอำนาจของผู้จัดการมรดกก่อนรับคำขอ</p><h2>กรณีไม่มีผู้จัดการมรดก</h2><p>สอบสวนทายาทและดำเนินการประกาศตามหลักเกณฑ์ เมื่อพ้นกำหนดและไม่มีข้อคัดค้านจึงดำเนินการจดทะเบียนต่อไป</p><h2>ข้อควรระวัง</h2><ul><li>ตรวจสอบลำดับทายาทและสิทธิรับมรดกให้ครบถ้วน</li><li>ตรวจสอบการคัดค้านและเอกสารประกอบก่อนจดทะเบียน</li><li>ใช้อัตราค่าธรรมเนียมและภาษีตามประเภทการจดทะเบียน</li></ul><section class="comments"><div class="section-title" style="margin:0 0 12px"><h2>ความคิดเห็นเกี่ยวกับเนื้อหา <span class="tag">2</span></h2><select class="select"><option>ล่าสุด</option><option>มีประโยชน์ที่สุด</option></select></div><div class="comment-compose"><textarea id="commentInput" rows="3" placeholder="แสดงความคิดเห็น เสนอแนะ หรือแจ้งจุดที่ควรปรับปรุง…"></textarea><div class="compose-actions"><button class="btn demo">📎 แนบไฟล์</button><label style="font-size:12px;color:var(--muted)"><input type="checkbox"> แจ้งเตือนเมื่อมีผู้ตอบกลับ</label><button class="btn primary" id="postComment" style="margin-left:auto">ส่งความคิดเห็น</button></div></div><div id="commentList"><div class="comment-item"><div class="avatar">ส</div><div><b>สมชาย ใจดี</b> <span class="doc-meta">• สำนักงานที่ดินจังหวัด • เมื่อวาน</span><p>เนื้อหาชัดเจนครับ ขอเสนอให้เพิ่มตัวอย่างกรณีมีผู้จัดการมรดกหลายคน</p><div class="comment-actions"><button class="helpful">♡ มีประโยชน์ 4</button><button class="reply-btn">ตอบกลับ</button><button class="demo">แก้ไข</button><button class="demo">ลบ</button><button class="demo">รายงาน</button></div></div></div><div class="comment-item reply"><div class="avatar" style="background:var(--brand)">ผ</div><div><b>ผู้ดูแลเนื้อหา</b> <span class="tag">เจ้าของเนื้อหา</span><p>รับข้อเสนอแนะแล้ว และจะเพิ่มเติมในการทบทวนเวอร์ชันถัดไป</p><div class="comment-actions"><button class="helpful">♡ มีประโยชน์ 2</button><button class="reply-btn">ตอบกลับ</button></div></div></div></div></section></article><div><div class="side-card"><h3>การดำเนินการ</h3><button class="btn primary">เปิดเอกสารต้นฉบับ</button><button class="btn save-action">☆ บันทึกไว้อ่าน</button><button class="btn" id="copyLink">⧉ คัดลอกลิงก์</button><button class="btn">⚑ แจ้งข้อมูลคลาดเคลื่อน</button></div><div class="side-card"><h3>เอกสารที่เกี่ยวข้อง</h3><div class="related">ประมวลกฎหมายแพ่งและพาณิชย์<br><small>บรรพ 6 มรดก</small></div><div class="related">แบบ ท.ด. 81<br><small>คำขอจดทะเบียนโอนมรดก</small></div><div class="related">หลักเกณฑ์การประกาศ 30 วัน</div></div></div></div></section>
+
+      <section class="view" id="lawsView"><div class="page-head"><div><h1>กฎหมายและหนังสือเวียน</h1><p>ค้นหา ตรวจสอบสถานะ และเชื่อมโยงเอกสารทางกฎหมาย</p></div><button class="btn primary demo">＋ เพิ่มเอกสารกฎหมาย</button></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ประมวลกฎหมาย</button><button>พระราชบัญญัติ</button><button>กฎกระทรวง</button><button>ระเบียบ/คำสั่ง</button><button>หนังสือเวียน</button><button>แนววินิจฉัย</button></div><form class="search" style="max-width:none;border:1px solid var(--line);box-shadow:none;margin-bottom:16px"><input placeholder="ค้นหาเลขที่หนังสือ ชื่อเรื่อง มาตรา หรือคำสำคัญ…"><button>ค้นหา</button></form><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>เลขที่/ชื่อเรื่อง</th><th>วันที่</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><span class="tag orange">หนังสือเวียน</span></td><td><b>มท 0515.2/ว 19097</b><br><small>แนวทางตรวจสอบการถือครองที่ดินแทนคนต่างด้าว</small></td><td>25 ส.ค. 2569</td><td><span class="status">ใช้บังคับ</span></td><td><button class="btn open-detail">เปิดอ่าน</button></td></tr><tr><td><span class="tag">กฎกระทรวง</span></td><td><b>กฎกระทรวง ฉบับที่ 35</b><br><small>หลักเกณฑ์การจดทะเบียนสิทธิและนิติกรรม</small></td><td>พ.ศ. 2531</td><td><span class="status">ใช้บังคับ</span></td><td><button class="btn open-detail">เปิดอ่าน</button></td></tr><tr><td><span class="tag">ประมวลกฎหมาย</span></td><td><b>ประมวลกฎหมายที่ดิน</b><br><small>หมวดการจดทะเบียนสิทธิและนิติกรรม</small></td><td>พ.ศ. 2497</td><td><span class="status">ใช้บังคับ</span></td><td><button class="btn open-detail">เปิดอ่าน</button></td></tr></tbody></table></div></section>
+
+      <section class="view" id="guidesView"><div class="page-head"><div><h1>คู่มือและแนวทางปฏิบัติ</h1><p>ขั้นตอน Checklist แบบฟอร์ม และสื่อการเรียนรู้สำหรับผู้ปฏิบัติงาน</p></div><button class="btn primary demo">＋ เพิ่มคู่มือ</button></div><div class="guide-toolbar"><label>กรองตามหมวดเนื้อหา</label><div class="multi-dropdown"><button class="dropdown-trigger" id="guideCategoryTrigger"><span id="guideTriggerText">ทุกหมวดเนื้อหา</span><span>⌄</span></button><div class="dropdown-panel" id="guideDropdown"><input class="category-search" id="guideCategorySearch" placeholder="⌕ ค้นหาหมวด เช่น ขาย จำนอง มรดก"><div class="guide-selected" id="guideSelected"></div><div class="doc-meta">เลือกได้หลายหมวด</div><div class="guide-category-grid" id="guideCategoryGrid"></div><div class="filter-actions"><button class="btn" id="guideClear">ล้างทั้งหมด</button><button class="btn primary" id="guideApply" style="margin-left:auto">แสดงคู่มือ</button></div></div></div><select class="select" id="guideType"><option>สื่อทุกประเภท</option><option>ขั้นตอนปฏิบัติงาน</option><option>Checklist</option><option>แบบฟอร์ม</option><option>สื่อการเรียนรู้</option></select><span class="guide-result-label" id="guideResultCount">พบ 113 รายการ</span></div><div class="category-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px"><button class="category"><span>🧭</span><b>ขั้นตอนปฏิบัติงาน</b><small>34 คู่มือ</small></button><button class="category"><span>☑️</span><b>Checklist</b><small>18 รายการ</small></button><button class="category"><span>🗂️</span><b>แบบฟอร์ม</b><small>45 แบบ</small></button><button class="category"><span>🎬</span><b>สื่อการเรียนรู้</b><small>16 บทเรียน</small></button></div><div class="panel"><div class="panel-head"><span id="guideListTitle">คู่มือปรับปรุงล่าสุด</span><select class="select"><option>ใหม่ที่สุด</option><option>ใช้บ่อยที่สุด</option><option>ก–ฮ</option></select></div><div class="doc open-detail"><div class="file">PDF</div><div><div class="doc-title">คู่มือการจดทะเบียนโอนมรดก</div><div class="doc-meta">หมวดมรดก • ฉบับปรับปรุง กันยายน 2569 • 24 หน้า</div></div><button class="save">☆</button></div><div class="doc"><div class="file">✓</div><div><div class="doc-title">Checklist การสอบสวนนิติบุคคลที่มีผู้ถือหุ้นต่างด้าว</div><div class="doc-meta">หมวดคนต่างด้าว • ปรับปรุง 6 กันยายน 2569 • ดาวน์โหลดได้</div></div><button class="save">☆</button></div><div class="doc"><div class="file">▶</div><div><div class="doc-title">บทเรียน: การปิดประกาศ 30 วัน</div><div class="doc-meta">หมวดงานทะเบียน • วิดีโอ 18 นาที • แบบทดสอบ 10 ข้อ</div></div><button class="save">☆</button></div></div></section>
+
+      <section class="view" id="learningView"><div class="page-head"><div><h1>บทเรียนออนไลน์</h1><p>เรียนรู้ผ่านสไลด์ วิดีโอ บทความ และแบบทดสอบตามเวลาที่สะดวก</p></div><button class="btn primary demo">＋ สร้างบทเรียน</button></div><div class="learning-banner"><div><b>เรียนต่อจากครั้งล่าสุด</b><h2 style="margin:5px 0">การถือครองที่ดินของคนต่างด้าว</h2><p>บทที่ 3 การสอบสวนตามมาตรา 74 • เรียนแล้ว 65%</p></div><div><div class="progress"><i style="width:65%"></i></div><button class="btn primary lesson-action" style="margin-top:10px;width:100%">เรียนต่อ →</button></div></div><div class="guide-toolbar"><label>ค้นหาบทเรียน</label><div class="search" style="flex:1;border:1px solid var(--line);box-shadow:none"><input id="lessonSearch" placeholder="ค้นหาชื่อบทเรียนหรือหัวข้อ…"><button class="lesson-action">ค้นหา</button></div><select class="select" id="lessonCategory"><option>ทุกหมวดเนื้อหา</option><option>มรดก</option><option>คนต่างด้าว</option><option>จำนองและขายฝาก</option><option>กฎหมายและระเบียบ</option></select></div><div class="tabs" id="lessonTabs"><button class="active" data-media="all">ทั้งหมด</button><button data-media="slide">▤ สไลด์นำเสนอ</button><button data-media="video">▷ วิดีโอ</button><button data-media="reading">☷ บทเรียนแบบอ่าน</button><button data-media="quiz">✓ แบบทดสอบ</button><button data-media="course">◫ หลักสูตร</button></div><div class="section-title"><h2 id="lessonListTitle">บทเรียนแนะนำ</h2><div class="doc-meta">24 บทเรียน</div></div><div class="course-grid" id="courseGrid"><article class="course-card" data-media="slide"><div class="course-cover slide"><div><span class="tag orange">สไลด์นำเสนอ</span><br><b>32 สไลด์</b></div><span class="media-icon">▤</span></div><div class="course-body"><h3>การจดทะเบียนโอนตามกฎหมาย</h3><p>เข้าใจหลักการ ประเภทการโอน และตัวอย่างแนววินิจฉัยที่สำคัญ</p><div class="course-meta"><span>⏱ 35 นาที</span><span>ระดับพื้นฐาน</span></div><button class="btn primary lesson-action">เริ่มเรียน</button></div></article><article class="course-card" data-media="video"><div class="course-cover video"><div><span class="tag">วิดีโอ</span><br><b>6 ตอน</b></div><span class="media-icon">▷</span></div><div class="course-body"><h3>การปิดประกาศ 30 วัน</h3><p>อธิบายหลักกฎหมาย สถานที่ปิดประกาศ การคัดค้าน และการนับระยะเวลา</p><div class="course-meta"><span>⏱ 48 นาที</span><span>มีคำบรรยาย</span></div><button class="btn primary lesson-action">เริ่มดูวิดีโอ</button></div></article><article class="course-card" data-media="course"><div class="course-cover"><div><span class="tag">หลักสูตร</span><br><b>4 บทเรียน</b></div><span class="media-icon">◫</span></div><div class="course-body"><h3>การถือครองที่ดินของคนต่างด้าว</h3><p>หลักเกณฑ์ การตรวจสอบนิติบุคคล และแนวทางป้องกันการถือแทน</p><div class="course-meta"><span>⏱ 2 ชั่วโมง</span><span>เรียนแล้ว 65%</span></div><div class="progress" style="margin-bottom:10px"><i style="width:65%"></i></div><button class="btn primary lesson-action">เรียนต่อ</button></div></article><article class="course-card" data-media="reading"><div class="course-cover"><div><span class="tag">บทเรียนแบบอ่าน</span><br><b>8 หัวข้อ</b></div><span class="media-icon">☷</span></div><div class="course-body"><h3>การจดทะเบียนมรดก</h3><p>ขั้นตอน เอกสาร และข้อควรระวังทั้งกรณีมีและไม่มีผู้จัดการมรดก</p><div class="course-meta"><span>⏱ 25 นาที</span><span>ระดับพื้นฐาน</span></div><button class="btn primary lesson-action">เริ่มอ่าน</button></div></article><article class="course-card" data-media="quiz"><div class="course-cover quiz"><div><span class="tag orange">แบบทดสอบ</span><br><b>20 ข้อ</b></div><span class="media-icon">✓</span></div><div class="course-body"><h3>ทดสอบความรู้ ประมวลกฎหมายที่ดิน ม.84–100</h3><p>ประเมินความเข้าใจพร้อมเฉลยและคำอธิบายหลังส่งคำตอบ</p><div class="course-meta"><span>⏱ 20 นาที</span><span>ผ่านเกณฑ์ 80%</span></div><button class="btn primary lesson-action">เริ่มทำแบบทดสอบ</button></div></article><article class="course-card" data-media="video"><div class="course-cover video"><div><span class="tag">วิดีโอ</span><br><b>3 ตอน</b></div><span class="media-icon">▷</span></div><div class="course-body"><h3>ทรัพย์อิงสิทธิสำหรับผู้ปฏิบัติงาน</h3><p>ภาพรวมการก่อตั้ง การโอน การระงับ และการจดทะเบียนที่เกี่ยวข้อง</p><div class="course-meta"><span>⏱ 42 นาที</span><span>ระดับกลาง</span></div><button class="btn primary lesson-action">เริ่มดูวิดีโอ</button></div></article></div></section>
+
+      <section class="view" id="qaView"><div class="page-head"><div><h1>ถาม–ตอบ ชุมชนนักปฏิบัติ</h1><p>แลกเปลี่ยนแนวทางปฏิบัติและค้นหาคำตอบที่ได้รับการรับรอง</p></div><button class="btn primary demo">＋ ตั้งคำถาม</button></div><form class="search" style="max-width:none;border:1px solid var(--line);box-shadow:none;margin-bottom:16px"><input placeholder="ค้นหาคำถามเดิมก่อนตั้งคำถามใหม่…"><button>ค้นหา</button></form><div class="tabs"><button class="active">คำถามล่าสุด</button><button>รอคำตอบ</button><button>มีคำตอบรับรอง</button><button>คำถามของฉัน</button></div><article class="qa-card open-question"><span class="tag">✓ มีคำตอบรับรอง</span><h3>กรณีผู้จัดการมรดกขอโอนที่ดินให้ตนเอง ต้องดำเนินการอย่างไร?</h3><div class="doc-meta">หมวดมรดก • 5 คำตอบ • เปิดอ่าน 286 ครั้ง • ตอบล่าสุดวันนี้</div></article><article class="qa-card open-question"><span class="tag orange">รอผู้เชี่ยวชาญตอบ</span><h3>การเพิ่มวงเงินจำนองต้องปิดประกาศหรือไม่?</h3><div class="doc-meta">หมวดจำนอง • 2 คำตอบ • ถามเมื่อ 10 กันยายน 2569</div></article><article class="qa-card open-question"><span class="tag">ตอบแล้ว</span><h3>การตรวจสอบแหล่งที่มาของเงินกรณีนิติบุคคลซื้อที่ดิน</h3><div class="doc-meta">หมวดคนต่างด้าว • 8 คำตอบ • เปิดอ่าน 591 ครั้ง</div></article></section>
+
+      <section class="view" id="qaDetailView"><div class="page-head"><div><button class="btn" id="qaBack">← กลับไปรายการคำถาม</button><h1 style="margin-top:14px">กรณีผู้จัดการมรดกขอโอนที่ดินให้ตนเอง ต้องดำเนินการอย่างไร?</h1><p><span class="tag">มรดก</span> <span class="status">เปิดรับคำตอบ</span> • ถามโดย เจ้าหน้าที่สำนักงานที่ดินจังหวัด • วันนี้</p></div><button class="btn" id="followQuestion">☆ ติดตามคำถาม</button></div><div class="detail-wrap"><div><article class="qa-card" style="cursor:default"><h3>รายละเอียดข้อเท็จจริง</h3><p style="line-height:1.8">ศาลมีคำสั่งตั้งผู้จัดการมรดกแล้ว และผู้จัดการมรดกเป็นทายาทคนหนึ่ง ประสงค์ขอจดทะเบียนโอนที่ดินมรดกให้แก่ตนเอง จึงขอทราบหลักเกณฑ์และเอกสารที่ต้องตรวจสอบ</p><div class="doc-meta">📎 คำสั่งศาล.pdf • ไม่แสดงข้อมูลส่วนบุคคล</div><div class="comment-actions"><button class="helpful">♡ มีประโยชน์ 8</button><button class="demo">คัดลอกลิงก์</button><button class="demo">รายงาน</button></div></article><div class="section-title"><h2>คำตอบ 3 รายการ</h2><select class="select"><option>คำตอบรับรองก่อน</option><option>ล่าสุด</option><option>มีประโยชน์ที่สุด</option></select></div><article class="answer-card accepted"><div class="answer-head"><div><b>ผู้เชี่ยวชาญด้านทะเบียน</b> <span class="tag">✓ คำตอบที่ได้รับการรับรอง</span><div class="doc-meta">สำนักมาตรฐานการทะเบียนที่ดิน • วันนี้</div></div><button class="btn demo">ยกเลิกการรับรอง</button></div><p style="line-height:1.8">ให้ตรวจสอบขอบเขตอำนาจตามคำสั่งศาล ความครบถ้วนของทายาทและเอกสารประกอบ รวมถึงข้อจำกัดที่ปรากฏในทะเบียน ก่อนดำเนินการตามประเภทการจดทะเบียนที่ถูกต้อง</p><div class="callout"><b>เอกสารอ้างอิง</b><br>ประมวลกฎหมายแพ่งและพาณิชย์ บรรพ 6 และคู่มือการจดทะเบียนเกี่ยวกับมรดก</div><div class="comment-actions"><button class="helpful">♡ มีประโยชน์ 12</button><button class="reply-btn">แสดงความคิดเห็น</button><button class="demo">แก้ไข</button><button class="demo">รายงาน</button></div><div class="comment-item reply"><div class="avatar">ผ</div><div><b>ผู้ตั้งคำถาม</b><p>ขอบคุณครับ ขอสอบถามเพิ่มเติมกรณีมีผู้จัดการมรดกมากกว่าหนึ่งคน</p><div class="comment-actions"><button class="reply-btn">ตอบกลับ</button><button class="demo">รายงาน</button></div></div></div></article><article class="answer-card"><div class="answer-head"><div><b>เจ้าพนักงานที่ดินอาวุโส</b><div class="doc-meta">สำนักงานที่ดินจังหวัด • 2 ชั่วโมงที่แล้ว</div></div><button class="btn accept-answer">✓ รับรองคำตอบ</button></div><p>ควรตรวจคำสั่งศาลฉบับรับรองและตรวจว่าศาลกำหนดอำนาจหรือเงื่อนไขไว้เป็นการเฉพาะหรือไม่</p><div class="comment-actions"><button class="helpful">♡ มีประโยชน์ 5</button><button class="reply-btn">แสดงความคิดเห็น</button><button class="demo">รายงาน</button></div></article><div class="answer-form"><h2 style="margin-top:0">เขียนคำตอบ</h2><textarea id="answerInput" rows="6" placeholder="อธิบายแนวทางปฏิบัติ พร้อมเหตุผลและข้อกฎหมายอ้างอิง…"></textarea><div class="form-grid" style="margin-top:10px"><div class="field"><label>เอกสาร/ข้อกฎหมายอ้างอิง</label><input placeholder="เลขที่หนังสือ มาตรา หรือ URL"></div><div class="field"><label>ไฟล์แนบ</label><input type="file"></div></div><div class="compose-actions"><label style="font-size:12px"><input type="checkbox"> แจ้งเตือนเมื่อมีความคิดเห็น</label><button class="btn" style="margin-left:auto" id="answerPreview">ดูตัวอย่าง</button><button class="btn primary" id="postAnswer">ส่งคำตอบ</button></div></div></div><div><div class="side-card"><h3>สถานะคำถาม</h3><p class="doc-meta">ผู้ติดตาม 18 คน<br>เปิดอ่าน 286 ครั้ง<br>ตอบล่าสุดวันนี้</p><button class="btn" id="closeQuestion">ปิดคำถาม</button></div><div class="moderation"><b>สำหรับผู้ดูแล</b><p class="doc-meta">ตรวจรายงาน รับรองคำตอบ ซ่อนเนื้อหา หรือปิดกระทู้</p><button class="btn demo" style="width:100%">เปิดคิวตรวจสอบ (2)</button></div></div></div></section>
+
+      <section class="view" id="lessonPlayerView">
+        <div class="page-head"><div><h1 id="lessonPlayerTitle">บทเรียนออนไลน์</h1><p id="lessonPlayerMeta">เลือกหน่วยการเรียนเพื่อเริ่มต้น</p></div><button class="btn" id="lessonPlayerBack">← กลับหน้าบทเรียน</button></div>
+        <div class="detail-wrap" style="grid-template-columns:minmax(0,1fr) 300px">
+          <article class="detail"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tag" id="lessonPlayerType">บทเรียน</span><span class="doc-meta" id="lessonPlayerDuration"></span></div><h2 id="lessonUnitTitle" style="font-size:26px"></h2><div class="callout" id="lessonUnitSummary" hidden></div><div id="lessonUnitContent" style="white-space:pre-wrap;line-height:1.8;min-height:240px"></div><a class="btn primary" id="lessonUnitLink" href="#" target="_blank" rel="noopener" hidden>เปิดสื่อการเรียนรู้ ↗</a><div class="form-footer" style="margin-top:28px"><button class="btn" id="previousLessonUnit">← หน่วยก่อนหน้า</button><span class="doc-meta" id="lessonUnitPosition"></span><button class="btn primary" id="nextLessonUnit">หน่วยถัดไป →</button></div></article>
+          <aside><div class="side-card"><h3>หน่วยการเรียน</h3><div id="lessonPlayerUnitList" style="display:grid;gap:8px"></div></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="lessonUnitsManageView">
+        <div class="page-head"><div><h1>จัดการหน่วยการเรียน</h1><p>เพิ่ม แก้ไข และจัดลำดับหน่วยภายในบทเรียน</p></div><button class="btn" id="unitManagerBack">← กลับหน้าบทเรียน</button></div>
+        <div class="panel" style="padding:18px;margin-bottom:18px"><div class="field"><label>เลือกบทเรียน *</label><select id="unitLessonSelect"></select></div></div>
+        <div class="two-col" style="align-items:start"><div class="panel"><div class="panel-head"><span>หน่วยการเรียนในบทเรียน</span><span class="tag" id="lessonUnitCount">0 หน่วย</span></div><div class="table-wrap" style="border:0;border-radius:0"><table><thead><tr><th>ลำดับ</th><th>ชื่อหน่วย</th><th>รูปแบบ</th><th>เวลา</th><th></th></tr></thead><tbody id="lessonUnitTableBody"></tbody></table></div></div>
+          <div class="form-card" style="margin:0"><form id="lessonUnitForm" class="form-grid"><div class="form-section-title" id="lessonUnitFormTitle">เพิ่มหน่วยการเรียน</div><div class="field"><label>ลำดับหน่วย *</label><input id="unitOrder" type="number" min="1" required></div><div class="field"><label>รูปแบบ *</label><select id="unitType" required><option value="reading">บทเรียนแบบอ่าน</option><option value="slide">สไลด์นำเสนอ</option><option value="video">วิดีโอ</option><option value="quiz">แบบทดสอบ</option></select></div><div class="field full"><label>ชื่อหน่วยการเรียน *</label><input id="unitTitle" required></div><div class="field"><label>ระยะเวลา (นาที)</label><input id="unitDuration" type="number" min="0"></div><div class="field"><label>ลิงก์เนื้อหา</label><input id="unitUrl" type="url" placeholder="https://..."></div><div class="field full"><label>สรุปหน่วยการเรียน</label><textarea id="unitSummary" rows="3"></textarea></div><div class="field full"><label>เนื้อหาบทเรียน</label><textarea id="unitContent" rows="7"></textarea></div><div class="form-footer"><span class="required-note">* ช่องที่จำเป็นต้องกรอก</span><div style="display:flex;gap:8px"><button type="button" class="btn" id="cancelLessonUnit">ล้างแบบฟอร์ม</button><button class="btn primary">บันทึกหน่วยการเรียน</button></div></div></form></div>
+        </div>
+      </section>
+
+      <section class="view" id="savedView"><div class="page-head"><div><h1>รายการที่บันทึกไว้</h1><p>จัดกลุ่มองค์ความรู้ที่ต้องกลับมาใช้งานได้อย่างรวดเร็ว</p></div><button class="btn demo">＋ สร้างโฟลเดอร์</button></div><div class="category-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px"><button class="category"><span>📁</span><b>มรดก</b><small>8 รายการ</small></button><button class="category"><span>📁</span><b>คนต่างด้าว</b><small>12 รายการ</small></button><button class="category"><span>📁</span><b>ใช้ตอบข้อหารือ</b><small>16 รายการ</small></button><button class="category"><span>📁</span><b>ยังไม่ได้จัดกลุ่ม</b><small>4 รายการ</small></button></div><div class="panel"><div class="panel-head">บันทึกล่าสุด <select class="select"><option>ทั้งหมด</option><option>คู่มือ</option><option>หนังสือเวียน</option></select></div><div class="doc open-detail"><div class="file">KM</div><div><div class="doc-title">การจดทะเบียนโอนมรดกที่ดิน</div><div class="doc-meta">อยู่ในโฟลเดอร์ “มรดก” • บันทึกเมื่อวาน</div></div><button class="save">★</button></div><div class="doc"><div class="file">PDF</div><div><div class="doc-title">แนวทางตรวจสอบการถือครองที่ดินแทนคนต่างด้าว</div><div class="doc-meta">อยู่ในโฟลเดอร์ “คนต่างด้าว” • มีฉบับใหม่</div></div><button class="save">★</button></div></div></section>
+
+      <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
+
+      <section class="view" id="usersView"><div class="page-head"><div><h1>ผู้ใช้งานและสิทธิ</h1><p>กำหนดบทบาท หน่วยงาน และขอบเขตการจัดการเนื้อหา</p></div><button class="btn primary demo">＋ เพิ่มผู้ใช้งาน</button></div><div class="stat-grid"><div class="stat-card"><small>ผู้ใช้งานทั้งหมด</small><strong>248</strong></div><div class="stat-card"><small>ผู้ดูแลระบบ</small><strong>6</strong></div><div class="stat-card"><small>ผู้ตรวจสอบ</small><strong>18</strong></div><div class="stat-card"><small>ผู้เขียนเนื้อหา</small><strong>52</strong></div></div><div class="table-wrap"><table><thead><tr><th>ผู้ใช้งาน</th><th>หน่วยงาน</th><th>บทบาท</th><th>สถานะ</th><th>เข้าใช้ล่าสุด</th><th></th></tr></thead><tbody><tr><td><b>Phongsathorm Boonprasert</b><br><small>phongsathorm@dol.go.th</small></td><td>สำนักมาตรฐานการทะเบียนที่ดิน</td><td>ผู้ดูแลระบบ</td><td><span class="status">ใช้งาน</span></td><td>วันนี้</td><td><button class="btn demo">จัดการ</button></td></tr><tr><td><b>เจ้าหน้าที่ตรวจสอบเนื้อหา</b><br><small>reviewer@dol.go.th</small></td><td>ส่วนกำหนดสิทธิฯ</td><td>ผู้ตรวจสอบ</td><td><span class="status">ใช้งาน</span></td><td>เมื่อวาน</td><td><button class="btn demo">จัดการ</button></td></tr></tbody></table></div></section>
+
+      <section class="view" id="reportsView"><div class="page-head"><div><h1>รายงานการใช้งาน</h1><p>ติดตามการเข้าถึง คุณภาพ และช่องว่างขององค์ความรู้</p></div><button class="btn demo">⇩ ส่งออกรายงาน</button></div><div class="stat-grid"><div class="stat-card"><small>การค้นหาเดือนนี้</small><strong>12,486</strong><small style="color:#027a48">↑ 18% จากเดือนก่อน</small></div><div class="stat-card"><small>เปิดอ่านเอกสาร</small><strong>8,941</strong><small>71.6% ของการค้นหา</small></div><div class="stat-card"><small>คำค้นที่ไม่พบ</small><strong style="color:var(--warn)">126</strong><small>ควรสร้างองค์ความรู้เพิ่ม</small></div><div class="stat-card"><small>รอทบทวน</small><strong>9</strong><small>ภายใน 30 วัน</small></div></div><div class="two-col"><div class="panel"><div class="panel-head">หมวดที่มีการเปิดอ่านมากที่สุด</div><div style="padding:18px"><p>มรดก <b style="float:right">82%</b></p><div class="progress"><i style="width:82%"></i></div><p>คนต่างด้าวและนิติบุคคล <b style="float:right">68%</b></p><div class="progress"><i style="width:68%"></i></div><p>จำนองและขายฝาก <b style="float:right">54%</b></p><div class="progress"><i style="width:54%"></i></div><p>ภาระจำยอม <b style="float:right">41%</b></p><div class="progress"><i style="width:41%"></i></div></div></div><div class="panel"><div class="panel-head">คำค้นที่ยังไม่พบคำตอบ</div><div class="doc"><div class="file">1</div><div><div class="doc-title">เปลี่ยนประเภทผู้รับสัญญา</div><div class="doc-meta">ค้นหา 38 ครั้ง</div></div></div><div class="doc"><div class="file">2</div><div><div class="doc-title">คืน น.ส.3 ระหว่างประกาศ</div><div class="doc-meta">ค้นหา 24 ครั้ง</div></div></div><div class="doc"><div class="file">3</div><div><div class="doc-title">แปรสภาพห้างหุ้นส่วน</div><div class="doc-meta">ค้นหา 19 ครั้ง</div></div></div></div></div></section>
+
+      <section class="view" id="formView"><div class="page-head"><div><h1>เพิ่มเนื้อหา</h1><p>เลือกประเภทเนื้อหา ระบบจะแสดงแบบฟอร์มที่เหมาะสมโดยอัตโนมัติ</p></div><button class="btn" id="formBack">← กลับหน้าจัดการ</button></div><div class="form-type-grid"><button class="form-type active" data-formtype="knowledge"><span>💡</span>องค์ความรู้</button><button class="form-type" data-formtype="law"><span>⚖️</span>กฎหมาย/หนังสือเวียน</button><button class="form-type" data-formtype="guide"><span>📘</span>คู่มือ/แนวทาง</button><button class="form-type" data-formtype="lesson"><span>▷</span>บทเรียนออนไลน์</button><button class="form-type" data-formtype="qa"><span>◎</span>คำถาม–คำตอบ</button></div><div class="panel" style="padding:22px"><form id="contentForm" class="form-grid"><div class="form-section-title">ข้อมูลพื้นฐาน</div><div class="field full"><label id="contentTitleLabel">ชื่อองค์ความรู้ *</label><input id="contentTitle" required placeholder="ระบุชื่อเรื่องให้ชัดเจนและค้นหาได้ง่าย"><small>ควรสั้น กระชับ และมีคำสำคัญของเรื่อง</small></div><div class="field"><label>หมวดเนื้อหา *</label><select id="contentCategory" required><option value="">เลือกหมวด</option><option>ขาย</option><option>ให้</option><option>จำนอง</option><option>ขายฝาก</option><option>มรดก</option><option>คนต่างด้าว</option><option>นิติบุคคล</option><option>ภาระจำยอม</option><option>ปิดประกาศ 30 วัน</option></select></div><div class="field"><label>หน่วยงานเจ้าของเนื้อหา *</label><select id="contentOwnerUnit" required><option>สำนักมาตรฐานการทะเบียนที่ดิน</option><option>สำนักงานที่ดินจังหวัด</option><option>หน่วยงานอื่น</option></select></div><div class="field full"><label>คำสำคัญ</label><input id="contentKeywords" placeholder="คั่นแต่ละคำด้วยเครื่องหมายจุลภาค เช่น มรดก, ผู้จัดการมรดก, ท.ด.81"></div>
+      <div class="specific-fields active" data-fields="knowledge"><div class="form-section-title">รายละเอียดองค์ความรู้</div><div class="field full"><label>สรุปสาระสำคัญ *</label><textarea id="knowledgeSummary" rows="3" required placeholder="สรุปคำตอบหรือหลักปฏิบัติที่สำคัญ"></textarea></div><div class="field full"><label>ข้อเท็จจริงหรือบริบท</label><textarea id="knowledgeContext" rows="3" placeholder="อธิบายสถานการณ์หรือปัญหาที่เป็นที่มาขององค์ความรู้"></textarea></div><div class="field full"><label>ข้อกฎหมายและหนังสืออ้างอิง</label><textarea id="knowledgeReferences" rows="3" placeholder="ระบุมาตรา ระเบียบ คำสั่ง หนังสือเวียน หรือแนวคำพิพากษาที่เกี่ยวข้อง"></textarea></div><div class="field full"><label>แนวทางปฏิบัติ *</label><textarea id="knowledgeGuidance" rows="5" placeholder="ระบุขั้นตอนหรือหลักพิจารณาตามลำดับ"></textarea></div><div class="field"><label>ข้อควรระวัง</label><textarea id="knowledgeCautions" rows="3"></textarea></div><div class="field"><label>กรณีตัวอย่าง</label><textarea id="knowledgeExample" rows="3"></textarea></div></div>
+      <div class="specific-fields" data-fields="law"><div class="form-section-title">ข้อมูลเอกสารกฎหมาย</div><div class="field"><label>ประเภทเอกสาร *</label><select id="lawType"><option>ประมวลกฎหมาย</option><option>พระราชบัญญัติ</option><option>กฎกระทรวง</option><option>ระเบียบ/คำสั่ง</option><option>หนังสือเวียน</option><option>แนววินิจฉัย</option></select></div><div class="field"><label>เลขที่เอกสาร *</label><input id="lawDocumentNo" placeholder="เช่น มท 0515.2/ว 19097"></div><div class="field"><label>วันที่ลงนาม/ประกาศ *</label><input id="lawDocumentDate" type="date"></div><div class="field"><label>วันที่มีผลใช้บังคับ</label><input id="lawEffectiveDate" type="date"></div><div class="field"><label>หน่วยงานผู้ออก</label><input id="lawIssuingAuthority" placeholder="เช่น กระทรวงมหาดไทย"></div><div class="field"><label>สถานะเอกสาร *</label><select id="lawLegalStatus"><option>ใช้บังคับ</option><option>แก้ไขเพิ่มเติม</option><option>ยกเลิกแล้ว</option><option>รอตรวจสอบสถานะ</option></select></div><div class="field full"><label>ชื่อเรื่องตามเอกสาร *</label><input id="lawOfficialTitle" placeholder="ระบุชื่อเรื่องเต็ม"></div><div class="field full"><label>สรุปสาระสำคัญ</label><textarea id="lawLegalSummary" rows="4"></textarea></div><div class="field"><label>แก้ไข/ยกเลิกเอกสารฉบับใด</label><input id="lawSupersedes" placeholder="เลขที่เอกสารเดิม"></div><div class="field"><label>เอกสารฉบับใดแก้ไขเพิ่มเติมฉบับนี้</label><input id="lawAmendedBy" placeholder="เลขที่เอกสารใหม่"></div></div>
+      <div class="specific-fields" data-fields="guide"><div class="form-section-title">รายละเอียดคู่มือและแนวทาง</div><div class="field"><label>ประเภทสื่อ *</label><select id="guideType"><option>ขั้นตอนปฏิบัติงาน</option><option>Checklist</option><option>แบบฟอร์ม</option><option>อินโฟกราฟิก</option></select></div><div class="field"><label>เลขที่เวอร์ชัน</label><input id="guideVersionNo" placeholder="เช่น 1.0"></div><div class="field"><label>กลุ่มเป้าหมาย</label><select id="guideTargetGroup"><option>เจ้าหน้าที่ทุกระดับ</option><option>เจ้าพนักงานที่ดิน</option><option>หัวหน้างาน</option><option>ประชาชน</option></select></div><div class="field"><label>วันที่ทบทวนครั้งถัดไป</label><input id="guideReviewDue" type="date"></div><div class="field full"><label>วัตถุประสงค์ *</label><textarea id="guideObjective" rows="3"></textarea></div><div class="field full"><label>ขั้นตอนปฏิบัติ *</label><textarea id="guideSteps" rows="6" placeholder="เขียนเป็นลำดับ 1, 2, 3 พร้อมเงื่อนไขแต่ละขั้นตอน"></textarea></div><div class="field full"><label>เอกสารและหลักฐานที่ต้องใช้</label><textarea id="guideRequiredDocuments" rows="3"></textarea></div></div>
+      <div class="specific-fields" data-fields="lesson"><div class="form-section-title">รายละเอียดบทเรียนออนไลน์</div><div class="field"><label>รูปแบบบทเรียน *</label><select id="lessonFormat"><option value="slide">สไลด์นำเสนอ</option><option value="video">วิดีโอ</option><option value="reading">บทเรียนแบบอ่าน</option><option value="quiz">แบบทดสอบ</option><option value="course">หลักสูตรหลายบท</option></select></div><div class="field"><label>ระดับบทเรียน</label><select id="lessonLevel"><option>พื้นฐาน</option><option>ระดับกลาง</option><option>ระดับสูง</option></select></div><div class="field"><label>ระยะเวลาโดยประมาณ</label><input id="lessonDuration" inputmode="numeric" placeholder="เช่น 30 นาที"></div><div class="field"><label>ผู้สอน/ผู้จัดทำ</label><input id="lessonInstructor" placeholder="ชื่อและตำแหน่ง"></div><div class="field full"><label>ผลลัพธ์การเรียนรู้ *</label><textarea id="lessonLearningOutcomes" rows="3" placeholder="เมื่อเรียนจบ ผู้เรียนจะสามารถ..."></textarea></div><div class="field full"><label>คำอธิบายบทเรียน</label><textarea id="lessonDescription" rows="3"></textarea></div><div class="field"><label>เกณฑ์ผ่าน</label><input id="lessonPassingCriteria" placeholder="เช่น ทำแบบทดสอบได้ไม่น้อยกว่า 80%"></div><div class="field"><label>ใบรับรอง</label><select id="lessonCertificate"><option value="false">ไม่มี</option><option value="true">มีใบรับรองเมื่อผ่าน</option></select></div><div class="field full"><label>ลิงก์วิดีโอ/สไลด์ หรือ Embed URL</label><input id="lessonMediaUrl" type="url" placeholder="https://..."></div></div>
+      <div class="specific-fields" data-fields="qa"><div class="form-section-title">รายละเอียดคำถาม–คำตอบ</div><div class="field full"><label>คำถาม *</label><textarea id="qaQuestionText" rows="3" placeholder="ตั้งคำถามให้เฉพาะเจาะจง"></textarea></div><div class="field full"><label>รายละเอียดข้อเท็จจริง *</label><textarea id="qaDetails" rows="5" placeholder="อธิบายบริบท เอกสาร และประเด็นที่ต้องการคำตอบ โดยหลีกเลี่ยงข้อมูลส่วนบุคคล"></textarea></div><div class="field"><label>ระดับความเร่งด่วน</label><select id="qaUrgency"><option value="normal">ทั่วไป</option><option value="seven_days">ต้องการคำตอบภายใน 7 วัน</option><option value="urgent">เร่งด่วน</option></select></div><div class="field"><label>สถานะคำถาม</label><select id="qaStatus"><option value="open">เปิดรับคำตอบ</option><option value="answered">มีคำตอบแล้ว</option><option value="closed">ปิดคำถาม</option></select></div><div class="field full"><label>คำตอบที่ได้รับการรับรอง</label><textarea id="qaCertifiedAnswer" rows="4" placeholder="สำหรับผู้เชี่ยวชาญหรือผู้ตรวจสอบ"></textarea></div></div>
+      <div class="form-section-title">เอกสารประกอบและการเผยแพร่</div><div class="field full"><label>ไฟล์เอกสารใน Google Drive</label><div class="upload-zone">☁ อัปโหลดไฟล์ลงโฟลเดอร์ Land KM ใน Google Drive ก่อน<br><small>ตั้งสิทธิ์การเข้าถึงให้เหมาะสม แล้วนำลิงก์มาใส่ในช่องด้านล่าง</small></div></div><div class="field"><label>ลิงก์เอกสารต้นฉบับ</label><input id="contentSourceUrl" type="url" placeholder="วางลิงก์ Google Drive หรือ URL อื่น"></div><div class="field"><label>ระดับการเข้าถึง</label><select id="contentAccessLevel"><option value="internal">บุคลากรกรมที่ดิน</option><option value="restricted">เฉพาะผู้มีสิทธิ</option><option value="public">เผยแพร่สาธารณะ</option></select></div><div class="field"><label>ผู้ตรวจสอบเนื้อหา</label><select id="contentReviewer"><option value="">เลือกผู้ตรวจสอบ</option><option>หัวหน้ากลุ่มงาน</option><option>ผู้อำนวยการส่วน</option></select></div><div class="field"><label>วันที่ครบกำหนดทบทวน</label><input id="contentReviewDue" type="date"></div><div class="form-footer"><span class="required-note">* ช่องที่จำเป็นต้องกรอก · ข้อมูลจะบันทึกลง Firestore เมื่อกดปุ่ม</span><div style="display:flex;gap:8px"><button type="button" class="btn" id="previewContent">ดูตัวอย่าง</button><button type="button" class="btn" id="saveDraft">บันทึกฉบับร่าง</button><button class="btn primary">ส่งให้ตรวจสอบ</button></div></div></form></div></section>
+    </div>
+  </main>
+</div>
+<div class="toast" id="toast">บันทึกรายการแล้ว</div>
+<script>
+  const views=[...document.querySelectorAll('.view')], navs=[...document.querySelectorAll('[data-view]')];
+  function show(id,name){views.forEach(v=>v.classList.toggle('active',v.id===id));navs.forEach(n=>n.classList.toggle('active',n.dataset.view===id));document.getElementById('pageName').textContent=name||'ค้นหาความรู้';scrollTo(0,0)}
+  navs.forEach(n=>n.onclick=()=>show(n.dataset.view,n.dataset.title||n.textContent.trim()));
+  function search(q){q=q.trim()||'การโอนมรดก';document.getElementById('queryLabel').textContent=q;document.getElementById('resultInput').value=q;show('searchView','ค้นหาความรู้')}
+  document.getElementById('heroSearch').onsubmit=e=>{e.preventDefault();search(document.getElementById('heroInput').value)};
+  document.getElementById('resultSearch').onsubmit=e=>{e.preventDefault();search(document.getElementById('resultInput').value)};
+  document.querySelectorAll('#home .chip,#home .category').forEach(b=>b.onclick=()=>search(b.textContent.trim().replace(/\d+ รายการ/,'')));
+  document.querySelectorAll('.open-doc,.result-card .primary').forEach(b=>b.onclick=e=>{if(e.target.classList.contains('save'))return;show('detailView','รายละเอียดองค์ความรู้')});
+  document.getElementById('back').onclick=()=>show('searchView','ค้นหาความรู้');
+  function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
+  document.querySelectorAll('.save,.save-action').forEach(b=>b.onclick=e=>{e.stopPropagation();b.textContent=b.textContent.includes('★')?'☆':'★ บันทึกแล้ว';toast('บันทึกรายการแล้ว')});
+  document.getElementById('copyLink').onclick=()=>toast('คัดลอกลิงก์แล้ว');document.getElementById('propose').onclick=()=>show('formView','เสนอองค์ความรู้');
+  document.getElementById('newContent').onclick=()=>show('formView','สร้างเนื้อหา');
+  document.querySelectorAll('.open-detail').forEach(b=>b.onclick=()=>show('detailView','รายละเอียดองค์ความรู้'));
+  document.querySelectorAll('.demo').forEach(b=>b.onclick=()=>toast('เปิดหน้าต่างการทำงานตัวอย่างแล้ว'));
+  document.querySelectorAll('.tabs').forEach(t=>t.querySelectorAll('button').forEach(b=>b.onclick=()=>{t.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active');toast('เลือก “'+b.textContent.trim()+'” แล้ว')}));
+  document.querySelectorAll('form').forEach(f=>{if(!f.onsubmit)f.onsubmit=e=>{e.preventDefault();toast('แสดงผลการค้นหาตัวอย่างแล้ว')}});
+  document.getElementById('contentForm').onsubmit=e=>{e.preventDefault();toast('บันทึกฉบับร่างแล้ว')};
+  const categoryGroups={
+    'การโอนและนิติกรรม':['ขาย','ให้','แลกเปลี่ยน','โอนชำระหนี้','โอนตามกฎหมาย','โอนมรดก','ขายฝาก','จำนอง','ไถ่ถอนจำนอง','เช่า','เช่าช่วง','แบ่งเช่า','แก้ไขสัญญา'],
+    'สิทธิและภาระผูกพัน':['ภาระจำยอม','สิทธิเก็บกิน','สิทธิเหนือพื้นดิน','สิทธิอาศัย','ภาระติดพันในอสังหาริมทรัพย์','ทรัพย์อิงสิทธิ','ครอบครองปรปักษ์','ทางจำเป็น','กรรมสิทธิ์รวม'],
+    'มรดกและครอบครัว':['มรดก','ผู้จัดการมรดก','ทายาทโดยธรรม','พินัยกรรม','สินสมรส','สินส่วนตัว','ผู้เยาว์','คนไร้ความสามารถ'],
+    'บุคคลและนิติบุคคล':['คนต่างด้าว','นิติบุคคล','นอมินี','บริษัทจำกัด','ห้างหุ้นส่วน','วัดและศาสนสถาน','มูลนิธิและสมาคม','โรงเรียนเอกชน','รัฐวิสาหกิจ'],
+    'เอกสารสิทธิและรังวัด':['โฉนดที่ดิน','น.ส.3','น.ส.3 ก.','ใบไต่สวน','สอบเขต','แบ่งแยก','รวมโฉนด','เปลี่ยน น.ส.3 เป็นโฉนด','ออกใบแทน','เอกสารสูญหาย'],
+    'งานทะเบียนและข้อจำกัด':['ปิดประกาศ 30 วัน','เพิกถอนและแก้ไขทะเบียน','อายัดที่ดิน','ยึดและขายทอดตลาด','ห้ามโอน','จัดสรรที่ดิน','อาคารชุด','ที่ราชพัสดุ','ปฏิรูปที่ดิน']
+  };
+  const popular=['ขาย','ให้','จำนอง','มรดก','ขายฝาก','เช่า','ภาระจำยอม','คนต่างด้าว'];
+  const selected=new Set(['มรดก']);
+  const popularBox=document.getElementById('popularCats'),categoryBox=document.getElementById('categoryBox'),selectedBox=document.getElementById('selectedCats'),catSearch=document.getElementById('categorySearch');
+  function chooseCat(name){selected.has(name)?selected.delete(name):selected.add(name);renderCategories(catSearch.value);updateSelected()}
+  function updateSelected(){selectedBox.innerHTML='';selected.forEach(name=>{const b=document.createElement('button');b.className='selected-item';b.textContent=name+' ×';b.onclick=()=>chooseCat(name);selectedBox.appendChild(b)});document.getElementById('filterCount').textContent=selected.size||'0'}
+  function renderPopular(){popularBox.innerHTML='';popular.forEach(name=>{const b=document.createElement('button');b.className='cat-pill'+(selected.has(name)?' selected':'');b.textContent=name;b.onclick=()=>chooseCat(name);popularBox.appendChild(b)})}
+  function renderCategories(term=''){categoryBox.innerHTML='';const q=term.trim().toLowerCase();Object.entries(categoryGroups).forEach(([group,names])=>{const found=names.filter(n=>n.toLowerCase().includes(q));if(!found.length)return;const d=document.createElement('details');d.className='category-group';d.open=!!q||['การโอนและนิติกรรม','มรดกและครอบครัว'].includes(group);const sum=document.createElement('summary');sum.textContent=group+' ('+found.length+')';d.appendChild(sum);const wrap=document.createElement('div');wrap.className='category-options';found.forEach(name=>{const label=document.createElement('label'),cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(name);cb.onchange=()=>chooseCat(name);label.append(cb,document.createTextNode(' '+name));wrap.appendChild(label)});d.appendChild(wrap);categoryBox.appendChild(d)});renderPopular()}
+  catSearch.oninput=()=>renderCategories(catSearch.value);document.getElementById('clearFilters').onclick=()=>{selected.clear();document.querySelectorAll('#searchView .filters input[type=checkbox]').forEach(x=>x.checked=false);catSearch.value='';renderCategories();updateSelected();toast('ล้างตัวกรองแล้ว')};document.getElementById('applyFilters').onclick=()=>{const names=[...selected];document.getElementById('resultsSummary').innerHTML=(names.length?'หมวด '+names.map(x=>'“'+x+'”').join(', '):'ทุกหมวด')+' • พบ '+(names.length?24:842)+' รายการ';toast('ใช้ตัวกรอง '+names.length+' หมวดแล้ว')};renderCategories();updateSelected();
+  const guideTrigger=document.getElementById('guideCategoryTrigger'),guideDrop=document.getElementById('guideDropdown'),guideGrid=document.getElementById('guideCategoryGrid'),guideSearch=document.getElementById('guideCategorySearch'),guideChosen=new Set();
+  const allGuideCats=[...new Set(Object.values(categoryGroups).flat())];
+  function renderGuidePicker(term=''){guideGrid.innerHTML='';const q=term.trim().toLowerCase();allGuideCats.filter(n=>n.toLowerCase().includes(q)).forEach(name=>{const label=document.createElement('label');label.className='guide-cat';const cb=document.createElement('input');cb.type='checkbox';cb.checked=guideChosen.has(name);cb.onchange=()=>{cb.checked?guideChosen.add(name):guideChosen.delete(name);updateGuideChoice();renderGuidePicker(guideSearch.value)};label.append(cb,document.createTextNode(name));guideGrid.appendChild(label)});if(!guideGrid.children.length){const note=document.createElement('div');note.className='doc-meta';note.style.padding='12px';note.textContent='ไม่พบหมวดที่ค้นหา';guideGrid.appendChild(note)}}
+  function updateGuideChoice(){const box=document.getElementById('guideSelected');box.innerHTML='';guideChosen.forEach(name=>{const b=document.createElement('button');b.className='selected-item';b.textContent=name+' ×';b.onclick=()=>{guideChosen.delete(name);updateGuideChoice();renderGuidePicker(guideSearch.value)};box.appendChild(b)});document.getElementById('guideTriggerText').textContent=guideChosen.size?('เลือกแล้ว '+guideChosen.size+' หมวด'):'ทุกหมวดเนื้อหา'}
+  guideTrigger.onclick=e=>{e.stopPropagation();guideDrop.classList.toggle('open');guideTrigger.classList.toggle('open');if(guideDrop.classList.contains('open'))guideSearch.focus()};guideDrop.onclick=e=>e.stopPropagation();document.addEventListener('click',()=>{guideDrop.classList.remove('open');guideTrigger.classList.remove('open')});guideSearch.oninput=()=>renderGuidePicker(guideSearch.value);document.getElementById('guideClear').onclick=()=>{guideChosen.clear();guideSearch.value='';updateGuideChoice();renderGuidePicker();toast('ล้างหมวดคู่มือแล้ว')};document.getElementById('guideApply').onclick=()=>{guideDrop.classList.remove('open');guideTrigger.classList.remove('open');const names=[...guideChosen];document.getElementById('guideListTitle').textContent=names.length?'คู่มือหมวด: '+names.join(', '):'คู่มือปรับปรุงล่าสุด';document.getElementById('guideResultCount').textContent='พบ '+(names.length?Math.max(3,38-names.length*4):113)+' รายการ';toast('แสดงคู่มือตามหมวดที่เลือกแล้ว')};document.getElementById('guideType').onchange=e=>toast('เลือก '+e.target.value+' แล้ว');document.querySelectorAll('#guidesView .category').forEach(b=>b.onclick=()=>{document.getElementById('guideType').value=b.querySelector('b').textContent;toast('กรองตาม '+b.querySelector('b').textContent)});renderGuidePicker();updateGuideChoice();
+  const lessonCards=[...document.querySelectorAll('#courseGrid .course-card')],lessonInput=document.getElementById('lessonSearch');
+  function filterLessons(media='all'){const q=lessonInput.value.trim().toLowerCase();let shown=0;lessonCards.forEach(c=>{const okMedia=media==='all'||c.dataset.media===media,okText=!q||c.textContent.toLowerCase().includes(q);c.style.display=okMedia&&okText?'block':'none';if(okMedia&&okText)shown++});document.querySelector('#learningView .section-title .doc-meta').textContent='พบ '+shown+' บทเรียน';document.getElementById('lessonListTitle').textContent=q?'ผลการค้นหา “'+lessonInput.value.trim()+'”':'บทเรียนแนะนำ'}
+  document.querySelectorAll('#lessonTabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#lessonTabs button').forEach(x=>x.classList.remove('active'));b.classList.add('active');filterLessons(b.dataset.media)});document.querySelector('#learningView .search button').onclick=()=>filterLessons(document.querySelector('#lessonTabs .active').dataset.media);lessonInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();filterLessons(document.querySelector('#lessonTabs .active').dataset.media)}};document.getElementById('lessonCategory').onchange=e=>toast('เลือกหมวด '+e.target.value+' แล้ว');document.querySelectorAll('.lesson-action').forEach(b=>b.onclick=()=>toast('เปิดหน้าบทเรียนตัวอย่างแล้ว'));
+  const formNames={knowledge:'องค์ความรู้',law:'กฎหมาย/หนังสือเวียน',guide:'คู่มือ/แนวทางปฏิบัติ',lesson:'บทเรียนออนไลน์',qa:'คำถาม–คำตอบ'};
+  function setFormType(type){document.querySelectorAll('.form-type').forEach(b=>b.classList.toggle('active',b.dataset.formtype===type));document.querySelectorAll('.specific-fields').forEach(p=>{const active=p.dataset.fields===type;p.classList.toggle('active',active);p.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=!active)});document.getElementById('contentTitleLabel').textContent='ชื่อ'+formNames[type]+' *';document.getElementById('contentTitle').placeholder=type==='law'?'ระบุชื่อเรื่องตามเอกสาร':type==='lesson'?'ระบุชื่อบทเรียนหรือหลักสูตร':type==='qa'?'สรุปคำถามให้ชัดเจน':'ระบุชื่อเรื่องให้ชัดเจนและค้นหาได้ง่าย';show('formView','เพิ่ม'+formNames[type])}
+  document.querySelectorAll('.form-type').forEach(b=>b.onclick=()=>setFormType(b.dataset.formtype));setFormType('knowledge');show('home','หน้าแรก');
+  document.querySelector('#lawsView .page-head .btn').onclick=()=>setFormType('law');document.querySelector('#guidesView .page-head .btn').onclick=()=>setFormType('guide');document.querySelector('#learningView .page-head .btn').onclick=()=>setFormType('lesson');document.querySelector('#qaView .page-head .btn').onclick=()=>setFormType('qa');document.getElementById('propose').onclick=()=>setFormType('knowledge');document.getElementById('newContent').onclick=()=>setFormType('knowledge');
+  document.getElementById('formBack').onclick=()=>show('manageView','จัดการเนื้อหา');document.getElementById('previewContent').onclick=()=>toast('เปิดตัวอย่างก่อนเผยแพร่แล้ว');document.getElementById('saveDraft').onclick=()=>toast('จำลองการบันทึกฉบับร่างแล้ว — ยังไม่ส่งฐานข้อมูล');document.getElementById('contentForm').onsubmit=e=>{e.preventDefault();toast('ตรวจแบบฟอร์มครบแล้ว — พร้อมส่งให้ผู้ตรวจสอบเมื่อเชื่อมระบบหลังบ้าน')};
+  function makeComment(text,reply=false){const row=document.createElement('div');row.className='comment-item'+(reply?' reply':'');const av=document.createElement('div');av.className='avatar';av.textContent='P';const body=document.createElement('div'),head=document.createElement('b'),meta=document.createElement('span'),p=document.createElement('p'),actions=document.createElement('div');head.textContent='Phongsathorm';meta.className='doc-meta';meta.textContent=' • เมื่อสักครู่';p.textContent=text;actions.className='comment-actions';['♡ มีประโยชน์ 0','ตอบกลับ','แก้ไข','ลบ','รายงาน'].forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>i===0?(b.textContent='♥ มีประโยชน์ 1'):i===1?quickReply(row):toast(t+'ความคิดเห็นแล้ว');actions.appendChild(b)});body.append(head,meta,p,actions);row.append(av,body);return row}
+  function quickReply(target){const text=prompt('พิมพ์ข้อความตอบกลับ');if(text){target.after(makeComment(text,true));toast('เพิ่มข้อความตอบกลับแล้ว')}}
+  document.getElementById('postComment').onclick=()=>{const input=document.getElementById('commentInput'),text=input.value.trim();if(!text)return toast('กรุณากรอกความคิดเห็น');document.getElementById('commentList').prepend(makeComment(text));input.value='';toast('ส่งความคิดเห็นแล้ว')};document.querySelectorAll('.helpful').forEach(b=>b.onclick=()=>{b.textContent=b.textContent.startsWith('♥')?b.textContent.replace('♥','♡'):b.textContent.replace('♡','♥');toast('บันทึกความเห็นแล้ว')});document.querySelectorAll('.reply-btn').forEach(b=>b.onclick=()=>quickReply(b.closest('.comment-item,.answer-card')));
+  document.querySelectorAll('.open-question').forEach(q=>q.onclick=()=>show('qaDetailView','รายละเอียดคำถาม'));document.getElementById('qaBack').onclick=()=>show('qaView','ถาม–ตอบ');document.getElementById('followQuestion').onclick=e=>{e.target.textContent=e.target.textContent.startsWith('★')?'☆ ติดตามคำถาม':'★ กำลังติดตาม';toast('อัปเดตการติดตามแล้ว')};document.getElementById('answerPreview').onclick=()=>toast('เปิดตัวอย่างคำตอบแล้ว');document.getElementById('postAnswer').onclick=()=>{const x=document.getElementById('answerInput');if(!x.value.trim())return toast('กรุณากรอกคำตอบ');x.value='';toast('ส่งคำตอบแล้ว')};document.getElementById('closeQuestion').onclick=e=>{e.target.textContent='เปิดคำถามอีกครั้ง';toast('ปิดคำถามแล้ว')};document.querySelectorAll('.accept-answer').forEach(b=>b.onclick=()=>{b.closest('.answer-card').classList.add('accepted');b.textContent='✓ รับรองแล้ว';toast('รับรองคำตอบแล้ว')});
+</script>
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+  import { collection, doc, getDoc, getDocs, getFirestore, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: 'AIzaSyB81hThbyJCsQxBLXoqj9bWtk7VhX1_jx0',
+    authDomain: 'land-km-gpt.firebaseapp.com',
+    projectId: 'land-km-gpt',
+    storageBucket: 'land-km-gpt.firebasestorage.app',
+    messagingSenderId: '960096209691',
+    appId: '1:960096209691:web:d42b2cd2617d897e4fa1be',
+    measurementId: 'G-XEGXBMT1SQ'
+  };
+
+  const ADMIN_EMAIL = 'boonprasertlawyer@gmail.com';
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const db = getFirestore(firebaseApp);
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const gate = document.getElementById('authGate');
+  const shell = document.getElementById('appShell');
+  const errorBox = document.getElementById('authError');
+  let contentItems = [];
+  let lessonsData = [];
+  let lessonUnitsData = [];
+  let editingLessonUnitId = null;
+  let activeLessonUnits = [];
+  let activeLessonUnitIndex = 0;
+  let editingContentId = null;
+  let questionsData = [];
+  let answersData = [];
+  let currentQuestionId = null;
+  let currentContentId = null;
+
+  function showLogin(message = '') {
+    gate.hidden = false;
+    shell.classList.add('auth-pending');
+    errorBox.textContent = message;
+  }
+
+  function showApp(user) {
+    gate.hidden = true;
+    shell.classList.remove('auth-pending');
+    document.getElementById('userName').textContent = user.displayName || 'ผู้ดูแลระบบ';
+    document.getElementById('userEmail').textContent = user.email || ADMIN_EMAIL;
+    document.getElementById('userAvatar').textContent = (user.displayName || user.email || 'P').trim().charAt(0).toUpperCase();
+  }
+
+  async function loadCategories() {
+    const status = document.getElementById('firebaseStatus');
+    try {
+      const snapshot = await getDocs(collection(db, 'categories'));
+      const categories = snapshot.docs
+        .map(item => ({ id: item.id, ...item.data() }))
+        .filter(item => item.is_active !== false)
+        .sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
+      const select = document.querySelector('#contentForm .field select[required]');
+      if (select && categories.length) {
+        select.innerHTML = '<option value="">เลือกหมวด</option>';
+        categories.forEach(category => {
+          const option = document.createElement('option');
+          option.value = category.category_id || category.id;
+          option.textContent = category.category_name || category.id;
+          select.appendChild(option);
+        });
+      }
+      status.className = 'tag';
+      status.textContent = `Firebase เชื่อมแล้ว • ${categories.length} หมวด`;
+    } catch (error) {
+      console.error('Load categories failed:', error);
+      status.className = 'tag orange';
+      status.textContent = 'เชื่อม Firestore ไม่สำเร็จ';
+    }
+  }
+
+  async function loadContents() {
+    try {
+      const snapshot = await getDocs(collection(db, 'contents'));
+      const items = snapshot.docs
+        .map(item => ({ id: item.id, ...item.data() }))
+        .sort((a, b) => (b.updated_at?.seconds || 0) - (a.updated_at?.seconds || 0));
+      contentItems = items;
+      const tbody = document.querySelector('#manageView .table-wrap tbody');
+      const stats = document.querySelectorAll('#manageView .stat-card strong');
+      if (stats[0]) stats[0].textContent = items.filter(item => item.workflow_status === 'draft').length;
+      if (stats[1]) stats[1].textContent = items.filter(item => item.workflow_status === 'review').length;
+      if (stats[2]) stats[2].textContent = items.filter(item => item.workflow_status === 'published').length;
+      renderPublishedContents(items.filter(item => item.workflow_status === 'published'));
+      await loadLaws();
+      await loadGuides();
+      await loadLessons();
+      await loadQuestions();
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      if (!items.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="6" class="doc-meta">ยังไม่มีเนื้อหาใน Firestore</td>';
+        tbody.appendChild(row);
+        return;
+      }
+      const typeLabels = { knowledge: 'องค์ความรู้', law: 'กฎหมาย/หนังสือเวียน', guide: 'คู่มือ/แนวทาง', lesson: 'บทเรียนออนไลน์', qa: 'คำถาม–คำตอบ' };
+      const statusLabels = { draft: 'ฉบับร่าง', review: 'รอตรวจสอบ', approved: 'อนุมัติแล้ว', published: 'เผยแพร่แล้ว', archived: 'เก็บถาวร' };
+      items.forEach(item => {
+        const row = document.createElement('tr');
+        const updated = item.updated_at?.toDate ? item.updated_at.toDate().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'เมื่อสักครู่';
+        row.innerHTML = `<td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td></td><td><span class="tag orange"></span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn edit-content">แก้ไข</button><button class="btn primary approve-content" hidden>อนุมัติ</button><button class="btn primary publish-content" hidden>เผยแพร่</button></div></td>`;
+        row.querySelector('b').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
+        row.querySelector('small').textContent = item.content_id || item.id;
+        row.children[1].textContent = typeLabels[item.content_type] || item.content_type || '-';
+        row.children[2].textContent = item.created_by || '-';
+        row.children[3].textContent = updated;
+        row.querySelector('.tag').textContent = statusLabels[item.workflow_status] || item.workflow_status || '-';
+        row.querySelector('.edit-content').onclick = () => editContent(item.id);
+        const approveButton = row.querySelector('.approve-content');
+        if (item.workflow_status === 'review') {
+          approveButton.hidden = false;
+          approveButton.onclick = () => approveContent(item.id);
+        }
+        const publishButton = row.querySelector('.publish-content');
+        if (item.workflow_status === 'approved') {
+          publishButton.hidden = false;
+          publishButton.onclick = () => publishContent(item.id);
+        }
+        tbody.appendChild(row);
+      });
+    } catch (error) {
+      console.error('Load contents failed:', error);
+      window.toast('อ่านรายการเนื้อหาจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  function renderPublishedContents(items) {
+    const resultsColumn = document.querySelector('#searchView .results-layout > div:last-child');
+    if (!resultsColumn) return;
+    resultsColumn.querySelectorAll('.result-card').forEach(card => card.remove());
+    const typeLabels = { knowledge: 'องค์ความรู้', law: 'กฎหมาย/หนังสือเวียน', guide: 'คู่มือ/แนวทาง', lesson: 'บทเรียนออนไลน์', qa: 'คำถาม–คำตอบ' };
+    items.forEach(item => {
+      const card = document.createElement('article');
+      card.className = 'result-card';
+      card.innerHTML = `<div><span class="tag"></span><h3></h3><div class="snippet"></div><div class="doc-meta"></div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div>`;
+      card.querySelector('.tag').textContent = typeLabels[item.content_type] || item.content_type || 'องค์ความรู้';
+      card.querySelector('h3').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
+      card.querySelector('.snippet').textContent = item.summary || 'เนื้อหาที่ผ่านการตรวจสอบและเผยแพร่ในระบบคลังความรู้';
+      card.querySelector('.doc-meta').textContent = `หมวด ${item.category_id || '-'} • เผยแพร่แล้ว`;
+      card.querySelector('.result-actions .btn:first-child').onclick = event => {
+        event.currentTarget.textContent = event.currentTarget.textContent === '☆' ? '★' : '☆';
+        window.toast('บันทึกรายการโปรดแล้ว');
+      };
+      card.querySelector('.result-actions .btn.primary').onclick = () => openContentFromFirestore(item);
+      resultsColumn.appendChild(card);
+    });
+    if (!items.length) {
+      const note = document.createElement('div');
+      note.className = 'empty-note';
+      note.textContent = 'ยังไม่มีเนื้อหาที่เผยแพร่';
+      resultsColumn.appendChild(note);
+    }
+    const summary = document.getElementById('resultsSummary');
+    if (summary) summary.textContent = `พบเนื้อหาที่เผยแพร่ ${items.length} รายการ`;
+  }
+
+  async function openContentFromFirestore(item) {
+    currentContentId = item.content_id || item.id;
+    const detailView = document.getElementById('detailView');
+    detailView.querySelector('h1').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
+    detailView.querySelector('.detail > div .tag').textContent = item.content_type || 'องค์ความรู้';
+    detailView.querySelector('.detail > div .status').textContent = '● เผยแพร่แล้ว';
+    detailView.querySelector('.callout').innerHTML = '<b>สรุปสาระสำคัญ</b><br>';
+    detailView.querySelector('.callout').append(document.createTextNode(item.summary || 'ยังไม่มีข้อความสรุป'));
+    const meta = detailView.querySelector('.detail-meta');
+    meta.innerHTML = '';
+    [
+      `รหัส: ${currentContentId}`,
+      `หมวด: ${item.category_id || '-'}`,
+      `เจ้าของเนื้อหา: ${item.owner_unit || item.created_by || '-'}`
+    ].forEach(text => {
+      const span = document.createElement('span');
+      span.textContent = text;
+      meta.appendChild(span);
+    });
+    await loadCommentsForContent();
+    window.show('detailView', 'รายละเอียดองค์ความรู้');
+  }
+
+  async function loadCommentsForContent() {
+    const list = document.getElementById('commentList');
+    if (!list || !currentContentId) return;
+    try {
+      const snapshot = await getDocs(collection(db, 'comments'));
+      const comments = snapshot.docs
+        .map(item => ({ id: item.id, ...item.data() }))
+        .filter(item => item.target_id === currentContentId)
+        .sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
+      list.innerHTML = '';
+      comments.forEach(comment => {
+        const row = document.createElement('div');
+        row.className = `comment-item${comment.parent_comment_id ? ' reply' : ''}`;
+        row.innerHTML = `<div class="avatar"></div><div><b></b> <span class="doc-meta"></span><p></p><div class="comment-actions"><button>♡ มีประโยชน์ 0</button><button>ตอบกลับ</button><button>รายงาน</button></div></div>`;
+        row.querySelector('.avatar').textContent = (comment.commented_by || 'ผ').charAt(0).toUpperCase();
+        row.querySelector('b').textContent = comment.commented_by || 'ผู้ใช้งาน';
+        row.querySelector('.doc-meta').textContent = `• ${comment.moderation_status || 'pending'}`;
+        row.querySelector('p').textContent = comment.comment_text || '';
+        list.appendChild(row);
+      });
+      if (!comments.length) {
+        const note = document.createElement('div');
+        note.className = 'doc-meta';
+        note.style.padding = '16px 0';
+        note.textContent = 'ยังไม่มีความคิดเห็นสำหรับเนื้อหานี้';
+        list.appendChild(note);
+      }
+      const count = document.querySelector('#detailView .comments .section-title .tag');
+      if (count) count.textContent = comments.length;
+    } catch (error) {
+      console.error('Load comments failed:', error);
+      window.toast('อ่านความคิดเห็นจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  async function postCommentToFirestore() {
+    const input = document.getElementById('commentInput');
+    const text = input.value.trim();
+    if (!currentContentId) return window.toast('ไม่พบรหัสเนื้อหา');
+    if (!text) return window.toast('กรุณากรอกความคิดเห็น');
+    const commentId = `COM-${Date.now()}`;
+    const button = document.getElementById('postComment');
+    button.disabled = true;
+    button.textContent = 'กำลังส่ง…';
+    try {
+      await setDoc(doc(db, 'comments', commentId), {
+        comment_id: commentId,
+        target_type: 'content',
+        target_id: currentContentId,
+        parent_comment_id: '',
+        comment_text: text,
+        commented_by: auth.currentUser.email,
+        moderation_status: 'pending',
+        created_at: serverTimestamp(),
+        firestore_id: commentId,
+        sync_status: 'success',
+        source: 'web_app'
+      });
+      input.value = '';
+      await loadCommentsForContent();
+      window.toast(`ส่งความคิดเห็นแล้ว • ${commentId}`);
+    } catch (error) {
+      console.error('Post comment failed:', error);
+      window.toast('ส่งความคิดเห็นไม่สำเร็จ');
+    } finally {
+      button.disabled = false;
+      button.textContent = 'ส่งความคิดเห็น';
+    }
+  }
+
+  async function loadLaws() {
+    try {
+      const snapshot = await getDocs(collection(db, 'laws'));
+      const laws = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      const tbody = document.querySelector('#lawsView tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      laws.forEach(law => {
+        const content = contentItems.find(item => item.content_id === law.content_id || item.id === law.content_id) || {};
+        const row = document.createElement('tr');
+        row.innerHTML = `<td><span class="tag orange"></span></td><td><b></b><br><small></small></td><td></td><td><span class="status"></span></td><td><button class="btn">เปิดอ่าน</button></td>`;
+        row.querySelector('.tag').textContent = law.law_type || 'กฎหมาย';
+        row.querySelector('b').textContent = law.document_no || law.content_id || law.id;
+        row.querySelector('small').textContent = content.title || law.legal_summary || '(ไม่มีชื่อเรื่อง)';
+        row.children[2].textContent = law.document_date?.toDate ? law.document_date.toDate().toLocaleDateString('th-TH', { dateStyle: 'medium' }) : (law.document_date || '-');
+        row.querySelector('.status').textContent = law.legal_status || 'ไม่ระบุสถานะ';
+        row.querySelector('button').onclick = () => window.toast(`เปิดข้อมูล ${law.document_no || law.content_id}`);
+        tbody.appendChild(row);
+      });
+      if (!laws.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="5" class="doc-meta">ยังไม่มีข้อมูลกฎหมายใน Firestore</td>';
+        tbody.appendChild(row);
+      }
+    } catch (error) {
+      console.error('Load laws failed:', error);
+      window.toast('อ่านข้อมูลกฎหมายจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  async function loadGuides() {
+    try {
+      const snapshot = await getDocs(collection(db, 'guides'));
+      const guides = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      const panel = document.querySelector('#guidesView .panel');
+      if (!panel) return;
+      panel.querySelectorAll(':scope > .doc').forEach(item => item.remove());
+      guides.forEach(guide => {
+        const content = contentItems.find(item => item.content_id === guide.content_id || item.id === guide.content_id) || {};
+        const item = document.createElement('div');
+        item.className = 'doc';
+        item.innerHTML = `<div class="file">PDF</div><div><div class="doc-title"></div><div class="doc-meta"></div></div><button class="save">☆</button>`;
+        item.querySelector('.doc-title').textContent = content.title || guide.content_id || guide.id;
+        const details = [content.category_id ? `หมวด ${content.category_id}` : '', guide.guide_type || '', guide.version_no ? `ฉบับ ${guide.version_no}` : ''].filter(Boolean);
+        item.querySelector('.doc-meta').textContent = details.join(' • ') || 'คู่มือจาก Firestore';
+        item.querySelector('.save').onclick = event => {
+          event.currentTarget.textContent = event.currentTarget.textContent === '☆' ? '★' : '☆';
+          window.toast('บันทึกรายการโปรดแล้ว');
+        };
+        item.onclick = event => {
+          if (!event.target.closest('.save')) window.toast(`เปิดคู่มือ ${content.title || guide.content_id}`);
+        };
+        panel.appendChild(item);
+      });
+      if (!guides.length) {
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.style.margin = '16px';
+        note.textContent = 'ยังไม่มีคู่มือใน Firestore';
+        panel.appendChild(note);
+      }
+      const count = document.getElementById('guideResultCount');
+      if (count) count.textContent = `พบ ${guides.length} รายการ`;
+    } catch (error) {
+      console.error('Load guides failed:', error);
+      window.toast('อ่านคู่มือจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  async function loadLessons() {
+    try {
+      const [lessonSnapshot, unitSnapshot] = await Promise.all([
+        getDocs(collection(db, 'lessons')),
+        getDocs(collection(db, 'lessonUnits'))
+      ]);
+      const lessons = lessonSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      const units = unitSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      lessonsData = lessons;
+      lessonUnitsData = units;
+      const grid = document.getElementById('courseGrid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      const formatMap = {
+        slide: { label: 'สไลด์นำเสนอ', media: 'slide', icon: '▤', cover: 'slide' },
+        video: { label: 'วิดีโอ', media: 'video', icon: '▷', cover: 'video' },
+        reading: { label: 'บทเรียนแบบอ่าน', media: 'reading', icon: '☷', cover: '' },
+        quiz: { label: 'แบบทดสอบ', media: 'quiz', icon: '✓', cover: 'quiz' },
+        course: { label: 'หลักสูตร', media: 'course', icon: '◫', cover: '' }
+      };
+      lessons.forEach(lesson => {
+        const content = contentItems.find(item => item.content_id === lesson.content_id || item.id === lesson.content_id) || {};
+        const formatKey = String(lesson.lesson_format || 'course').toLowerCase();
+        const format = formatMap[formatKey] || formatMap.course;
+        const lessonUnits = units.filter(unit => unit.content_id === lesson.content_id);
+        const card = document.createElement('article');
+        card.className = 'course-card';
+        card.dataset.media = format.media;
+        card.dataset.category = content.category_id || '';
+        card.innerHTML = `<div class="course-cover"><div><span class="tag"></span><br><b></b></div><span class="media-icon"></span></div><div class="course-body"><h3></h3><p></p><div class="course-meta"><span></span><span></span></div><div style="display:flex;gap:8px"><button class="btn primary start-lesson" style="flex:1">เริ่มเรียน</button><button class="btn manage-units" style="flex:1">จัดการหน่วย</button></div></div>`;
+        if (format.cover) card.querySelector('.course-cover').classList.add(format.cover);
+        card.querySelector('.tag').textContent = format.label;
+        card.querySelector('.course-cover b').textContent = `${lessonUnits.length || lesson.unit_count || 0} หน่วยการเรียน`;
+        card.querySelector('.media-icon').textContent = format.icon;
+        card.querySelector('h3').textContent = content.title || lesson.content_id || lesson.id;
+        card.querySelector('p').textContent = content.summary || lesson.learning_outcomes || 'บทเรียนจากคลังความรู้';
+        card.querySelector('.course-meta span:first-child').textContent = `⏱ ${lesson.duration_minutes || 0} นาที`;
+        card.querySelector('.course-meta span:last-child').textContent = lesson.level || 'ไม่ระบุระดับ';
+        card.querySelector('.start-lesson').onclick = () => openLessonPlayer(lesson.content_id || lesson.id);
+        card.querySelector('.manage-units').onclick = () => openLessonUnitsManager(lesson.content_id || lesson.id);
+        grid.appendChild(card);
+      });
+      if (!lessons.length) {
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.textContent = 'ยังไม่มีบทเรียนใน Firestore';
+        grid.appendChild(note);
+      }
+      const filterDynamicLessons = media => {
+        const queryText = document.getElementById('lessonSearch').value.trim().toLowerCase();
+        let shown = 0;
+        grid.querySelectorAll('.course-card').forEach(card => {
+          const visible = (media === 'all' || card.dataset.media === media) && (!queryText || card.textContent.toLowerCase().includes(queryText));
+          card.style.display = visible ? '' : 'none';
+          if (visible) shown++;
+        });
+        const count = document.querySelector('#learningView .section-title .doc-meta');
+        if (count) count.textContent = `พบ ${shown} บทเรียน`;
+      };
+      document.querySelectorAll('#lessonTabs button').forEach(button => {
+        button.onclick = () => {
+          document.querySelectorAll('#lessonTabs button').forEach(item => item.classList.remove('active'));
+          button.classList.add('active');
+          filterDynamicLessons(button.dataset.media);
+        };
+      });
+      document.querySelector('#learningView .search button').onclick = () => filterDynamicLessons(document.querySelector('#lessonTabs .active').dataset.media);
+      filterDynamicLessons('all');
+    } catch (error) {
+      console.error('Load lessons failed:', error);
+      window.toast('อ่านบทเรียนจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  function renderLessonPlayerUnit() {
+    const unit = activeLessonUnits[activeLessonUnitIndex];
+    if (!unit) return;
+    const typeLabels = { reading: 'บทเรียนแบบอ่าน', slide: 'สไลด์นำเสนอ', video: 'วิดีโอ', quiz: 'แบบทดสอบ' };
+    document.getElementById('lessonPlayerType').textContent = typeLabels[unit.unit_type] || unit.unit_type || 'บทเรียน';
+    document.getElementById('lessonPlayerDuration').textContent = unit.duration_minutes ? `⏱ ${unit.duration_minutes} นาที` : '';
+    document.getElementById('lessonUnitTitle').textContent = unit.unit_title || unit.title || `หน่วยที่ ${activeLessonUnitIndex + 1}`;
+    const summary = unit.unit_summary || unit.summary || '';
+    const summaryBox = document.getElementById('lessonUnitSummary');
+    summaryBox.textContent = summary;
+    summaryBox.hidden = !summary;
+    document.getElementById('lessonUnitContent').textContent = unit.unit_content || unit.content || 'หน่วยการเรียนนี้ยังไม่มีเนื้อหาแบบข้อความ กรุณาเปิดสื่อการเรียนรู้จากลิงก์ด้านล่าง';
+    const link = document.getElementById('lessonUnitLink');
+    const url = unit.content_url || unit.media_url || '';
+    link.href = url || '#';
+    link.hidden = !url;
+    document.getElementById('lessonUnitPosition').textContent = `หน่วย ${activeLessonUnitIndex + 1} จาก ${activeLessonUnits.length}`;
+    document.getElementById('previousLessonUnit').disabled = activeLessonUnitIndex === 0;
+    document.getElementById('nextLessonUnit').disabled = activeLessonUnitIndex === activeLessonUnits.length - 1;
+    document.querySelectorAll('#lessonPlayerUnitList button').forEach((button, index) => button.classList.toggle('primary', index === activeLessonUnitIndex));
+  }
+
+  function openLessonPlayer(contentId) {
+    const lesson = lessonsData.find(item => (item.content_id || item.id) === contentId) || {};
+    const content = contentItems.find(item => item.content_id === contentId || item.id === contentId) || {};
+    activeLessonUnits = lessonUnitsData
+      .filter(unit => unit.content_id === contentId)
+      .sort((a, b) => Number(a.unit_order || 0) - Number(b.unit_order || 0));
+    if (!activeLessonUnits.length) return window.toast('บทเรียนนี้ยังไม่มีหน่วยการเรียน');
+    activeLessonUnitIndex = 0;
+    document.getElementById('lessonPlayerTitle').textContent = content.title || contentId;
+    document.getElementById('lessonPlayerMeta').textContent = `${activeLessonUnits.length} หน่วยการเรียน • ${lesson.duration_minutes || 0} นาที`;
+    const list = document.getElementById('lessonPlayerUnitList');
+    list.innerHTML = '';
+    activeLessonUnits.forEach((unit, index) => {
+      const button = document.createElement('button');
+      button.className = 'btn';
+      button.style.textAlign = 'left';
+      button.textContent = `${index + 1}. ${unit.unit_title || unit.title || 'หน่วยการเรียน'}`;
+      button.onclick = () => { activeLessonUnitIndex = index; renderLessonPlayerUnit(); };
+      list.appendChild(button);
+    });
+    renderLessonPlayerUnit();
+    window.show('lessonPlayerView', 'บทเรียนออนไลน์');
+  }
+
+  document.getElementById('lessonPlayerBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+  document.getElementById('previousLessonUnit').onclick = () => { if (activeLessonUnitIndex > 0) { activeLessonUnitIndex--; renderLessonPlayerUnit(); } };
+  document.getElementById('nextLessonUnit').onclick = () => { if (activeLessonUnitIndex < activeLessonUnits.length - 1) { activeLessonUnitIndex++; renderLessonPlayerUnit(); } };
+
+  function resetLessonUnitForm() {
+    editingLessonUnitId = null;
+    document.getElementById('lessonUnitForm').reset();
+    document.getElementById('lessonUnitFormTitle').textContent = 'เพิ่มหน่วยการเรียน';
+    const selectedId = document.getElementById('unitLessonSelect').value;
+    const nextOrder = lessonUnitsData.filter(unit => unit.content_id === selectedId).length + 1;
+    document.getElementById('unitOrder').value = nextOrder;
+  }
+
+  function renderLessonUnitsManager() {
+    const contentId = document.getElementById('unitLessonSelect').value;
+    const tbody = document.getElementById('lessonUnitTableBody');
+    const units = lessonUnitsData
+      .filter(unit => unit.content_id === contentId)
+      .sort((a, b) => Number(a.unit_order || 0) - Number(b.unit_order || 0));
+    tbody.innerHTML = '';
+    document.getElementById('lessonUnitCount').textContent = `${units.length} หน่วย`;
+    if (!units.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="doc-meta">ยังไม่มีหน่วยการเรียน</td></tr>';
+      return;
+    }
+    const typeLabels = { reading: 'บทเรียนแบบอ่าน', slide: 'สไลด์', video: 'วิดีโอ', quiz: 'แบบทดสอบ' };
+    units.forEach(unit => {
+      const row = document.createElement('tr');
+      row.innerHTML = '<td></td><td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td><button class="btn">แก้ไข</button></td>';
+      row.children[0].textContent = unit.unit_order || '-';
+      row.querySelector('b').textContent = unit.unit_title || unit.title || '(ไม่มีชื่อหน่วย)';
+      row.querySelector('small').textContent = unit.unit_id || unit.id;
+      row.children[2].textContent = typeLabels[unit.unit_type] || unit.unit_type || '-';
+      row.children[3].textContent = `${unit.duration_minutes || 0} นาที`;
+      row.querySelector('button').onclick = () => editLessonUnit(unit.id);
+      tbody.appendChild(row);
+    });
+  }
+
+  function openLessonUnitsManager(contentId) {
+    const select = document.getElementById('unitLessonSelect');
+    select.innerHTML = '';
+    lessonsData.forEach(lesson => {
+      const id = lesson.content_id || lesson.id;
+      const content = contentItems.find(item => item.content_id === id || item.id === id) || {};
+      const option = document.createElement('option');
+      option.value = id;
+      option.textContent = `${content.title || id} (${id})`;
+      select.appendChild(option);
+    });
+    if (contentId) select.value = contentId;
+    resetLessonUnitForm();
+    renderLessonUnitsManager();
+    window.show('lessonUnitsManageView', 'จัดการหน่วยการเรียน');
+  }
+
+  function editLessonUnit(unitId) {
+    const unit = lessonUnitsData.find(item => item.id === unitId);
+    if (!unit) return;
+    editingLessonUnitId = unit.id;
+    document.getElementById('lessonUnitFormTitle').textContent = 'แก้ไขหน่วยการเรียน';
+    document.getElementById('unitOrder').value = unit.unit_order || 1;
+    document.getElementById('unitType').value = unit.unit_type || 'reading';
+    document.getElementById('unitTitle').value = unit.unit_title || unit.title || '';
+    document.getElementById('unitDuration').value = unit.duration_minutes || '';
+    document.getElementById('unitUrl').value = unit.content_url || unit.media_url || '';
+    document.getElementById('unitSummary').value = unit.unit_summary || unit.summary || '';
+    document.getElementById('unitContent').value = unit.unit_content || unit.content || '';
+    document.getElementById('lessonUnitForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  async function saveLessonUnitToFirestore(event) {
+    event.preventDefault();
+    const contentId = document.getElementById('unitLessonSelect').value;
+    const order = Number(document.getElementById('unitOrder').value);
+    const title = document.getElementById('unitTitle').value.trim();
+    if (!contentId || !order || !title) return window.toast('กรุณากรอกบทเรียน ลำดับ และชื่อหน่วยให้ครบ');
+    const unitId = editingLessonUnitId || `UNT-${contentId}-${String(order).padStart(3, '0')}`;
+    const existing = lessonUnitsData.find(item => item.id === unitId);
+    const payload = {
+      unit_id: existing?.unit_id || unitId,
+      content_id: contentId,
+      unit_title: title,
+      unit_order: order,
+      unit_type: document.getElementById('unitType').value,
+      duration_minutes: Number(document.getElementById('unitDuration').value || 0),
+      content_url: document.getElementById('unitUrl').value.trim(),
+      unit_summary: document.getElementById('unitSummary').value.trim(),
+      unit_content: document.getElementById('unitContent').value.trim(),
+      source: 'web_app',
+      sync_status: 'success',
+      updated_at: serverTimestamp()
+    };
+    if (!existing) payload.created_at = serverTimestamp();
+    try {
+      await setDoc(doc(db, 'lessonUnits', unitId), payload, { merge: true });
+      window.toast(editingLessonUnitId ? 'แก้ไขหน่วยการเรียนสำเร็จแล้ว' : 'เพิ่มหน่วยการเรียนสำเร็จแล้ว');
+      await loadLessons();
+      openLessonUnitsManager(contentId);
+    } catch (error) {
+      console.error('Save lesson unit failed:', error);
+      window.toast('บันทึกหน่วยการเรียนไม่สำเร็จ');
+    }
+  }
+
+  document.getElementById('unitManagerBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+  document.getElementById('unitLessonSelect').onchange = () => { resetLessonUnitForm(); renderLessonUnitsManager(); };
+  document.getElementById('cancelLessonUnit').onclick = resetLessonUnitForm;
+  document.getElementById('lessonUnitForm').onsubmit = saveLessonUnitToFirestore;
+
+  async function loadQuestions() {
+    try {
+      const [questionSnapshot, answerSnapshot] = await Promise.all([
+        getDocs(collection(db, 'questions')),
+        getDocs(collection(db, 'answers'))
+      ]);
+      questionsData = questionSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      answersData = answerSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      const view = document.getElementById('qaView');
+      if (!view) return;
+      view.querySelectorAll(':scope > .qa-card').forEach(card => card.remove());
+      questionsData.forEach(question => {
+        const answers = answersData.filter(answer => answer.question_id === question.question_id || answer.question_id === question.id);
+        const card = document.createElement('article');
+        card.className = 'qa-card';
+        card.innerHTML = `<span class="tag"></span><h3></h3><div class="doc-meta"></div>`;
+        card.querySelector('.tag').textContent = question.accepted_answer_id ? '✓ มีคำตอบรับรอง' : (answers.length ? 'ตอบแล้ว' : 'รอผู้เชี่ยวชาญตอบ');
+        if (!question.accepted_answer_id) card.querySelector('.tag').classList.add('orange');
+        card.querySelector('h3').textContent = question.title || '(ไม่มีหัวข้อคำถาม)';
+        card.querySelector('.doc-meta').textContent = `หมวด ${question.category_id || '-'} • ${answers.length} คำตอบ • สถานะ ${question.question_status || 'open'}`;
+        card.onclick = () => openQuestionFromFirestore(question, answers);
+        view.appendChild(card);
+      });
+      if (!questionsData.length) {
+        const note = document.createElement('div');
+        note.className = 'empty-note';
+        note.textContent = 'ยังไม่มีคำถามใน Firestore';
+        view.appendChild(note);
+      }
+      await loadModerationQueue();
+    } catch (error) {
+      console.error('Load questions failed:', error);
+      window.toast('อ่านข้อมูลถาม–ตอบจาก Firestore ไม่สำเร็จ');
+    }
+  }
+
+  async function loadModerationQueue() {
+    try {
+      const commentSnapshot = await getDocs(collection(db, 'comments'));
+      const pendingComments = commentSnapshot.docs
+        .map(item => ({ id: item.id, ...item.data() }))
+        .filter(item => item.moderation_status === 'pending');
+      const pendingAnswers = answersData.filter(item => item.is_accepted !== true);
+      const tables = document.querySelectorAll('#manageView .table-wrap tbody');
+      const tbody = tables[1];
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      pendingComments.forEach(comment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>ความคิดเห็น</td><td><b></b><br><small></small></td><td></td><td>รอการตรวจสอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn primary">อนุมัติ</button></td>`;
+        row.querySelector('b').textContent = comment.comment_text || '(ไม่มีข้อความ)';
+        row.querySelector('small').textContent = `เนื้อหา ${comment.target_id || '-'}`;
+        row.children[2].textContent = comment.commented_by || '-';
+        row.querySelector('button').onclick = () => approveComment(comment.id);
+        tbody.appendChild(row);
+      });
+      pendingAnswers.forEach(answer => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>คำตอบ</td><td><b></b><br><small></small></td><td></td><td>รอการรับรอง</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn primary">รับรอง</button></td>`;
+        row.querySelector('b').textContent = answer.answer_text || '(ไม่มีข้อความ)';
+        row.querySelector('small').textContent = `คำถาม ${answer.question_id || '-'}`;
+        row.children[2].textContent = answer.answered_by || '-';
+        row.querySelector('button').onclick = () => acceptAnswer(answer.id, answer.question_id);
+        tbody.appendChild(row);
+      });
+      if (!pendingComments.length && !pendingAnswers.length) {
+        const row = document.createElement('tr');
+        row.innerHTML = '<td colspan="6" class="doc-meta">ไม่มีรายการรอตรวจสอบ</td>';
+        tbody.appendChild(row);
+      }
+    } catch (error) {
+      console.error('Load moderation queue failed:', error);
+      window.toast('อ่านคิวตรวจสอบไม่สำเร็จ');
+    }
+  }
+
+  async function approveComment(id) {
+    try {
+      await setDoc(doc(db, 'comments', id), {
+        moderation_status: 'approved',
+        moderated_by: auth.currentUser.email,
+        moderated_at: serverTimestamp()
+      }, { merge: true });
+      await loadModerationQueue();
+      if (currentContentId) await loadCommentsForContent();
+      window.toast(`อนุมัติความคิดเห็นแล้ว • ${id}`);
+    } catch (error) {
+      console.error('Approve comment failed:', error);
+      window.toast('อนุมัติความคิดเห็นไม่สำเร็จ');
+    }
+  }
+
+  async function acceptAnswer(id, questionId) {
+    try {
+      await setDoc(doc(db, 'answers', id), {
+        is_accepted: true,
+        accepted_by: auth.currentUser.email,
+        accepted_at: serverTimestamp()
+      }, { merge: true });
+      if (questionId) {
+        await setDoc(doc(db, 'questions', questionId), {
+          accepted_answer_id: id,
+          updated_at: serverTimestamp()
+        }, { merge: true });
+      }
+      await loadQuestions();
+      window.toast(`รับรองคำตอบแล้ว • ${id}`);
+    } catch (error) {
+      console.error('Accept answer failed:', error);
+      window.toast('รับรองคำตอบไม่สำเร็จ');
+    }
+  }
+
+  function openQuestionFromFirestore(question, answers) {
+    currentQuestionId = question.question_id || question.id;
+    const detailView = document.getElementById('qaDetailView');
+    detailView.querySelector('.page-head h1').textContent = question.title || '(ไม่มีหัวข้อคำถาม)';
+    const headerText = detailView.querySelector('.page-head p');
+    headerText.textContent = `หมวด ${question.category_id || '-'} • สถานะ ${question.question_status || 'open'} • ถามโดย ${question.asked_by || '-'}`;
+    const questionCard = detailView.querySelector('.detail-wrap > div:first-child > .qa-card');
+    questionCard.querySelector('p').textContent = question.detail || 'ไม่มีรายละเอียดเพิ่มเติม';
+    const answerForm = detailView.querySelector('.answer-form');
+    detailView.querySelectorAll('.answer-card').forEach(card => card.remove());
+    answers.forEach(answer => {
+      const card = document.createElement('article');
+      card.className = `answer-card${answer.is_accepted ? ' accepted' : ''}`;
+      card.innerHTML = `<div class="answer-head"><div><b></b><span class="tag" hidden>✓ คำตอบที่ได้รับการรับรอง</span><div class="doc-meta"></div></div></div><p></p><div class="callout" hidden><b>เอกสารอ้างอิง</b><br><span></span></div>`;
+      card.querySelector('.answer-head b').textContent = answer.answered_by || 'ผู้ตอบ';
+      card.querySelector('.doc-meta').textContent = answer.answer_id || answer.id;
+      card.querySelector('p').textContent = answer.answer_text || '(ไม่มีข้อความคำตอบ)';
+      if (answer.is_accepted) card.querySelector('.tag').hidden = false;
+      if (answer.legal_references) {
+        card.querySelector('.callout').hidden = false;
+        card.querySelector('.callout span').textContent = answer.legal_references;
+      }
+      answerForm.before(card);
+    });
+    const answerTitle = detailView.querySelector('.section-title h2');
+    if (answerTitle) answerTitle.textContent = `คำตอบ ${answers.length} รายการ`;
+    window.show('qaDetailView', 'รายละเอียดคำถาม');
+  }
+
+  async function postAnswerToFirestore() {
+    const input = document.getElementById('answerInput');
+    const answerText = input.value.trim();
+    if (!currentQuestionId) return window.toast('ไม่พบรหัสคำถาม');
+    if (!answerText) return window.toast('กรุณากรอกคำตอบ');
+    const answerId = `ANS-${Date.now()}`;
+    const button = document.getElementById('postAnswer');
+    button.disabled = true;
+    button.textContent = 'กำลังส่ง…';
+    try {
+      await setDoc(doc(db, 'answers', answerId), {
+        answer_id: answerId,
+        question_id: currentQuestionId,
+        answer_text: answerText,
+        answered_by: auth.currentUser.email,
+        is_accepted: false,
+        created_at: serverTimestamp(),
+        firestore_id: answerId,
+        sync_status: 'success',
+        source: 'web_app'
+      });
+      input.value = '';
+      await loadQuestions();
+      const question = questionsData.find(item => item.question_id === currentQuestionId || item.id === currentQuestionId);
+      const answers = answersData.filter(item => item.question_id === currentQuestionId);
+      if (question) openQuestionFromFirestore(question, answers);
+      window.toast(`ส่งคำตอบแล้ว • ${answerId}`);
+    } catch (error) {
+      console.error('Post answer failed:', error);
+      window.toast('ส่งคำตอบไม่สำเร็จ');
+    } finally {
+      button.disabled = false;
+      button.textContent = 'ส่งคำตอบ';
+    }
+  }
+
+  async function approveContent(id) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (!item || item.workflow_status !== 'review') return window.toast('รายการนี้ไม่อยู่ในสถานะรอตรวจสอบ');
+    try {
+      await setDoc(doc(db, 'contents', id), {
+        workflow_status: 'approved',
+        approved_by: auth.currentUser.email,
+        approved_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      }, { merge: true });
+      await loadContents();
+      window.toast(`อนุมัติเนื้อหาแล้ว • ${item.content_id || id}`);
+    } catch (error) {
+      console.error('Approve content failed:', error);
+      window.toast('อนุมัติเนื้อหาไม่สำเร็จ');
+    }
+  }
+
+  async function publishContent(id) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (!item || item.workflow_status !== 'approved') return window.toast('ต้องอนุมัติเนื้อหาก่อนเผยแพร่');
+    try {
+      await setDoc(doc(db, 'contents', id), {
+        workflow_status: 'published',
+        published_by: auth.currentUser.email,
+        published_at: serverTimestamp(),
+        updated_at: serverTimestamp()
+      }, { merge: true });
+      await loadContents();
+      window.toast(`เผยแพร่เนื้อหาแล้ว • ${item.content_id || id}`);
+    } catch (error) {
+      console.error('Publish content failed:', error);
+      window.toast('เผยแพร่เนื้อหาไม่สำเร็จ');
+    }
+  }
+
+  function setFormValue(id, value = '') {
+    const field = document.getElementById(id);
+    if (field) field.value = value ?? '';
+  }
+
+  function toDateInput(value) {
+    if (!value) return '';
+    if (typeof value === 'string') return value.slice(0, 10);
+    const date = value.toDate ? value.toDate() : new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+  }
+
+  async function editContent(id) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (!item) return window.toast('ไม่พบข้อมูลที่ต้องการแก้ไข');
+    editingContentId = id;
+    const supportedType = ['knowledge', 'law', 'guide', 'lesson', 'qa'].includes(item.content_type) ? item.content_type : 'knowledge';
+    window.setFormType(supportedType);
+    setFormValue('contentTitle', item.title);
+    setFormValue('contentCategory', item.category_id);
+    setFormValue('contentOwnerUnit', item.owner_unit || 'สำนักมาตรฐานการทะเบียนที่ดิน');
+    setFormValue('contentKeywords', Array.isArray(item.keywords) ? item.keywords.join(', ') : item.keywords);
+    setFormValue('contentSourceUrl', item.source_url);
+    setFormValue('contentAccessLevel', item.access_level || 'internal');
+    setFormValue('contentReviewer', item.reviewer);
+    setFormValue('contentReviewDue', toDateInput(item.review_due));
+    setFormValue('knowledgeSummary', item.summary);
+    setFormValue('knowledgeContext', item.context);
+    setFormValue('knowledgeReferences', item.legal_references);
+    setFormValue('knowledgeGuidance', item.guidance);
+    setFormValue('knowledgeCautions', item.cautions);
+    setFormValue('knowledgeExample', item.example);
+
+    try {
+      const collectionMap = { law: 'laws', guide: 'guides', lesson: 'lessons', qa: 'questions' };
+      const collectionName = collectionMap[supportedType];
+      let detail = {};
+      if (collectionName) {
+        const detailSnapshot = await getDoc(doc(db, collectionName, id));
+        if (detailSnapshot.exists()) detail = detailSnapshot.data();
+      }
+
+      if (supportedType === 'law') {
+        setFormValue('lawType', detail.law_type);
+        setFormValue('lawDocumentNo', detail.document_no);
+        setFormValue('lawDocumentDate', toDateInput(detail.document_date));
+        setFormValue('lawEffectiveDate', toDateInput(detail.effective_date));
+        setFormValue('lawIssuingAuthority', detail.issuing_authority || detail.issuer);
+        setFormValue('lawLegalStatus', detail.legal_status);
+        setFormValue('lawOfficialTitle', detail.official_title || item.title);
+        setFormValue('lawLegalSummary', detail.legal_summary);
+        setFormValue('lawSupersedes', detail.supersedes);
+        setFormValue('lawAmendedBy', detail.amended_by);
+      } else if (supportedType === 'guide') {
+        setFormValue('guideType', detail.guide_type);
+        setFormValue('guideVersionNo', detail.version_no);
+        setFormValue('guideTargetGroup', detail.target_group);
+        setFormValue('guideReviewDue', toDateInput(detail.review_due));
+        setFormValue('guideObjective', detail.objective);
+        setFormValue('guideSteps', detail.steps);
+        setFormValue('guideRequiredDocuments', detail.required_documents);
+      } else if (supportedType === 'lesson') {
+        setFormValue('lessonFormat', detail.lesson_format);
+        setFormValue('lessonLevel', detail.level);
+        setFormValue('lessonDuration', detail.duration_minutes ? `${detail.duration_minutes} นาที` : '');
+        setFormValue('lessonInstructor', detail.instructor);
+        setFormValue('lessonLearningOutcomes', detail.learning_outcomes);
+        setFormValue('lessonDescription', detail.description);
+        setFormValue('lessonPassingCriteria', detail.passing_criteria);
+        setFormValue('lessonCertificate', String(detail.has_certificate === true));
+        setFormValue('lessonMediaUrl', detail.media_url);
+      } else if (supportedType === 'qa') {
+        setFormValue('qaQuestionText', detail.question_text);
+        setFormValue('qaDetails', detail.details);
+        setFormValue('qaUrgency', detail.urgency || 'normal');
+        setFormValue('qaStatus', detail.question_status || 'open');
+        if (detail.accepted_answer_id) {
+          const answerSnapshot = await getDoc(doc(db, 'answers', detail.accepted_answer_id));
+          if (answerSnapshot.exists()) setFormValue('qaCertifiedAnswer', answerSnapshot.data().answer_text);
+        }
+      }
+
+      if (!item.source_url && detail.full_text_url) {
+        setFormValue('contentSourceUrl', detail.full_text_url);
+      }
+
+      if (!item.source_url) {
+        const fileSnapshot = await getDocs(collection(db, 'files'));
+        const linkedFile = fileSnapshot.docs.map(entry => entry.data()).find(file => file.content_id === id || file.parent_id === id);
+        if (linkedFile) setFormValue('contentSourceUrl', linkedFile.file_url || linkedFile.storage_url || linkedFile.full_text_url);
+      }
+      document.getElementById('saveDraft').textContent = 'บันทึกการแก้ไข';
+      window.toast(`โหลดข้อมูลสำหรับแก้ไขแล้ว • ${item.content_id || item.id}`);
+    } catch (error) {
+      console.error('Load edit data failed:', error);
+      window.toast('อ่านรายละเอียดสำหรับแก้ไขไม่สำเร็จ');
+    }
+  }
+
+  function makeContentId() {
+    const now = new Date();
+    const date = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('');
+    const time = [String(now.getHours()).padStart(2, '0'), String(now.getMinutes()).padStart(2, '0'), String(now.getSeconds()).padStart(2, '0')].join('');
+    return `CNT-${date}-${time}`;
+  }
+
+  function readCommonContentFields() {
+    return {
+      owner_unit: document.getElementById('contentOwnerUnit').value,
+      keywords: document.getElementById('contentKeywords').value
+        .split(',')
+        .map(item => item.trim())
+        .filter(Boolean),
+      source_url: document.getElementById('contentSourceUrl').value.trim(),
+      access_level: document.getElementById('contentAccessLevel').value,
+      reviewer: document.getElementById('contentReviewer').value,
+      review_due: document.getElementById('contentReviewDue').value
+    };
+  }
+
+  async function saveFileReference(contentId, title, contentType, isNew) {
+    const fileUrl = document.getElementById('contentSourceUrl').value.trim();
+    if (!fileUrl) return;
+    const fileId = `FIL-${contentId}`;
+    const payload = {
+      file_id: fileId,
+      content_id: contentId,
+      parent_type: contentType,
+      parent_id: contentId,
+      file_name: title,
+      file_type: 'google_drive',
+      file_url: fileUrl,
+      storage_provider: 'google_drive',
+      access_level: document.getElementById('contentAccessLevel').value,
+      uploaded_by: auth.currentUser.email,
+      updated_at: serverTimestamp(),
+      sync_status: 'success',
+      source: 'web_app'
+    };
+    if (isNew) payload.created_at = serverTimestamp();
+    await setDoc(doc(db, 'files', fileId), payload, { merge: true });
+  }
+
+  function readKnowledgeFormPayload() {
+    return {
+      summary: document.getElementById('knowledgeSummary').value.trim(),
+      context: document.getElementById('knowledgeContext').value.trim(),
+      legal_references: document.getElementById('knowledgeReferences').value.trim(),
+      guidance: document.getElementById('knowledgeGuidance').value.trim(),
+      cautions: document.getElementById('knowledgeCautions').value.trim(),
+      example: document.getElementById('knowledgeExample').value.trim()
+    };
+  }
+
+  function validateKnowledgePayload(payload) {
+    if (!payload.summary) return 'กรุณากรอกสรุปสาระสำคัญ';
+    if (!payload.guidance) return 'กรุณากรอกแนวทางปฏิบัติ';
+    return '';
+  }
+
+  function readLawFormPayload(contentId) {
+    return {
+      content_id: contentId,
+      law_type: document.getElementById('lawType').value,
+      document_no: document.getElementById('lawDocumentNo').value.trim(),
+      document_date: document.getElementById('lawDocumentDate').value,
+      effective_date: document.getElementById('lawEffectiveDate').value,
+      issuing_authority: document.getElementById('lawIssuingAuthority').value.trim(),
+      legal_status: document.getElementById('lawLegalStatus').value,
+      official_title: document.getElementById('lawOfficialTitle').value.trim(),
+      legal_summary: document.getElementById('lawLegalSummary').value.trim(),
+      supersedes: document.getElementById('lawSupersedes').value.trim(),
+      amended_by: document.getElementById('lawAmendedBy').value.trim(),
+      updated_at: serverTimestamp(),
+      sync_status: 'success',
+      source: 'web_app'
+    };
+  }
+
+  function validateLawPayload(payload) {
+    if (!payload.document_no) return 'กรุณากรอกเลขที่เอกสาร';
+    if (!payload.document_date) return 'กรุณาเลือกวันที่ลงนามหรือประกาศ';
+    if (!payload.official_title) return 'กรุณากรอกชื่อเรื่องตามเอกสาร';
+    return '';
+  }
+
+  function readGuideFormPayload(contentId) {
+    return {
+      content_id: contentId,
+      guide_type: document.getElementById('guideType').value,
+      version_no: document.getElementById('guideVersionNo').value.trim(),
+      target_group: document.getElementById('guideTargetGroup').value,
+      review_due: document.getElementById('guideReviewDue').value,
+      objective: document.getElementById('guideObjective').value.trim(),
+      steps: document.getElementById('guideSteps').value.trim(),
+      required_documents: document.getElementById('guideRequiredDocuments').value.trim(),
+      updated_at: serverTimestamp(),
+      sync_status: 'success',
+      source: 'web_app'
+    };
+  }
+
+  function validateGuidePayload(payload) {
+    if (!payload.objective) return 'กรุณากรอกวัตถุประสงค์';
+    if (!payload.steps) return 'กรุณากรอกขั้นตอนปฏิบัติ';
+    return '';
+  }
+
+  function readLessonFormPayload(contentId) {
+    const durationText = document.getElementById('lessonDuration').value.trim();
+    const durationMatch = durationText.match(/\d+(?:\.\d+)?/);
+    return {
+      content_id: contentId,
+      lesson_format: document.getElementById('lessonFormat').value,
+      level: document.getElementById('lessonLevel').value,
+      duration_minutes: durationMatch ? Number(durationMatch[0]) : 0,
+      instructor: document.getElementById('lessonInstructor').value.trim(),
+      learning_outcomes: document.getElementById('lessonLearningOutcomes').value.trim(),
+      description: document.getElementById('lessonDescription').value.trim(),
+      passing_criteria: document.getElementById('lessonPassingCriteria').value.trim(),
+      has_certificate: document.getElementById('lessonCertificate').value === 'true',
+      media_url: document.getElementById('lessonMediaUrl').value.trim(),
+      unit_count: 0,
+      updated_at: serverTimestamp(),
+      sync_status: 'success',
+      source: 'web_app'
+    };
+  }
+
+  function validateLessonPayload(payload) {
+    if (!payload.learning_outcomes) return 'กรุณากรอกผลลัพธ์การเรียนรู้';
+    return '';
+  }
+
+  function readQuestionFormPayload(contentId, title, categoryId) {
+    const certifiedAnswer = document.getElementById('qaCertifiedAnswer').value.trim();
+    const answerId = certifiedAnswer ? `ANS-${contentId}` : '';
+    return {
+      question: {
+        question_id: contentId,
+        content_id: contentId,
+        title,
+        category_id: categoryId,
+        question_text: document.getElementById('qaQuestionText').value.trim(),
+        details: document.getElementById('qaDetails').value.trim(),
+        urgency: document.getElementById('qaUrgency').value,
+        question_status: certifiedAnswer ? 'answered' : document.getElementById('qaStatus').value,
+        accepted_answer_id: answerId,
+        asked_by: auth.currentUser.email,
+        updated_at: serverTimestamp(),
+        sync_status: 'success',
+        source: 'web_app'
+      },
+      answer: certifiedAnswer ? {
+        answer_id: answerId,
+        question_id: contentId,
+        answer_text: certifiedAnswer,
+        answered_by: auth.currentUser.email,
+        is_accepted: true,
+        updated_at: serverTimestamp(),
+        sync_status: 'success',
+        source: 'web_app'
+      } : null
+    };
+  }
+
+  function validateQuestionPayload(payload) {
+    if (!payload.question.question_text) return 'กรุณากรอกคำถาม';
+    if (!payload.question.details) return 'กรุณากรอกรายละเอียดข้อเท็จจริง';
+    return '';
+  }
+
+  async function saveDraftToFirestore() {
+    const button = document.getElementById('saveDraft');
+    const title = document.getElementById('contentTitle').value.trim();
+    const categorySelect = document.querySelector('#contentForm .field select[required]');
+    const categoryId = categorySelect?.value || '';
+    const activeType = document.querySelector('.form-type.active')?.dataset.formtype || 'knowledge';
+    const typeMap = { knowledge: 'knowledge', law: 'law', guide: 'guide', lesson: 'lesson', qa: 'qa' };
+    if (!title) return window.toast('กรุณากรอกชื่อเนื้อหา');
+    if (!categoryId) return window.toast('กรุณาเลือกหมวดเนื้อหา');
+    const contentId = editingContentId || makeContentId();
+    const isEditing = Boolean(editingContentId);
+    const commonFields = readCommonContentFields();
+    const knowledgePayload = activeType === 'knowledge' ? readKnowledgeFormPayload() : null;
+    const knowledgeValidationError = knowledgePayload ? validateKnowledgePayload(knowledgePayload) : '';
+    if (knowledgeValidationError) return window.toast(knowledgeValidationError);
+    const lawPayload = activeType === 'law' ? readLawFormPayload(contentId) : null;
+    const lawValidationError = lawPayload ? validateLawPayload(lawPayload) : '';
+    if (lawValidationError) return window.toast(lawValidationError);
+    const guidePayload = activeType === 'guide' ? readGuideFormPayload(contentId) : null;
+    const guideValidationError = guidePayload ? validateGuidePayload(guidePayload) : '';
+    if (guideValidationError) return window.toast(guideValidationError);
+    const lessonPayload = activeType === 'lesson' ? readLessonFormPayload(contentId) : null;
+    const lessonValidationError = lessonPayload ? validateLessonPayload(lessonPayload) : '';
+    if (lessonValidationError) return window.toast(lessonValidationError);
+    const questionPayload = activeType === 'qa' ? readQuestionFormPayload(contentId, title, categoryId) : null;
+    const questionValidationError = questionPayload ? validateQuestionPayload(questionPayload) : '';
+    if (questionValidationError) return window.toast(questionValidationError);
+    button.disabled = true;
+    button.textContent = 'กำลังบันทึก…';
+    try {
+      const payload = {
+        content_id: contentId,
+        content_type: typeMap[activeType],
+        title,
+        category_id: categoryId,
+        workflow_status: 'draft',
+        ...commonFields,
+        ...(knowledgePayload || {}),
+        created_by: auth.currentUser.email,
+        updated_at: serverTimestamp(),
+        source: 'web_app'
+      };
+      if (!isEditing) payload.created_at = serverTimestamp();
+      await setDoc(doc(db, 'contents', contentId), payload, { merge: true });
+      if (lawPayload) {
+        if (!isEditing) lawPayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'laws', contentId), lawPayload, { merge: true });
+      }
+      if (guidePayload) {
+        if (!isEditing) guidePayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'guides', contentId), guidePayload, { merge: true });
+      }
+      if (lessonPayload) {
+        if (!isEditing) lessonPayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'lessons', contentId), lessonPayload, { merge: true });
+      }
+      if (questionPayload) {
+        if (!isEditing) questionPayload.question.created_at = serverTimestamp();
+        await setDoc(doc(db, 'questions', contentId), questionPayload.question, { merge: true });
+        if (questionPayload.answer) {
+          if (!isEditing) questionPayload.answer.created_at = serverTimestamp();
+          await setDoc(doc(db, 'answers', questionPayload.answer.answer_id), questionPayload.answer, { merge: true });
+        }
+      }
+      await saveFileReference(contentId, title, typeMap[activeType], !isEditing);
+      window.toast(`${isEditing ? 'แก้ไขฉบับร่างแล้ว' : 'บันทึกฉบับร่างแล้ว'} • ${contentId}`);
+      editingContentId = contentId;
+      document.getElementById('contentTitle').value = '';
+      categorySelect.value = '';
+      await loadContents();
+    } catch (error) {
+      console.error('Save draft failed:', error);
+      window.toast('บันทึกไม่สำเร็จ กรุณาตรวจสอบ Firestore Rules');
+    } finally {
+      button.disabled = false;
+      button.textContent = 'บันทึกฉบับร่าง';
+    }
+  }
+
+  async function submitForReview(event) {
+    event.preventDefault();
+    const title = document.getElementById('contentTitle').value.trim();
+    const categorySelect = document.querySelector('#contentForm .field select[required]');
+    const categoryId = categorySelect?.value || '';
+    const activeType = document.querySelector('.form-type.active')?.dataset.formtype || 'knowledge';
+    if (!title) return window.toast('กรุณากรอกชื่อเนื้อหา');
+    if (!categoryId) return window.toast('กรุณาเลือกหมวดเนื้อหา');
+    const contentId = editingContentId || makeContentId();
+    const isNew = !editingContentId;
+    const commonFields = readCommonContentFields();
+    const knowledgePayload = activeType === 'knowledge' ? readKnowledgeFormPayload() : null;
+    const knowledgeValidationError = knowledgePayload ? validateKnowledgePayload(knowledgePayload) : '';
+    if (knowledgeValidationError) return window.toast(knowledgeValidationError);
+    const lawPayload = activeType === 'law' ? readLawFormPayload(contentId) : null;
+    const lawValidationError = lawPayload ? validateLawPayload(lawPayload) : '';
+    if (lawValidationError) return window.toast(lawValidationError);
+    const guidePayload = activeType === 'guide' ? readGuideFormPayload(contentId) : null;
+    const guideValidationError = guidePayload ? validateGuidePayload(guidePayload) : '';
+    if (guideValidationError) return window.toast(guideValidationError);
+    const lessonPayload = activeType === 'lesson' ? readLessonFormPayload(contentId) : null;
+    const lessonValidationError = lessonPayload ? validateLessonPayload(lessonPayload) : '';
+    if (lessonValidationError) return window.toast(lessonValidationError);
+    const questionPayload = activeType === 'qa' ? readQuestionFormPayload(contentId, title, categoryId) : null;
+    const questionValidationError = questionPayload ? validateQuestionPayload(questionPayload) : '';
+    if (questionValidationError) return window.toast(questionValidationError);
+    const submitButton = document.querySelector('#contentForm button[type="submit"], #contentForm .form-footer .btn.primary');
+    submitButton.disabled = true;
+    submitButton.textContent = 'กำลังส่ง…';
+    try {
+      const payload = {
+        content_id: contentId,
+        content_type: activeType,
+        title,
+        category_id: categoryId,
+        workflow_status: 'review',
+        ...commonFields,
+        ...(knowledgePayload || {}),
+        created_by: auth.currentUser.email,
+        submitted_by: auth.currentUser.email,
+        submitted_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+        source: 'web_app'
+      };
+      if (isNew) payload.created_at = serverTimestamp();
+      await setDoc(doc(db, 'contents', contentId), payload, { merge: true });
+      if (lawPayload) {
+        if (isNew) lawPayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'laws', contentId), lawPayload, { merge: true });
+      }
+      if (guidePayload) {
+        if (isNew) guidePayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'guides', contentId), guidePayload, { merge: true });
+      }
+      if (lessonPayload) {
+        if (isNew) lessonPayload.created_at = serverTimestamp();
+        await setDoc(doc(db, 'lessons', contentId), lessonPayload, { merge: true });
+      }
+      if (questionPayload) {
+        if (isNew) questionPayload.question.created_at = serverTimestamp();
+        await setDoc(doc(db, 'questions', contentId), questionPayload.question, { merge: true });
+        if (questionPayload.answer) {
+          if (isNew) questionPayload.answer.created_at = serverTimestamp();
+          await setDoc(doc(db, 'answers', questionPayload.answer.answer_id), questionPayload.answer, { merge: true });
+        }
+      }
+      await saveFileReference(contentId, title, activeType, isNew);
+      editingContentId = contentId;
+      await loadContents();
+      window.show('manageView', 'จัดการเนื้อหา');
+      window.toast(`ส่งให้ผู้ตรวจสอบแล้ว • ${contentId}`);
+    } catch (error) {
+      console.error('Submit for review failed:', error);
+      window.toast('ส่งให้ผู้ตรวจสอบไม่สำเร็จ');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = 'ส่งให้ตรวจสอบ';
+    }
+  }
+
+  document.getElementById('googleSignIn').addEventListener('click', async () => {
+    errorBox.textContent = '';
+    try {
+      const result = await signInWithPopup(auth, provider);
+      if ((result.user.email || '').toLowerCase() !== ADMIN_EMAIL) {
+        await signOut(auth);
+        showLogin('บัญชีนี้ไม่ได้รับสิทธิ์ผู้ดูแลระบบ');
+      }
+    } catch (error) {
+      const popupIssue = error?.code === 'auth/popup-blocked' || error?.code === 'auth/popup-closed-by-user';
+      showLogin(popupIssue ? 'กรุณาอนุญาตหน้าต่างป๊อปอัป แล้วลองอีกครั้ง' : 'เข้าสู่ระบบไม่สำเร็จ กรุณาตรวจสอบ Authorized domains ใน Firebase');
+    }
+  });
+
+  document.getElementById('signOutButton').addEventListener('click', () => signOut(auth));
+  document.getElementById('saveDraft').onclick = saveDraftToFirestore;
+  document.getElementById('contentForm').onsubmit = submitForReview;
+  document.getElementById('postAnswer').onclick = postAnswerToFirestore;
+  document.getElementById('postComment').onclick = postCommentToFirestore;
+  onAuthStateChanged(auth, async user => {
+    if (!user) return showLogin();
+    if ((user.email || '').toLowerCase() !== ADMIN_EMAIL || user.emailVerified === false) {
+      await signOut(auth);
+      return showLogin('บัญชีนี้ไม่ได้รับสิทธิ์ผู้ดูแลระบบ');
+    }
+    showApp(user);
+    await loadCategories();
+    await loadContents();
+  });
+</script>
+</body>
+</html>
