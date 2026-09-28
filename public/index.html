@@ -1033,7 +1033,7 @@
         row.dataset.openable = 'true';
         row.tabIndex = 0;
         row.setAttribute('role', 'link');
-        row.setAttribute('aria-label', 'เปิดอ่าน ' + (content.title || law.official_title || law.document_no || 'เอกสารกฎหมาย'));
+        row.setAttribute('aria-label', 'เปิดข้อมูลผู้ใช้ ' + (profile.display_name || profile.email || profile.id));
         row.innerHTML = '<td><b></b><br><small></small></td><td></td><td></td><td><span class="status"></span></td><td><small class="doc-meta"></small></td><td><button class="btn">จัดการ</button></td>';
         row.querySelector('b').textContent = profile.display_name || '(ไม่ระบุชื่อ)';
         row.querySelector('td small').textContent = profile.email || '-';
