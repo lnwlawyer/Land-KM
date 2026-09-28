@@ -2,38 +2,36 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-const htmlUrl = new URL('../Land-KM-UX-Prototype.html', import.meta.url);
-const html = await readFile(htmlUrl, 'utf8');
 const productionHtmlUrl = new URL('../public/index.html', import.meta.url);
 const productionHtml = await readFile(productionHtmlUrl, 'utf8');
 
-test('หน้าเว็บไม่มีหมวดค้นหาที่ถูกเลือกเป็นค่าเริ่มต้น', () => {
-  assert.doesNotMatch(html, /new Set\(\['มรดก'\]\)/);
-  assert.match(html, /const selected=new Set\(\)/);
+test('production source เริ่มต้นโดยไม่มีหมวดค้นหาที่ถูกเลือก', () => {
+  assert.doesNotMatch(productionHtml, /new Set\(\['มรดก'\]\)/);
+  assert.match(productionHtml, /const selected=new Set\(\)/);
 });
 
-test('หน้าเว็บล้างข้อมูลจำลองก่อนโหลด Firestore', () => {
-  assert.match(html, /function resetLegacyPresentation\(\)/);
-  assert.match(html, /resetLegacyPresentation\(\);/);
+test('production source มีและเรียกใช้การล้าง legacy presentation', () => {
+  assert.match(productionHtml, /function resetLegacyPresentation\(\)/);
+  assert.match(productionHtml, /resetLegacyPresentation\(\);/);
 });
 
-test('ไม่มีข้อความจาก event จำลองหลงเหลือ', () => {
+test('production source ไม่มีข้อความจาก event ตัวอย่างที่เลิกใช้แล้ว', () => {
   for (const phrase of [
     'จำลองการบันทึก',
     'แสดงผลการค้นหาตัวอย่าง',
     'เปิดหน้าบทเรียนตัวอย่างแล้ว'
   ]) {
-    assert.equal(html.includes(phrase), false, `พบข้อความจำลอง: ${phrase}`);
+    assert.equal(productionHtml.includes(phrase), false, `พบข้อความตัวอย่าง: ${phrase}`);
   }
 });
 
-test('มีค่าจำกัด Query ส่วนกลางและ Pagination', () => {
-  assert.match(html, /const APP_LIMITS = Object\.freeze\(/);
-  assert.match(html, /contentPageSize:\s*50/);
-  assert.match(html, /startAfter/);
+test('production source กำหนด query limit และใช้ pagination cursor', () => {
+  assert.match(productionHtml, /const APP_LIMITS = Object\.freeze\(/);
+  assert.match(productionHtml, /contentPageSize:\s*50/);
+  assert.match(productionHtml, /startAfter/);
 });
 
-test('มีระบบหลักจากขั้นก่อนหน้าครบ', () => {
+test('production source มี references ของ core feature collections', () => {
   for (const collectionName of [
     'knowledgePackages',
     'knowledgeGaps',
@@ -41,7 +39,7 @@ test('มีระบบหลักจากขั้นก่อนหน้�
     'versionCounters',
     'usageAggregates'
   ]) {
-    assert.match(html, new RegExp(collectionName));
+    assert.match(productionHtml, new RegExp(collectionName));
   }
 });
 

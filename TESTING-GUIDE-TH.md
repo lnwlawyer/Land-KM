@@ -4,7 +4,7 @@
 
 ## ไฟล์ที่ต้องอยู่ใน `C:\Land-KM`
 
-- `Land-KM-UX-Prototype.html`
+- `public/index.html` (production application source สำหรับ App Structure Tests)
 - `firestore.rules`
 - `firebase.json`
 - `.firebaserc`
@@ -55,7 +55,9 @@ npm run test:rules
 - Knowledge Gap จำกัดเฉพาะบทบาทที่กำหนด
 - Usage Stats เพิ่มค่าครั้งละ 1 และผูกกับ UID
 - Collection ที่ไม่ได้ประกาศใน Rules ถูกปฏิเสธ
-- หน้าเว็บไม่มีค่าเริ่มต้นและเหตุการณ์จำลองเดิม
+- production source ไม่มีหมวดค้นหาที่เลือกไว้เป็นค่าเริ่มต้นหรือข้อความ event ตัวอย่างที่เลิกใช้แล้ว
+- production source มี query limits, pagination และ references ของ core feature collections
+- App Structure Tests อ่าน `public/index.html` โดยตรง ไม่ใช้ prototype/reference HTML แทน production
 
 ## ก่อน Deploy ทุกครั้ง
 
