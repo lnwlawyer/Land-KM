@@ -709,6 +709,79 @@ tests/app-structure.test.mjs ตรวจ:
 
 # 16. Change Protocol
 
+## Git Development Workflow
+
+ก่อนเริ่มแก้ไข feature, bug fix หรือ refactor ทุกครั้ง
+ให้ตรวจสอบสถานะ Git working tree ด้วย:
+
+    git status
+
+งานพัฒนาใหม่ควรเริ่มจาก working tree ที่ clean
+
+หาก working tree ไม่ clean:
+
+- ห้าม discard, reset, overwrite หรือ stash การเปลี่ยนแปลงที่มีอยู่
+- ห้าม commit การเปลี่ยนแปลงเดิมโดยอัตโนมัติ
+- ตรวจสอบและรายงานผู้ใช้ว่าไฟล์ใดเปลี่ยนแปลงอยู่
+- ให้ถือว่าการเปลี่ยนแปลงเหล่านั้นอาจเป็นงานที่ยังไม่เสร็จ
+
+ให้ดำเนินงานต่อเมื่อผู้ใช้ยืนยันแนวทางจัดการการเปลี่ยนแปลงเดิมแล้ว
+
+ก่อนแก้ไข ให้ระบุไฟล์ที่คาดว่าจะได้รับผลกระทบ
+
+ระหว่างทำงาน ให้ใช้ Git ตรวจสอบขอบเขตการเปลี่ยนแปลง
+แต่ห้าม commit โดยอัตโนมัติ
+
+หลังแก้ไขและทดสอบเสร็จ ให้ตรวจสอบ:
+
+    git status --short
+    git diff --stat
+    git diff
+
+ก่อนเสนอให้ commit ให้สรุป:
+
+- ไฟล์ที่เพิ่ม
+- ไฟล์ที่แก้
+- ไฟล์ที่ลบ
+- จุดสำคัญที่เปลี่ยน
+- tests ที่รันและผลของ tests
+- known limitations หรือสิ่งที่ยังไม่ได้ตรวจ
+
+ต้องแสดงหรือสรุป Git diff ให้ผู้ใช้ตรวจสอบก่อน commit
+
+ห้ามรัน `git commit` หรือ `git push` โดยไม่ได้รับคำสั่งหรืออนุญาตจากผู้ใช้
+
+ห้ามใช้คำสั่ง destructive ต่อไปนี้โดยไม่ได้รับคำสั่งที่ชัดเจนจากผู้ใช้:
+
+    git reset --hard
+    git clean -fd
+    git checkout -- .
+    git restore .
+    git restore --source
+    git rebase
+    git push --force
+
+หากต้องย้อนการเปลี่ยนแปลง ให้อธิบายก่อนว่าจะย้อน:
+
+- ไฟล์ใด
+- commit ใด
+- การเปลี่ยนแปลงใดจะสูญหาย
+
+หนึ่ง commit ควรแทนหนึ่ง logical change เช่น feature, bug fix
+หรือ housekeeping ที่มีขอบเขตชัดเจน และห้ามรวม unrelated changes
+เข้า commit เดียวกันหากสามารถแยกได้อย่างสมเหตุสมผล
+
+Baseline ก่อนเริ่ม Codex development คือ:
+
+    commit 3fc6ce0
+    Initial baseline before Codex development
+
+ให้ใช้ commit นี้เป็นจุดอ้างอิงประวัติเริ่มต้นของโปรเจกต์
+แต่ห้าม reset กลับไปยัง baseline โดยอัตโนมัติ
+
+Git เป็น version-control safety mechanism
+ไม่ใช่สิทธิในการแก้ ลบ หรือย้อนข้อมูลของผู้ใช้โดยอัตโนมัติ
+
 ก่อนแก้ไขแต่ละงาน ให้ดำเนินการตามลำดับ:
 
 ## Step 1 — Understand
