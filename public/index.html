@@ -1082,11 +1082,15 @@
     if (!userId) return window.toast('กรุณาระบุ User UID');
     const existing = usersData.find(item => item.id === userId);
     if (!editingUserProfileId && existing) return window.toast('UID นี้มีอยู่แล้ว กรุณาใช้ปุ่มแก้ไขจากรายการผู้ใช้');
+    const role = document.getElementById('profileRole').value;
+    if (!['admin', 'editor', 'reviewer', 'viewer'].includes(role)) {
+      return window.toast('กรุณาเลือกบทบาทผู้ใช้งานที่ถูกต้อง');
+    }
     const payload = {
       email: document.getElementById('profileEmail').value.trim().toLowerCase(),
       display_name: document.getElementById('profileDisplayName').value.trim(),
       department: document.getElementById('profileDepartment').value.trim(),
-      role: document.getElementById('profileRole').value,
+      role,
       is_active: document.getElementById('profileActive').value === 'true',
       updated_at: serverTimestamp(),
       updated_by: auth.currentUser.email

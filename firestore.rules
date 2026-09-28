@@ -38,6 +38,10 @@ service cloud.firestore {
       return hasRole('reviewer');
     }
 
+    function hasAssignableRole() {
+      return request.resource.data.role in ['admin', 'editor', 'reviewer', 'viewer'];
+    }
+
     function canEditOwnedContent(contentId) {
       let content = getAfter(
         /databases/$(database)/documents/contents/$(contentId)
@@ -74,7 +78,8 @@ service cloud.firestore {
           || isAdmin()
         );
 
-      allow create, update, delete: if isAdmin();
+      allow create, update: if isAdmin() && hasAssignableRole();
+      allow delete: if isAdmin();
     }
 
     // หมวดหมู่

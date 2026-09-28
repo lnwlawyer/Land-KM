@@ -23,9 +23,9 @@ const accounts = {
   admin: { uid: 'admin-1', email: 'admin@landkm.test', role: 'admin', is_active: true },
   editor: { uid: 'editor-1', email: 'editor@landkm.test', role: 'editor', is_active: true },
   reviewer: { uid: 'reviewer-1', email: 'reviewer@landkm.test', role: 'reviewer', is_active: true },
-  user: { uid: 'user-1', email: 'user@landkm.test', role: 'user', is_active: true },
-  other: { uid: 'user-2', email: 'other@landkm.test', role: 'user', is_active: true },
-  inactive: { uid: 'inactive-1', email: 'inactive@landkm.test', role: 'user', is_active: false }
+  user: { uid: 'user-1', email: 'user@landkm.test', role: 'viewer', is_active: true },
+  other: { uid: 'user-2', email: 'other@landkm.test', role: 'viewer', is_active: true },
+  inactive: { uid: 'inactive-1', email: 'inactive@landkm.test', role: 'viewer', is_active: false }
 };
 
 function dbAs(name) {
@@ -48,6 +48,31 @@ function content(overrides = {}) {
     ...overrides
   };
 }
+
+test('ผู้ดูแลกำหนดได้เฉพาะ canonical roles', async () => {
+  const adminDb = dbAs('admin');
+  for (const role of ['admin', 'editor', 'reviewer', 'viewer']) {
+    await assertSucceeds(updateDoc(doc(adminDb, 'users', accounts.user.uid), { role }));
+    await assertSucceeds(setDoc(doc(adminDb, 'users', `new-${role}`), {
+      role,
+      is_active: true
+    }));
+  }
+  await assertFails(updateDoc(doc(adminDb, 'users', accounts.user.uid), { role: 'user' }));
+  await assertFails(updateDoc(doc(adminDb, 'users', accounts.user.uid), { role: 'unknown' }));
+  await assertFails(setDoc(doc(adminDb, 'users', 'new-invalid'), {
+    role: 'unknown',
+    is_active: true
+  }));
+});
+
+test('ผู้ใช้ทั่วไปเปลี่ยน role หรือสถานะของตนเองไม่ได้', async () => {
+  const viewerDb = dbAs('user');
+  for (const role of ['admin', 'editor', 'reviewer']) {
+    await assertFails(updateDoc(doc(viewerDb, 'users', accounts.user.uid), { role }));
+  }
+  await assertFails(updateDoc(doc(viewerDb, 'users', accounts.user.uid), { is_active: false }));
+});
 
 async function seed() {
   await env.withSecurityRulesDisabled(async context => {

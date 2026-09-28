@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "firebase emulators:exec --project demo-land-km --only firestore \"node --test tests\"",
+    "test": "firebase emulators:exec --project demo-land-km --only firestore \"node --test tests/app-structure.test.mjs tests/firestore.rules.test.mjs\"",
     "test:rules": "firebase emulators:exec --project demo-land-km --only firestore \"node --test tests/firestore.rules.test.mjs\"",
     "test:app": "node --test tests/app-structure.test.mjs"
   },

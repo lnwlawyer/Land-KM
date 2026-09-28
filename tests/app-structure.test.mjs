@@ -56,3 +56,20 @@ test('ป้ายกำกับผู้ใช้ใน production source ใ�
   );
   assert.doesNotMatch(loadUsersSource, /\blaw\./, 'loadUsers() ต้องไม่อ้างข้อมูล law');
 });
+
+test('User Management ใน production source จำกัด role ที่ assign ได้และตรวจค่าก่อนเขียน', () => {
+  const roleOptions = [...productionHtml.matchAll(/<option value="(admin|editor|reviewer|viewer|user)">/g)]
+    .map(([, role]) => role);
+  assert.deepEqual(roleOptions, ['viewer', 'editor', 'reviewer', 'admin']);
+
+  const saveUserProfileStart = productionHtml.indexOf('async function saveUserProfile(event)');
+  const saveUserProfileEnd = productionHtml.indexOf('\n  document.getElementById(\'openUserForm\')', saveUserProfileStart);
+  assert.notEqual(saveUserProfileStart, -1, 'ไม่พบ saveUserProfile() ใน production source');
+  assert.notEqual(saveUserProfileEnd, -1, 'ไม่พบจุดสิ้นสุดของ saveUserProfile() ใน production source');
+
+  const saveUserProfileSource = productionHtml.slice(saveUserProfileStart, saveUserProfileEnd);
+  const validationIndex = saveUserProfileSource.indexOf("if (!['admin', 'editor', 'reviewer', 'viewer'].includes(role))");
+  const writeIndex = saveUserProfileSource.indexOf("await setDoc(doc(db, 'users', userId), payload");
+  assert.notEqual(validationIndex, -1, 'saveUserProfile() ต้องตรวจ canonical role');
+  assert.ok(writeIndex > validationIndex, 'role validation ต้องเกิดก่อน Firestore write');
+});
