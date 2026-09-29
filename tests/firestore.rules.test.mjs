@@ -31,7 +31,9 @@ const accounts = {
   reviewer: { uid: 'reviewer-1', email: 'reviewer@landkm.test', role: 'reviewer', is_active: true },
   user: { uid: 'user-1', email: 'user@landkm.test', role: 'viewer', is_active: true },
   other: { uid: 'user-2', email: 'other@landkm.test', role: 'viewer', is_active: true },
-  inactive: { uid: 'inactive-1', email: 'inactive@landkm.test', role: 'viewer', is_active: false }
+  inactive: { uid: 'inactive-1', email: 'inactive@landkm.test', role: 'viewer', is_active: false },
+  inactiveReviewer: { uid: 'inactive-reviewer-1', email: 'inactive-reviewer@landkm.test', role: 'reviewer', is_active: false },
+  inactiveAdmin: { uid: 'inactive-admin-1', email: 'inactive-admin@landkm.test', role: 'admin', is_active: false }
 };
 
 function dbAs(name) {
@@ -105,6 +107,25 @@ async function seed() {
       workflow_status: 'draft',
       created_by: 'another-editor@landkm.test'
     }));
+    await setDoc(doc(db, 'issueReports', 'ISS-USER'), {
+      report_id: 'ISS-USER',
+      reported_by: accounts.user.email,
+      status: 'open'
+    });
+    await setDoc(doc(db, 'issueReports', 'ISS-OTHER'), {
+      report_id: 'ISS-OTHER',
+      reported_by: accounts.other.email,
+      status: 'open'
+    });
+    for (const accountName of ['inactive', 'inactiveReviewer', 'inactiveAdmin', 'editor', 'reviewer', 'admin']) {
+      const account = accounts[accountName];
+      const reportId = `ISS-${accountName}`;
+      await setDoc(doc(db, 'issueReports', reportId), {
+        report_id: reportId,
+        reported_by: account.email,
+        status: 'open'
+      });
+    }
   });
 }
 
@@ -245,6 +266,31 @@ test('ผู้ใช้งานสร้าง Knowledge Gap ไม่ได�
     created_by: accounts.user.email,
     updated_by: accounts.user.email
   }));
+});
+
+test('issueReports: inactive accounts cannot read reports, including their own', async () => {
+  await assertFails(getDoc(doc(dbAs('inactive'), 'issueReports', 'ISS-inactive')));
+  await assertFails(getDoc(doc(dbAs('inactiveReviewer'), 'issueReports', 'ISS-inactiveReviewer')));
+  await assertFails(getDoc(doc(dbAs('inactiveAdmin'), 'issueReports', 'ISS-inactiveAdmin')));
+  await assertFails(getDoc(doc(dbAs('inactive'), 'issueReports', 'ISS-OTHER')));
+  await assertFails(getDoc(doc(dbAs('inactiveReviewer'), 'issueReports', 'ISS-USER')));
+  await assertFails(getDoc(doc(dbAs('inactiveAdmin'), 'issueReports', 'ISS-USER')));
+});
+
+test('issueReports: active reporters read only their own reports', async () => {
+  await assertSucceeds(getDoc(doc(dbAs('user'), 'issueReports', 'ISS-USER')));
+  await assertFails(getDoc(doc(dbAs('user'), 'issueReports', 'ISS-OTHER')));
+  await assertSucceeds(getDoc(doc(dbAs('editor'), 'issueReports', 'ISS-editor')));
+  await assertFails(getDoc(doc(dbAs('editor'), 'issueReports', 'ISS-OTHER')));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'issueReports', 'ISS-USER')));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'issueReports', 'ISS-OTHER')));
+});
+
+test('issueReports: active reviewers and admins retain reporting reads', async () => {
+  await assertSucceeds(getDoc(doc(dbAs('reviewer'), 'issueReports', 'ISS-reviewer')));
+  await assertSucceeds(getDoc(doc(dbAs('reviewer'), 'issueReports', 'ISS-OTHER')));
+  await assertSucceeds(getDoc(doc(dbAs('admin'), 'issueReports', 'ISS-admin')));
+  await assertSucceeds(getDoc(doc(dbAs('admin'), 'issueReports', 'ISS-OTHER')));
 });
 
 test('สถิติรายบัญชีเริ่มที่ 1 และเพิ่มได้ครั้งละ 1 เท่านั้น', async () => {

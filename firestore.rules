@@ -546,7 +546,10 @@ match /contentVersions/{versionId} {
 match /issueReports/{reportId} {
   allow read: if isAdmin()
     || isReviewer()
-    || resource.data.reported_by == request.auth.token.email;
+    || (
+      isActive()
+      && resource.data.reported_by == request.auth.token.email
+    );
 
   allow create: if isActive()
     && request.resource.data.report_id == reportId
