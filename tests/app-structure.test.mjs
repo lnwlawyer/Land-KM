@@ -5,6 +5,32 @@ import test from 'node:test';
 const productionHtmlUrl = new URL('../public/index.html', import.meta.url);
 const productionHtml = await readFile(productionHtmlUrl, 'utf8');
 const firestoreRules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
+const firebaseConfig = JSON.parse(await readFile(new URL('../firebase.json', import.meta.url), 'utf8'));
+
+test('usageStats fallback query has a declared Firestore composite index', async () => {
+  const loadUsageStatsStart = productionHtml.indexOf('async function loadUsageStats()');
+  const loadUsageStatsEnd = productionHtml.indexOf('\n  function contentViewCount', loadUsageStatsStart);
+  assert.notEqual(loadUsageStatsStart, -1);
+  assert.notEqual(loadUsageStatsEnd, -1);
+  const loadUsageStatsSource = productionHtml.slice(loadUsageStatsStart, loadUsageStatsEnd);
+
+  assert.match(loadUsageStatsSource, /collection\(db, 'usageStats'\)/);
+  assert.match(loadUsageStatsSource, /where\('user_id',\s*'==',\s*auth\.currentUser\.uid\)/);
+  assert.match(loadUsageStatsSource, /orderBy\('last_used_at',\s*'desc'\)/);
+
+  const indexesPath = new URL('../firestore.indexes.json', import.meta.url);
+  const indexConfig = JSON.parse(await readFile(indexesPath, 'utf8'));
+  assert.equal(firebaseConfig.firestore?.indexes, 'firestore.indexes.json');
+  assert.deepEqual(indexConfig.indexes, [{
+    collectionGroup: 'usageStats',
+    queryScope: 'COLLECTION',
+    fields: [
+      { fieldPath: 'user_id', order: 'ASCENDING' },
+      { fieldPath: 'last_used_at', order: 'DESCENDING' }
+    ]
+  }]);
+  assert.deepEqual(indexConfig.fieldOverrides, []);
+});
 
 test('production usageStats fallback query is scoped for non-reporting users', () => {
   const loadUsageStatsStart = productionHtml.indexOf('async function loadUsageStats()');
