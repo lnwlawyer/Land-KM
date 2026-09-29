@@ -4,6 +4,32 @@ import test from 'node:test';
 
 const productionHtmlUrl = new URL('../public/index.html', import.meta.url);
 const productionHtml = await readFile(productionHtmlUrl, 'utf8');
+const firestoreRules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
+
+test('production usageStats fallback query is scoped for non-reporting users', () => {
+  const loadUsageStatsStart = productionHtml.indexOf('async function loadUsageStats()');
+  const loadUsageStatsEnd = productionHtml.indexOf('\n  function contentViewCount', loadUsageStatsStart);
+  assert.notEqual(loadUsageStatsStart, -1);
+  assert.notEqual(loadUsageStatsEnd, -1);
+  const loadUsageStatsSource = productionHtml.slice(loadUsageStatsStart, loadUsageStatsEnd);
+  assert.match(loadUsageStatsSource, /where\('user_id',\s*'==',\s*auth\.currentUser\.uid\)/);
+  assert.match(loadUsageStatsSource, /\['admin',\s*'reviewer'\]\.includes\(currentUserProfile\?\.role\)/);
+});
+
+test('production analytics action/type pairs match the explicit Rules allowlist', () => {
+  const pairs = [
+    { action: 'select', targetType: 'category', production: /recordCategoryUsage\(categoryId, sharedAction = 'select'\)/, rules: /request\.resource\.data\.action == 'select'\s*&& request\.resource\.data\.target_type == 'category'/g },
+    { action: 'search', targetType: 'search', production: /recordSharedUsage\('search', 'search'/, rules: /request\.resource\.data\.action in \['search', 'no_result'\]\s*&& request\.resource\.data\.target_type == 'search'/g },
+    { action: 'no_result', targetType: 'search', production: /recordSharedUsage\('no_result', 'search'/, rules: /request\.resource\.data\.action in \['search', 'no_result'\]\s*&& request\.resource\.data\.target_type == 'search'/g },
+    { action: 'open', targetType: 'category', production: /recordCategoryUsage\(item\.category_id, 'open'\)/, rules: /request\.resource\.data\.action == 'open'\s*&& request\.resource\.data\.target_type == 'category'/g },
+    { action: 'open', targetType: 'content', production: /recordSharedUsage\('open', 'content'/, rules: /request\.resource\.data\.action == 'open'\s*&& request\.resource\.data\.target_type == 'content'/g }
+  ];
+  const aggregateRules = firestoreRules.slice(firestoreRules.indexOf('match /usageAggregates/{aggregateId}'));
+  for (const { action, targetType, production } of pairs) {
+    assert.match(productionHtml, production, `production must emit ${action}/${targetType}`);
+    assert.equal([...aggregateRules.matchAll(pairs.find(pair => pair.action === action && pair.targetType === targetType).rules)].length >= 2, true, `Rules create and update must allow ${action}/${targetType}`);
+  }
+});
 
 test('production source เริ่มต้นโดยไม่มีหมวดค้นหาที่ถูกเลือก', () => {
   assert.doesNotMatch(productionHtml, /new Set\(\['มรดก'\]\)/);

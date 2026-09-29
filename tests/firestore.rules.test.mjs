@@ -8,11 +8,16 @@ import {
 } from '@firebase/rules-unit-testing';
 import {
   doc,
+  collection,
+  getDocs,
   getDoc,
   increment,
   serverTimestamp,
   setDoc,
-  updateDoc
+  updateDoc,
+  query,
+  where,
+  runTransaction
 } from 'firebase/firestore';
 
 const projectId = 'demo-land-km';
@@ -261,4 +266,147 @@ test('Collection ที่ไม่อยู่ในรายการอนุ
 
 test('ข้อมูลทดสอบไม่ปนกับโครงการจริง', () => {
   assert.equal(projectId.startsWith('demo-'), true);
+});
+
+test('usageStats raw reads are limited to the owner, with admin reporting access', async () => {
+  const ownerRef = doc(dbAs('user'), 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`);
+  await assertSucceeds(setDoc(ownerRef, {
+    user_id: accounts.user.uid,
+    action: 'open',
+    target_type: 'content',
+    target_id: 'CNT-PUBLISHED',
+    count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  await assertSucceeds(getDoc(ownerRef));
+  await assertFails(getDoc(doc(dbAs('other'), 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`)));
+  await assertSucceeds(getDoc(doc(dbAs('admin'), 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`)));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`)));
+});
+
+test('usageStats owner query is compatible with owner-only list rules', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    await setDoc(doc(context.firestore(), 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`), {
+      user_id: accounts.user.uid, action: 'open', target_type: 'content', target_id: 'CNT-PUBLISHED', count: 1, last_used_at: new Date()
+    });
+    await setDoc(doc(context.firestore(), 'usageStats', `${accounts.other.uid}_open_CNT-PUBLISHED`), {
+      user_id: accounts.other.uid, action: 'open', target_type: 'content', target_id: 'CNT-PUBLISHED', count: 1, last_used_at: new Date()
+    });
+  });
+  const ownStats = await getDocs(query(
+    collection(dbAs('user'), 'usageStats'),
+    where('user_id', '==', accounts.user.uid)
+  ));
+  assert.equal(ownStats.size, 1);
+  const adminStats = await getDocs(collection(dbAs('admin'), 'usageStats'));
+  assert.equal(adminStats.size, 2);
+  const reviewerStats = await getDocs(collection(dbAs('reviewer'), 'usageStats'));
+  assert.equal(reviewerStats.size, 2);
+});
+
+test('usageStats writes cannot create or reassign another user’s record', async () => {
+  const userDb = dbAs('user');
+  await assertFails(setDoc(doc(userDb, 'usageStats', `${accounts.other.uid}_open_CNT-PUBLISHED`), {
+    user_id: accounts.other.uid,
+    action: 'open',
+    target_type: 'content',
+    target_id: 'CNT-PUBLISHED',
+    count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  const ownRef = doc(userDb, 'usageStats', `${accounts.user.uid}_open_CNT-PUBLISHED`);
+  await assertSucceeds(setDoc(ownRef, {
+    user_id: accounts.user.uid,
+    action: 'open',
+    target_type: 'content',
+    target_id: 'CNT-PUBLISHED',
+    count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  await assertFails(updateDoc(ownRef, { user_id: accounts.other.uid }));
+});
+
+test('usageAggregates support active-client reads and valid increments only', async () => {
+  const aggregate = {
+    action: 'open',
+    target_type: 'content',
+    target_id: 'CNT-PUBLISHED',
+    count: 1,
+    last_used_at: serverTimestamp()
+  };
+  const aggregateRef = doc(dbAs('user'), 'usageAggregates', 'open_content_CNT-PUBLISHED');
+  await assertSucceeds(setDoc(aggregateRef, aggregate));
+  await assertSucceeds(getDoc(aggregateRef));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'usageAggregates', 'open_content_CNT-PUBLISHED')));
+  await assertSucceeds(updateDoc(aggregateRef, { count: increment(1), last_used_at: serverTimestamp() }));
+  await assertFails(setDoc(doc(dbAs('user'), 'usageAggregates', 'admin_override_content_CNT-PUBLISHED'), {
+    ...aggregate,
+    action: 'admin_override'
+  }));
+  await assertFails(setDoc(doc(dbAs('user'), 'usageAggregates', 'open_private_CNT-PUBLISHED'), {
+    ...aggregate,
+    target_type: 'private'
+  }));
+  await assertFails(setDoc(doc(dbAs('user'), 'usageAggregates', 'open_content_OTHER-CONTENT'), {
+    ...aggregate,
+    target_id: 'OTHER-CONTENT',
+    user_id: accounts.other.uid
+  }));
+});
+
+test('usageAggregates allow production open/category create and increment pairs only', async () => {
+  const userDb = dbAs('user');
+  const categoryAggregate = doc(userDb, 'usageAggregates', 'open_category_CAT-TEST');
+  const categoryStat = doc(userDb, 'usageStats', `${accounts.user.uid}_open_category_CAT-TEST`);
+  const recordCategoryOpen = () => runTransaction(userDb, async transaction => {
+    const [aggregateSnapshot, statSnapshot] = await Promise.all([
+      transaction.get(categoryAggregate),
+      transaction.get(categoryStat)
+    ]);
+    transaction.set(categoryAggregate, {
+      action: 'open',
+      target_type: 'category',
+      target_id: 'CAT-TEST',
+      count: Number(aggregateSnapshot.data()?.count || 0) + 1,
+      last_used_at: serverTimestamp()
+    });
+    transaction.set(categoryStat, {
+      user_id: accounts.user.uid,
+      action: 'open',
+      target_type: 'category',
+      target_id: 'CAT-TEST',
+      count: Number(statSnapshot.data()?.count || 0) + 1,
+      last_used_at: serverTimestamp()
+    });
+  });
+  await assertSucceeds(recordCategoryOpen());
+  await assertSucceeds(recordCategoryOpen());
+  await assertFails(setDoc(doc(dbAs('user'), 'usageAggregates', 'search_category_CAT-TEST'), {
+    action: 'search', target_type: 'category', target_id: 'CAT-TEST', count: 1, last_used_at: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(dbAs('user'), 'usageAggregates', 'open_search_CAT-TEST'), {
+    action: 'open', target_type: 'search', target_id: 'CAT-TEST', count: 1, last_used_at: serverTimestamp()
+  }));
+});
+
+test('usageAggregates accept every production action/type pair', async () => {
+  const pairs = [
+    ['select', 'category'],
+    ['search', 'search'],
+    ['no_result', 'search'],
+    ['open', 'category'],
+    ['open', 'content']
+  ];
+  const db = dbAs('user');
+  for (const [action, targetType] of pairs) {
+    const aggregate = doc(db, 'usageAggregates', `${action}_${targetType}_PAIR-TEST`);
+    await assertSucceeds(setDoc(aggregate, {
+      action,
+      target_type: targetType,
+      target_id: 'PAIR-TEST',
+      count: 1,
+      last_used_at: serverTimestamp()
+    }));
+    await assertSucceeds(updateDoc(aggregate, { count: increment(1), last_used_at: serverTimestamp() }));
+  }
 });

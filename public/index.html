@@ -1363,10 +1363,16 @@
       ));
       usageStatsData = aggregateSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
       if (!usageStatsData.length) {
-        const legacySnapshot = await getDocs(query(
-          collection(db, 'usageStats'),
+        const usageStatsConstraints = [
           orderBy('last_used_at', 'desc'),
           limit(APP_LIMITS.usageStats)
+        ];
+        if (!['admin', 'reviewer'].includes(currentUserProfile?.role)) {
+          usageStatsConstraints.unshift(where('user_id', '==', auth.currentUser.uid));
+        }
+        const legacySnapshot = await getDocs(query(
+          collection(db, 'usageStats'),
+          ...usageStatsConstraints
         ));
         const legacyAggregates = new Map();
         legacySnapshot.docs.forEach(item => {
