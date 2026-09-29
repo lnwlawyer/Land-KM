@@ -645,21 +645,36 @@ match /usageStats/{statId} {
   allow delete: if isAdmin();
 }
 
+    function isSharedUsageAggregate(data) {
+      return (data.action == 'select' && data.target_type == 'category')
+        || (data.action == 'open' && data.target_type in ['category', 'content']);
+    }
+
+    function hasCanonicalUsageAggregateId(aggregateId, data) {
+      return data.target_id is string
+        && data.target_id.matches('^[^/]{1,120}$')
+        && aggregateId == data.action + '_' + data.target_type + '_' + data.target_id;
+    }
+
+    function isPublicUsageAggregateId(aggregateId) {
+      return aggregateId.matches('^(select_category|open_category|open_content)_[^/]{1,120}$');
+    }
+
 match /usageAggregates/{aggregateId} {
-  allow read: if isActive();
+  // Search terms remain in owner-scoped usageStats; reporters retain legacy aggregate reads.
+  allow get: if isActive()
+    && (isAdmin() || isReviewer()
+      || (resource == null && isPublicUsageAggregateId(aggregateId))
+      || (resource != null
+        && isSharedUsageAggregate(resource.data)
+        && hasCanonicalUsageAggregateId(aggregateId, resource.data)));
+  allow list: if isActive()
+    && (isAdmin() || isReviewer() || isSharedUsageAggregate(resource.data));
 
   allow create: if isActive()
+    && isSharedUsageAggregate(request.resource.data)
+    && hasCanonicalUsageAggregateId(aggregateId, request.resource.data)
     && request.resource.data.count == 1
-    && request.resource.data.action in ['select', 'search', 'no_result', 'open']
-    && request.resource.data.target_type in ['category', 'search', 'content']
-    && (
-      (request.resource.data.action == 'select' && request.resource.data.target_type == 'category')
-      || (request.resource.data.action in ['search', 'no_result'] && request.resource.data.target_type == 'search')
-      || (request.resource.data.action == 'open' && request.resource.data.target_type == 'category')
-      || (request.resource.data.action == 'open' && request.resource.data.target_type == 'content')
-    )
-    && request.resource.data.target_id is string
-    && request.resource.data.target_id.size() > 0
     && request.resource.data.last_used_at is timestamp
     && request.resource.data.keys().hasOnly([
       'action',
@@ -670,21 +685,15 @@ match /usageAggregates/{aggregateId} {
     ]);
 
   allow update: if isActive()
+    && isSharedUsageAggregate(resource.data)
+    && isSharedUsageAggregate(request.resource.data)
+    && hasCanonicalUsageAggregateId(aggregateId, resource.data)
+    && hasCanonicalUsageAggregateId(aggregateId, request.resource.data)
     && request.resource.data.action == resource.data.action
     && request.resource.data.target_type == resource.data.target_type
     && request.resource.data.target_id == resource.data.target_id
-    && request.resource.data.action in ['select', 'search', 'no_result', 'open']
-    && request.resource.data.target_type in ['category', 'search', 'content']
-    && (
-      (request.resource.data.action == 'select' && request.resource.data.target_type == 'category')
-      || (request.resource.data.action in ['search', 'no_result'] && request.resource.data.target_type == 'search')
-      || (request.resource.data.action == 'open' && request.resource.data.target_type == 'category')
-      || (request.resource.data.action == 'open' && request.resource.data.target_type == 'content')
-    )
     && request.resource.data.count == resource.data.count + 1
     && request.resource.data.count is int
-    && request.resource.data.target_id is string
-    && request.resource.data.target_id.size() > 0
     && request.resource.data.last_used_at is timestamp
     && request.resource.data.diff(resource.data).affectedKeys()
       .hasOnly(['count', 'last_used_at']);

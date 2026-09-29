@@ -42,19 +42,51 @@ test('production usageStats fallback query is scoped for non-reporting users', (
   assert.match(loadUsageStatsSource, /\['admin',\s*'reviewer'\]\.includes\(currentUserProfile\?\.role\)/);
 });
 
-test('production analytics action/type pairs match the explicit Rules allowlist', () => {
+test('production analytics routes sensitive search terms to owner-scoped stats only', () => {
   const pairs = [
-    { action: 'select', targetType: 'category', production: /recordCategoryUsage\(categoryId, sharedAction = 'select'\)/, rules: /request\.resource\.data\.action == 'select'\s*&& request\.resource\.data\.target_type == 'category'/g },
-    { action: 'search', targetType: 'search', production: /recordSharedUsage\('search', 'search'/, rules: /request\.resource\.data\.action in \['search', 'no_result'\]\s*&& request\.resource\.data\.target_type == 'search'/g },
-    { action: 'no_result', targetType: 'search', production: /recordSharedUsage\('no_result', 'search'/, rules: /request\.resource\.data\.action in \['search', 'no_result'\]\s*&& request\.resource\.data\.target_type == 'search'/g },
-    { action: 'open', targetType: 'category', production: /recordCategoryUsage\(item\.category_id, 'open'\)/, rules: /request\.resource\.data\.action == 'open'\s*&& request\.resource\.data\.target_type == 'category'/g },
-    { action: 'open', targetType: 'content', production: /recordSharedUsage\('open', 'content'/, rules: /request\.resource\.data\.action == 'open'\s*&& request\.resource\.data\.target_type == 'content'/g }
+    { action: 'select', targetType: 'category', emit: /recordCategoryUsage\(categoryId, sharedAction = 'select'\)/, shared: true },
+    { action: 'search', targetType: 'search', emit: /recordSharedUsage\('search', 'search'/, shared: false },
+    { action: 'no_result', targetType: 'search', emit: /recordSharedUsage\('no_result', 'search'/, shared: false },
+    { action: 'open', targetType: 'category', emit: /recordCategoryUsage\(item\.category_id, 'open'\)/, shared: true },
+    { action: 'open', targetType: 'content', emit: /recordSharedUsage\('open', 'content'/, shared: true }
   ];
   const aggregateRules = firestoreRules.slice(firestoreRules.indexOf('match /usageAggregates/{aggregateId}'));
-  for (const { action, targetType, production } of pairs) {
-    assert.match(productionHtml, production, `production must emit ${action}/${targetType}`);
-    assert.equal([...aggregateRules.matchAll(pairs.find(pair => pair.action === action && pair.targetType === targetType).rules)].length >= 2, true, `Rules create and update must allow ${action}/${targetType}`);
+  const sharedRules = firestoreRules.slice(firestoreRules.indexOf('function isSharedUsageAggregate('), firestoreRules.indexOf('function hasCanonicalUsageAggregateId('));
+  const writerStart = productionHtml.indexOf('async function recordSharedUsage(');
+  const writerEnd = productionHtml.indexOf('\n  async function loadUsageStats()', writerStart);
+  const writer = productionHtml.slice(writerStart, writerEnd);
+
+  for (const { action, targetType, emit, shared } of pairs) {
+    assert.match(productionHtml, emit, `production must emit ${action}/${targetType}`);
+    assert.equal(sharedRules.includes(`data.action == '${action}'`), shared,
+      `aggregate Rules routing for ${action}/${targetType}`);
+    if (shared) assert.match(writer, /transaction\.set\(aggregateRef/);
+    else assert.match(writer, /const isSharedAggregateEvent/);
   }
+  assert.match(writer, /transaction\.set\(userRef/);
+  assert.match(writer, /if \(aggregateRef\)/);
+  assert.match(aggregateRules, /hasCanonicalUsageAggregateId\(aggregateId, request\.resource\.data\)/);
+  assert.doesNotMatch(aggregateRules, /request\.resource\.data\.action in \['search', 'no_result'\]/);
+});
+
+test('production usage aggregates query only safe pairs and reporters read missing-search terms from usageStats', () => {
+  const loadStart = productionHtml.indexOf('async function loadUsageStats()');
+  const loadEnd = productionHtml.indexOf('\n  function contentViewCount', loadStart);
+  const loadSource = productionHtml.slice(loadStart, loadEnd);
+  assert.match(loadSource, /\['select', 'category'\]/);
+  assert.match(loadSource, /\['open', 'category'\]/);
+  assert.match(loadSource, /\['open', 'content'\]/);
+  assert.match(loadSource, /where\('action', '==', action\)/);
+  assert.match(loadSource, /where\('target_type', '==', targetType\)/);
+  assert.match(loadSource, /data\.action === 'no_result' && data\.target_type === 'search'/);
+  assert.match(loadSource, /isReportingRole/);
+});
+
+test('production aggregate IDs are canonical and unsafe target IDs skip shared writes', () => {
+  assert.match(productionHtml, /function usageAggregateDocumentId\(action, targetType, targetId\)/);
+  assert.match(productionHtml, /if \(!\/\^\[\^\/\]\{1,120\}\$\/\.test\(safeTarget\)\) return null/);
+  assert.match(productionHtml, /aggregateId !== null/);
+  assert.match(firestoreRules, /aggregateId == data\.action \+ '_' \+ data\.target_type \+ '_' \+ data\.target_id/);
 });
 
 test('production source เริ่มต้นโดยไม่มีหมวดค้นหาที่ถูกเลือก', () => {

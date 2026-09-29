@@ -12,6 +12,7 @@ import {
   getDocs,
   getDoc,
   increment,
+  limit,
   serverTimestamp,
   setDoc,
   updateDoc,
@@ -389,24 +390,104 @@ test('usageAggregates allow production open/category create and increment pairs 
   }));
 });
 
-test('usageAggregates accept every production action/type pair', async () => {
-  const pairs = [
+test('usageAggregates expose only safe pairs to active users and sensitive pairs to reporters', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    for (const [id, action, targetType, targetId] of [
+      ['select_category_CAT-TEST', 'select', 'category', 'CAT-TEST'],
+      ['open_category_CAT-TEST', 'open', 'category', 'CAT-TEST'],
+      ['open_content_CNT-TEST', 'open', 'content', 'CNT-TEST'],
+      ['search_search_personal-term', 'search', 'search', 'personal-term'],
+      ['no_result_search_secret-term', 'no_result', 'search', 'secret-term'],
+      ['open_content_legacy-mismatch', 'search', 'search', 'legacy-private-term']
+    ]) {
+      await setDoc(doc(db, 'usageAggregates', id), {
+        action, target_type: targetType, target_id: targetId, count: 1,
+        last_used_at: new Date()
+      });
+    }
+  });
+
+  const anonymousDb = env.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(anonymousDb, 'usageAggregates', 'open_content_CNT-TEST')));
+  await assertFails(setDoc(doc(anonymousDb, 'usageAggregates', 'open_content_ANON'), {
+    action: 'open', target_type: 'content', target_id: 'ANON', count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  for (const role of ['user', 'editor']) {
+    const db = dbAs(role);
+    await assertSucceeds(getDoc(doc(db, 'usageAggregates', 'open_content_CNT-TEST')));
+    await assertFails(getDoc(doc(db, 'usageAggregates', 'search_search_personal-term')));
+    await assertFails(getDoc(doc(db, 'usageAggregates', 'no_result_search_secret-term')));
+    await assertFails(getDoc(doc(db, 'usageAggregates', 'open_content_legacy-mismatch')));
+    for (const [action, targetType] of [['select', 'category'], ['open', 'category'], ['open', 'content']]) {
+      await assertSucceeds(getDocs(query(collection(db, 'usageAggregates'),
+        where('action', '==', action), where('target_type', '==', targetType), limit(20))));
+    }
+    await assertFails(getDocs(query(collection(db, 'usageAggregates'),
+      where('action', '==', 'search'), where('target_type', '==', 'search'), limit(20))));
+    await assertFails(getDocs(collection(db, 'usageAggregates')));
+  }
+  for (const role of ['reviewer', 'admin']) {
+    const db = dbAs(role);
+    await assertSucceeds(getDoc(doc(db, 'usageAggregates', 'search_search_personal-term')));
+    await assertSucceeds(getDoc(doc(db, 'usageAggregates', 'no_result_search_secret-term')));
+  }
+});
+
+test('usageAggregates accept canonical safe pairs, reject sensitive pairs and bind IDs', async () => {
+  const db = dbAs('user');
+  const safePairs = [
     ['select', 'category'],
-    ['search', 'search'],
-    ['no_result', 'search'],
     ['open', 'category'],
     ['open', 'content']
   ];
-  const db = dbAs('user');
-  for (const [action, targetType] of pairs) {
-    const aggregate = doc(db, 'usageAggregates', `${action}_${targetType}_PAIR-TEST`);
+  for (const [action, targetType] of safePairs) {
+    const id = `${action}_${targetType}_PAIR-TEST`;
+    const aggregate = doc(db, 'usageAggregates', id);
     await assertSucceeds(setDoc(aggregate, {
-      action,
-      target_type: targetType,
-      target_id: 'PAIR-TEST',
-      count: 1,
+      action, target_type: targetType, target_id: 'PAIR-TEST', count: 1,
       last_used_at: serverTimestamp()
     }));
     await assertSucceeds(updateDoc(aggregate, { count: increment(1), last_used_at: serverTimestamp() }));
+    await assertFails(updateDoc(aggregate, { count: increment(2), last_used_at: serverTimestamp() }));
   }
+  await assertSucceeds(setDoc(doc(db, 'usageAggregates', 'open_content_CNT: TEST'), {
+    action: 'open', target_type: 'content', target_id: 'CNT: TEST', count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(db, 'usageAggregates', 'open_content_CNT__TEST'), {
+    action: 'open', target_type: 'content', target_id: 'CNT: TEST', count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  for (const [action, targetType] of [['search', 'search'], ['no_result', 'search']]) {
+    await assertFails(setDoc(doc(db, 'usageAggregates', `${action}_${targetType}_PAIR-TEST`), {
+      action, target_type: targetType, target_id: 'PAIR-TEST', count: 1,
+      last_used_at: serverTimestamp()
+    }));
+  }
+  await assertFails(setDoc(doc(db, 'usageAggregates', 'alternate_id'), {
+    action: 'open', target_type: 'content', target_id: 'PAIR-TEST', count: 1,
+    last_used_at: serverTimestamp()
+  }));
+  await assertFails(setDoc(doc(db, 'usageAggregates', 'open_content_OTHER'), {
+    action: 'open', target_type: 'content', target_id: 'PAIR-TEST', count: 1,
+    last_used_at: serverTimestamp(), user_id: accounts.user.uid
+  }));
+  await assertFails(setDoc(doc(db, 'usageAggregates', 'open_content_EXTRA'), {
+    action: 'open', target_type: 'content', target_id: 'EXTRA', count: 1,
+    last_used_at: serverTimestamp(), actor_uid: accounts.user.uid
+  }));
+});
+
+test('search events remain owner-scoped in usageStats for reviewer reporting', async () => {
+  const ownerDb = dbAs('user');
+  const ownStat = doc(ownerDb, 'usageStats', `${accounts.user.uid}_no_result_search_SECRET`);
+  await assertSucceeds(setDoc(ownStat, {
+    user_id: accounts.user.uid, action: 'no_result', target_type: 'search',
+    target_id: 'SECRET', count: 1, last_used_at: serverTimestamp()
+  }));
+  await assertSucceeds(getDoc(ownStat));
+  await assertFails(getDoc(doc(dbAs('other'), 'usageStats', ownStat.id)));
+  await assertSucceeds(getDoc(doc(dbAs('reviewer'), 'usageStats', ownStat.id)));
 });

@@ -1311,7 +1311,8 @@
   }
 
   function usageAggregateDocumentId(action, targetType, targetId) {
-    const safeTarget = String(targetId || '').replace(/[^a-zA-Z0-9ก-๙_-]/g, '_').slice(0, 120);
+    const safeTarget = String(targetId || '');
+    if (!/^[^/]{1,120}$/.test(safeTarget)) return null;
     return `${action}_${targetType}_${safeTarget}`;
   }
 
@@ -1320,13 +1321,14 @@
     const id = usageStatDocumentId(action, targetType, targetId);
     const aggregateId = usageAggregateDocumentId(action, targetType, targetId);
     const userRef = doc(db, 'usageStats', id);
-    const aggregateRef = doc(db, 'usageAggregates', aggregateId);
+    const isSharedAggregateEvent = aggregateId !== null
+      && ((action === 'select' && targetType === 'category')
+        || (action === 'open' && ['category', 'content'].includes(targetType)));
+    const aggregateRef = isSharedAggregateEvent ? doc(db, 'usageAggregates', aggregateId) : null;
     try {
       await runTransaction(db, async transaction => {
-        const [userSnapshot, aggregateSnapshot] = await Promise.all([
-          transaction.get(userRef),
-          transaction.get(aggregateRef)
-        ]);
+        const userSnapshot = await transaction.get(userRef);
+        const aggregateSnapshot = aggregateRef ? await transaction.get(aggregateRef) : null;
         transaction.set(userRef, {
           user_id: auth.currentUser.uid,
           action,
@@ -1335,20 +1337,24 @@
           count: Number(userSnapshot.data()?.count || 0) + 1,
           last_used_at: serverTimestamp()
         });
-        transaction.set(aggregateRef, {
-          action,
-          target_type: targetType,
-          target_id: String(targetId),
-          count: Number(aggregateSnapshot.data()?.count || 0) + 1,
-          last_used_at: serverTimestamp()
-        });
+        if (aggregateRef) {
+          transaction.set(aggregateRef, {
+            action,
+            target_type: targetType,
+            target_id: String(targetId),
+            count: Number(aggregateSnapshot.data()?.count || 0) + 1,
+            last_used_at: serverTimestamp()
+          });
+        }
       });
-      const existing = usageStatsData.find(item => item.id === aggregateId);
-      if (existing) existing.count = Number(existing.count || 0) + 1;
-      else usageStatsData.push({ id: aggregateId, action, target_type: targetType, target_id: String(targetId), count: 1 });
-      renderDynamicCategoryRecommendations();
-      renderHomeDashboard(contentItems);
-      if (lastSearchResults.length) renderPublishedContents(lastSearchResults);
+      if (aggregateRef) {
+        const existing = usageStatsData.find(item => item.id === aggregateId);
+        if (existing) existing.count = Number(existing.count || 0) + 1;
+        else usageStatsData.push({ id: aggregateId, action, target_type: targetType, target_id: String(targetId), count: 1 });
+        renderDynamicCategoryRecommendations();
+        renderHomeDashboard(contentItems);
+        if (lastSearchResults.length) renderPublishedContents(lastSearchResults);
+      }
     } catch (error) {
       console.warn('Usage statistics were not saved:', error);
     }
@@ -1356,33 +1362,47 @@
 
   async function loadUsageStats() {
     try {
-      const aggregateSnapshot = await getDocs(query(
-        collection(db, 'usageAggregates'),
-        orderBy('last_used_at', 'desc'),
+      const aggregateCollection = collection(db, 'usageAggregates');
+      const safeAggregatePairs = [
+        ['select', 'category'],
+        ['open', 'category'],
+        ['open', 'content']
+      ];
+      const aggregateSnapshots = await Promise.all(safeAggregatePairs.map(([action, targetType]) => getDocs(query(
+        aggregateCollection,
+        where('action', '==', action),
+        where('target_type', '==', targetType),
         limit(APP_LIMITS.usageStats)
-      ));
-      usageStatsData = aggregateSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      ))));
+      usageStatsData = aggregateSnapshots.flatMap(snapshot =>
+        snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+      );
+
+      const isReportingRole = ['admin', 'reviewer'].includes(currentUserProfile?.role);
+      let rawUsageStats = [];
+      if (isReportingRole || !usageStatsData.length) {
+        const usageStatsConstraints = [orderBy('last_used_at', 'desc'), limit(APP_LIMITS.usageStats)];
+        if (!isReportingRole) usageStatsConstraints.unshift(where('user_id', '==', auth.currentUser.uid));
+        const rawSnapshot = await getDocs(query(collection(db, 'usageStats'), ...usageStatsConstraints));
+        rawUsageStats = rawSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      }
+
       if (!usageStatsData.length) {
-        const usageStatsConstraints = [
-          orderBy('last_used_at', 'desc'),
-          limit(APP_LIMITS.usageStats)
-        ];
-        if (!['admin', 'reviewer'].includes(currentUserProfile?.role)) {
-          usageStatsConstraints.unshift(where('user_id', '==', auth.currentUser.uid));
-        }
-        const legacySnapshot = await getDocs(query(
-          collection(db, 'usageStats'),
-          ...usageStatsConstraints
-        ));
         const legacyAggregates = new Map();
-        legacySnapshot.docs.forEach(item => {
-          const data = item.data();
+        rawUsageStats.filter(data =>
+          (data.action === 'select' && data.target_type === 'category')
+          || (data.action === 'open' && ['category', 'content'].includes(data.target_type))
+        ).forEach(data => {
           const id = usageAggregateDocumentId(data.action, data.target_type, data.target_id);
+          if (!id) return;
           const existing = legacyAggregates.get(id) || { id, action: data.action, target_type: data.target_type, target_id: data.target_id, count: 0 };
           existing.count += Number(data.count || 0);
           legacyAggregates.set(id, existing);
         });
         usageStatsData = [...legacyAggregates.values()];
+      }
+      if (isReportingRole) {
+        usageStatsData.push(...rawUsageStats.filter(data => data.action === 'no_result' && data.target_type === 'search'));
       }
       renderDynamicCategoryRecommendations();
       renderHomeDashboard(contentItems);
