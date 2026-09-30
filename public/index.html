@@ -121,6 +121,9 @@
     @media(max-width:700px){#searchView .search-header h1{font-size:23px}#resultSearch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}#resultSearch input{grid-column:1/-1;width:100%;border:1px solid var(--line);border-radius:8px}#resultSearch button{width:100%}.doc.search-result-row{grid-template-columns:minmax(0,1fr)}.search-result-row>.file{display:none}.search-result-main{grid-column:1;grid-row:1}.search-result-actions{grid-column:1;grid-row:2;justify-content:flex-end}.search-result-actions .btn{min-height:42px}.search-result-meta{line-height:1.55}}
     .search-filter-toggle,.search-filter-active{display:none}
     @media(max-width:700px){#searchView .search-header{gap:4px;margin-bottom:9px}#searchView .search-header p{font-size:13px;line-height:1.45}#resultSearch{margin-top:3px}#searchView .filters{padding:10px;margin-bottom:0}#searchView .filters h3{display:none}.search-filter-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-weight:700;text-align:left;cursor:pointer}.search-filter-toggle:focus-visible{outline:3px solid #9be3d7;outline-offset:2px}.search-filter-toggle-label{overflow-wrap:anywhere}.search-filter-toggle-count{flex:none;background:#e8f6f3;color:#06665d;border-radius:99px;padding:2px 8px;font-size:12px}.search-filter-active{display:block;margin:5px 2px 0;color:var(--brand);font-size:12px;line-height:1.4;overflow-wrap:anywhere}.search-filter-active[hidden]{display:none}#searchView .filters .filter{padding:9px 0}#searchView .filters .filter-actions{padding-top:7px}.search-filter-content[hidden]{display:none}}
+    #detailView .detail{min-width:0}#detailView .detail-type-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px!important}#detailView .detail-type-row .tag{font-size:12px}#detailView .detail h1{overflow-wrap:anywhere;line-height:1.4}#detailView .detail-breadcrumb{margin:12px 0 2px;min-width:0;color:var(--muted);font-size:13px}#detailView .detail-breadcrumb ol{display:flex;flex-wrap:wrap;gap:4px 8px;list-style:none;margin:0;padding:0}#detailView .detail-breadcrumb li{min-width:0;overflow-wrap:anywhere}#detailView .detail-breadcrumb li+li:before{content:'›';margin-right:8px;color:#98a2b3}#detailView .detail-breadcrumb button{border:0;padding:0;background:none;color:var(--brand);font:inherit;text-align:left;text-decoration:underline;text-underline-offset:2px;cursor:pointer}#detailView .detail-breadcrumb button:focus-visible,#detailView .detail-resource-link:focus-visible,#detailView .detail-related-link:focus-visible{outline:3px solid #f0b64d;outline-offset:2px;border-radius:4px}#detailView .detail-meta{display:flex;gap:8px;flex-wrap:wrap;padding:13px 0 16px}#detailView .detail-meta-item{background:#f6f8fa;border:1px solid var(--line);border-radius:8px;padding:6px 9px;line-height:1.5;overflow-wrap:anywhere}#detailView .detail-meta-item b{color:#344054}#detailView .callout p{margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}#detailView #dynamicDetailBody{max-width:72ch;overflow-wrap:anywhere}#detailView #dynamicDetailBody h2{font-size:18px;line-height:1.5;margin:25px 0 8px}#detailView #dynamicDetailBody p,#detailView #dynamicDetailBody li{font-size:16px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}#detailView #dynamicDetailBody p{margin:0 0 16px}#detailView #dynamicDetailBody ul,#detailView #dynamicDetailBody ol{padding-left:1.5rem;margin:6px 0 18px}#detailView .document-viewer{max-width:100%}.detail-resource-list,.detail-related-list{display:grid;gap:8px}.detail-resource-link,.detail-related-link{display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px;border:1px solid var(--line);border-radius:9px;color:var(--brand);text-decoration:none;overflow-wrap:anywhere}.detail-resource-link span,.detail-related-link span{font-size:12px;color:var(--muted)}.detail-related-link b{line-height:1.5;color:var(--ink)}
+    @media(max-width:700px){#detailView .detail{padding:18px}#detailView .detail h1{font-size:23px;margin-top:7px}#detailView .detail-breadcrumb{font-size:12px;margin:9px 0 0}#detailView .detail-breadcrumb ol{gap:3px 6px}#detailView .detail-breadcrumb li+li:before{margin-right:6px}#detailView .detail-meta{display:grid;grid-template-columns:minmax(0,1fr);gap:6px;padding:10px 0 14px}#detailView .detail-meta-item{padding:7px 9px}#detailView #dynamicDetailBody p,#detailView #dynamicDetailBody li{font-size:16px;line-height:1.85}#detailView .detail-actions .btn{min-height:42px}}
+    #detailView #dynamicDetailBody .detail-reading-section{margin-top:28px;padding-top:14px;border-top:1px solid var(--line)}#detailView #dynamicDetailBody .detail-reading-section h2{font-size:18px;line-height:1.5;margin:0 0 10px;color:var(--navy)}#detailView #dynamicDetailBody .detail-resource-link,#detailView #dynamicDetailBody .detail-related-link{background:#fff}
   </style>
 </head>
 <body>
@@ -354,14 +357,14 @@
   function show(id,name,options={}){
     const current=document.querySelector('.view.active');
     const pageName=document.getElementById('pageName');
-    if(!options.fromBack&&current&&current.id!==id){
+    if(!options.fromBack&&!options.replaceCurrent&&current&&current.id!==id){
       viewHistory.push({id:current.id,name:pageName.textContent||'หน้าแรก',scrollY:window.scrollY});
       if(viewHistory.length>30)viewHistory.shift();
     }
     views.forEach(v=>v.classList.toggle('active',v.id===id));
     navs.forEach(n=>n.classList.toggle('active',n.dataset.view===id));
     pageName.textContent=name||'ค้นหาความรู้';
-    if(id==='detailView')document.getElementById('back').textContent='← กลับหน้าก่อน';
+    if(id==='detailView')window.updateDetailReturnControl?.();
     options.restoreScroll?scrollTo(0,options.restoreScroll):scrollTo(0,0);
   }
   function showPreviousView(fallbackId='home',fallbackName='หน้าแรก'){
@@ -457,6 +460,7 @@
   let retryAction = null;
   const APP_LIMITS = Object.freeze({
     contentPageSize: 50,
+    detailFiles: 10,
     usageStats: 1000,
     issueReports: 1000,
     knowledgePackages: 200,
@@ -879,7 +883,7 @@
   let answersData = [];
   let currentQuestionId = null;
   let currentContentId = null;
-  let sharedContentLinkHandled = false;
+  let sharedContentResolutionAttempt = null;
   let notificationsData = [];
   let notificationReadIds = new Set();
 
@@ -2476,12 +2480,207 @@
   function appendDetailSection(container, title, value) {
     if (value === undefined || value === null || String(value).trim() === '') return;
     const heading = document.createElement('h2');
-    const paragraph = document.createElement('p');
     heading.textContent = title;
-    paragraph.textContent = String(value);
-    paragraph.style.whiteSpace = 'pre-wrap';
-    paragraph.style.lineHeight = '1.8';
+    if (Array.isArray(value)) {
+      const list = document.createElement('ul');
+      value.filter(entry => entry !== null && entry !== undefined && String(entry).trim()).forEach(entry => {
+        const item = document.createElement('li');
+        item.textContent = typeof entry === 'object' ? JSON.stringify(entry) : String(entry);
+        list.appendChild(item);
+      });
+      if (list.children.length) container.append(heading, list);
+      return;
+    }
+    const paragraph = document.createElement('p');
+    paragraph.textContent = typeof value === 'object' ? JSON.stringify(value) : String(value);
+    paragraph.className = 'detail-reading-paragraph';
     container.append(heading, paragraph);
+  }
+
+  const detailTypeLabels = { knowledge: 'องค์ความรู้', law: 'กฎหมายและหนังสือเวียน', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัยคณะกรรมการ', guide: 'คู่มือและแนวทางปฏิบัติ', lesson: 'บทเรียนออนไลน์', qa: 'คำถาม–คำตอบ' };
+
+  function readableDetailValue(value) {
+    if (value === undefined || value === null || Array.isArray(value) || typeof value === 'object') return '';
+    const text = String(value).trim();
+    return ['', '-', '—', 'null', 'undefined'].includes(text.toLocaleLowerCase('th-TH')) ? '' : text;
+  }
+
+  function formatDetailDate(value) {
+    const date = value?.toDate ? value.toDate() : value?.seconds ? new Date(value.seconds * 1000) : value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString('th-TH', { dateStyle: 'medium' }) : '';
+  }
+
+  function updateDetailReturnControl() {
+    const button = document.getElementById('back');
+    if (!button) return;
+    const previous = viewHistory.at(-1);
+    const label = previous?.id === 'searchView' ? 'กลับไปผลการค้นหา' : previous ? `กลับไป${previous.name || 'หน้าก่อน'}` : 'กลับไปหน้าความรู้';
+    button.textContent = `← ${label}`;
+    button.setAttribute('aria-label', label);
+  }
+  window.updateDetailReturnControl = updateDetailReturnControl;
+
+  function renderDetailBreadcrumb(item) {
+    const detail = document.getElementById('detailView');
+    const back = document.getElementById('back');
+    let nav = document.getElementById('detailBreadcrumb');
+    if (!nav) {
+      nav = document.createElement('nav');
+      nav.id = 'detailBreadcrumb';
+      nav.className = 'detail-breadcrumb';
+      nav.setAttribute('aria-label', 'เส้นทางนำทาง');
+      back.insertAdjacentElement('afterend', nav);
+    }
+    const previous = viewHistory.at(-1);
+    const sourceLabel = previous?.id === 'searchView' ? 'ค้นหาความรู้' : previous?.name || detailTypeLabels[item.content_type] || 'องค์ความรู้';
+    const list = document.createElement('ol');
+    const sourceItem = document.createElement('li');
+    if (previous) {
+      const sourceButton = document.createElement('button');
+      sourceButton.type = 'button';
+      sourceButton.textContent = sourceLabel;
+      sourceButton.onclick = () => showPreviousView();
+      sourceItem.appendChild(sourceButton);
+    } else {
+      const source = document.createElement('span');
+      source.textContent = sourceLabel;
+      sourceItem.appendChild(source);
+    }
+    const current = document.createElement('li');
+    current.textContent = item.title || item.official_title || 'เนื้อหาไม่มีชื่อเรื่อง';
+    current.setAttribute('aria-current', 'page');
+    list.append(sourceItem, current);
+    nav.replaceChildren(list);
+  }
+
+  function renderDetailHeader(item, detail) {
+    const root = document.querySelector('#detailView .detail');
+    const typeRow = root.querySelector('.tag').parentElement;
+    const typeTag = typeRow.querySelector('.tag');
+    const status = typeRow.querySelector('.status');
+    typeRow.classList.add('detail-type-row');
+    typeTag.textContent = detailTypeLabels[item.content_type] || item.content_type || 'องค์ความรู้';
+    status.textContent = 'เผยแพร่แล้ว';
+    status.hidden = item.workflow_status !== 'published';
+    root.querySelector('h1').textContent = item.title || detail.official_title || 'เนื้อหาไม่มีชื่อเรื่อง';
+
+    const metadata = root.querySelector('.detail-meta');
+    metadata.replaceChildren();
+    const categoryId = item.category_id || detail.category_id;
+    if (categoryId) {
+      const category = getCategoryDisplay(categoryId);
+      if (category.name && category.name !== 'ไม่ระบุหมวด') addDetailMetadata(metadata, 'หมวดหมู่', category.text);
+    }
+    const documentNumber = readableDetailValue(detail.document_no || item.document_no || item.document_number || item.reference_no || item.case_no);
+    if (documentNumber) addDetailMetadata(metadata, 'เลขที่อ้างอิง', documentNumber);
+    const date = formatDetailDate(item.decision_date || detail.decision_date || detail.document_date || item.published_at || item.updated_at || detail.updated_at);
+    if (date) addDetailMetadata(metadata, 'วันที่', date);
+    const authority = readableDetailValue(detail.issuing_authority || detail.issuer || detail.authority || item.authority || detail.source_name || item.source_name);
+    if (authority) addDetailMetadata(metadata, 'หน่วยงาน/แหล่งที่มา', authority);
+    const lawType = readableDetailValue(detail.law_type || detail.guide_type);
+    if (lawType) addDetailMetadata(metadata, 'ประเภทเอกสาร', lawType);
+
+    const summary = readableDetailValue(item.summary || detail.legal_summary || detail.summary);
+    const callout = root.querySelector('.callout');
+    callout.replaceChildren();
+    callout.hidden = !summary;
+    if (summary) {
+      const heading = document.createElement('b');
+      heading.textContent = 'สรุปสาระสำคัญ';
+      const paragraph = document.createElement('p');
+      paragraph.textContent = summary;
+      callout.append(heading, paragraph);
+    }
+  }
+
+  function addDetailMetadata(container, label, value) {
+    const text = readableDetailValue(value);
+    if (!text) return;
+    const entry = document.createElement('span');
+    entry.className = 'detail-meta-item';
+    const name = document.createElement('b');
+    name.textContent = `${label}: `;
+    entry.append(name, document.createTextNode(text));
+    container.appendChild(entry);
+  }
+
+  function collectDetailResources(item, detail, files) {
+    const directEntries = [item, detail].flatMap(record => [
+      ['source_url', 'เอกสารต้นฉบับ'], ['full_text_url', 'เอกสารฉบับเต็ม'], ['document_url', 'เอกสารที่เกี่ยวข้อง'],
+      ['file_url', 'ไฟล์เอกสาร'], ['storage_url', 'ไฟล์เอกสาร'], ['attachment_url', 'เอกสารแนบ'], ['media_url', 'สื่อประกอบ'], ['resource_url', 'แหล่งข้อมูล']
+    ].map(([field, fallback]) => ({ url: record?.[field], name: record?.file_name || record?.title || fallback, type: record?.file_type || '' })));
+    const fileEntries = files.map(file => ({
+      url: file.file_url || file.storage_url || file.full_text_url || file.document_url || file.attachment_url || file.media_url || file.resource_url,
+      name: file.file_name || file.display_name || file.title || 'เอกสารประกอบ',
+      type: file.file_type || file.resource_type || ''
+    }));
+    const unique = new Map();
+    [...directEntries, ...fileEntries].forEach(entry => {
+      const safeUrl = safeDocumentUrl(entry.url);
+      if (safeUrl && !unique.has(safeUrl.href)) unique.set(safeUrl.href, { ...entry, url: safeUrl.href });
+    });
+    return [...unique.values()];
+  }
+
+  function renderDetailResources(container, resources) {
+    if (!resources.length) return;
+    const section = document.createElement('section');
+    section.className = 'detail-reading-section';
+    const heading = document.createElement('h2');
+    heading.textContent = 'เอกสารที่เกี่ยวข้อง';
+    const list = document.createElement('div');
+    list.className = 'detail-resource-list';
+    resources.forEach(resource => {
+      const link = document.createElement('a');
+      link.className = 'detail-resource-link';
+      link.href = resource.url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = readableDetailValue(resource.name) || 'เอกสารที่เกี่ยวข้อง';
+      const action = document.createElement('span');
+      action.textContent = resource.type ? `เปิดเอกสาร • ${resource.type}` : 'เปิดเอกสาร ↗';
+      link.appendChild(action);
+      list.appendChild(link);
+    });
+    section.append(heading, list);
+    container.appendChild(section);
+  }
+
+  function renderRelatedKnowledge(container, item) {
+    const currentId = item.content_id || item.id;
+    const related = contentItems.filter(candidate =>
+      candidate.workflow_status === 'published'
+      && (candidate.content_id || candidate.id) !== currentId
+      && ((item.category_id && candidate.category_id === item.category_id) || candidate.content_type === item.content_type)
+    ).sort((a, b) => {
+      const aCategory = item.category_id && a.category_id === item.category_id ? 1 : 0;
+      const bCategory = item.category_id && b.category_id === item.category_id ? 1 : 0;
+      const aType = a.content_type === item.content_type ? 1 : 0;
+      const bType = b.content_type === item.content_type ? 1 : 0;
+      return bCategory - aCategory || bType - aType || (b.updated_at?.seconds || 0) - (a.updated_at?.seconds || 0);
+    }).slice(0, 4);
+    if (!related.length) return;
+    const section = document.createElement('section');
+    section.className = 'detail-reading-section';
+    const heading = document.createElement('h2');
+    heading.textContent = 'เนื้อหาที่เกี่ยวข้อง';
+    const list = document.createElement('div');
+    list.className = 'detail-related-list';
+    related.forEach(content => {
+      const link = document.createElement('a');
+      link.href = '#';
+      link.className = 'detail-related-link';
+      link.setAttribute('aria-label', `เปิดอ่านเนื้อหาที่เกี่ยวข้อง: ${content.title || 'เนื้อหา'}`);
+      const title = document.createElement('b');
+      title.textContent = content.title || 'เนื้อหาไม่มีชื่อเรื่อง';
+      const reason = document.createElement('span');
+      reason.textContent = item.category_id && content.category_id === item.category_id ? 'หมวดหมู่เดียวกัน' : (detailTypeLabels[content.content_type] || 'ประเภทเนื้อหาเดียวกัน');
+      link.append(title, reason);
+      link.onclick = event => { event.preventDefault(); void openContentFromFirestore(content, { replaceCurrent: true }); };
+      list.appendChild(link);
+    });
+    section.append(heading, list);
+    container.appendChild(section);
   }
 
   function safeDocumentUrl(rawUrl) {
@@ -2531,7 +2730,7 @@
     const openButton = document.createElement('button');
     openButton.type = 'button';
     openButton.className = 'btn primary';
-    openButton.textContent = 'เปิดด้วย Google ในแท็บใหม่ ↗';
+    openButton.textContent = 'เปิดเอกสารในแท็บใหม่ ↗';
     openButton.onclick = () => window.open(info.originalUrl, '_blank', 'noopener,noreferrer');
     header.append(heading, openButton);
     viewer.appendChild(header);
@@ -2555,92 +2754,55 @@
       note.textContent = 'เว็บไซต์ต้นทางไม่รองรับการแสดงในกรอบ กรุณาเปิดเอกสารในแท็บใหม่';
       viewer.appendChild(note);
     }
-    container.prepend(viewer);
+    container.appendChild(viewer);
     return true;
   }
 
-  async function openContentFromFirestore(item) {
+  async function openContentFromFirestore(item, options = {}) {
+    if (options.isCurrentRequest && !options.isCurrentRequest()) return;
     currentContentId = item.content_id || item.id;
-    recordCategoryUsage(item.category_id, 'open');
-    void recordSharedUsage('open', 'content', currentContentId);
+    if (options.recordOpenUsage !== false) {
+      recordCategoryUsage(item.category_id, 'open');
+      void recordSharedUsage('open', 'content', currentContentId);
+    }
     const detailView = document.getElementById('detailView');
-    const typeLabels = { knowledge: 'องค์ความรู้', law: 'กฎหมาย/หนังสือเวียน', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัยคณะกรรมการ', guide: 'คู่มือ/แนวทาง', lesson: 'บทเรียนออนไลน์', qa: 'คำถาม–คำตอบ' };
-    detailView.querySelector('h1').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
-    detailView.querySelector('.detail > div .tag').textContent = typeLabels[item.content_type] || item.content_type || 'องค์ความรู้';
-    detailView.querySelector('.detail > div .status').textContent = '● เผยแพร่แล้ว';
-    detailView.querySelector('.callout').hidden = false;
-    detailView.querySelector('.callout').innerHTML = '<b>สรุปสาระสำคัญ</b><br>';
-    detailView.querySelector('.callout').append(document.createTextNode(item.summary || 'ยังไม่มีข้อความสรุป'));
-    const meta = detailView.querySelector('.detail-meta');
-    meta.innerHTML = '';
-    [
-      `กลุ่มหมวด: ${getCategoryDisplay(item.category_id).group}`,
-      `หมวดเนื้อหา: ${getCategoryDisplay(item.category_id).name}`,
-      `เจ้าของเนื้อหา: ${item.owner_unit || item.created_by || '-'}`
-    ].forEach(text => {
-      const span = document.createElement('span');
-      span.textContent = text;
-      meta.appendChild(span);
-    });
-
-    const body = document.getElementById('dynamicDetailBody');
-    body.innerHTML = '';
     let detail = item._detail || {};
     const detailCollections = { law: 'laws', guide: 'guides', lesson: 'lessons', qa: 'questions' };
     const detailCollection = detailCollections[item.content_type];
     if (detailCollection) {
       try {
         const snapshot = await getDoc(doc(db, detailCollection, currentContentId));
-        if (snapshot.exists()) {
-          detail = snapshot.data();
-        } else {
-          const linkedSnapshot = await getDocs(query(
-            collection(db, detailCollection),
-            where('content_id', '==', currentContentId)
-          ));
+        if (snapshot.exists()) detail = snapshot.data();
+        else {
+          const linkedSnapshot = await getDocs(query(collection(db, detailCollection), where('content_id', '==', currentContentId), limit(1)));
           if (!linkedSnapshot.empty) detail = linkedSnapshot.docs[0].data();
         }
       } catch (error) {
         console.error('Load content detail failed:', error);
       }
     }
+    if (options.isCurrentRequest && !options.isCurrentRequest()) return;
 
-    let sourceUrl = item.source_url || item.full_text_url || item.file_url || item.storage_url || item.media_url || item.document_url || item.attachment_url || detail.full_text_url || detail.file_url || detail.storage_url || detail.media_url || detail.document_url || detail.attachment_url || '';
-    if (!sourceUrl) {
-      try {
-        const fileSnapshot = await getDocs(query(collection(db, 'files'), where('content_id', '==', currentContentId)));
-        const linkedFile = fileSnapshot.docs.map(entry => entry.data()).find(file => file.file_url || file.storage_url || file.full_text_url || file.media_url);
-        sourceUrl = linkedFile?.file_url || linkedFile?.storage_url || linkedFile?.full_text_url || linkedFile?.media_url || '';
-      } catch (error) {
-        console.warn('Load linked file for preview failed:', error);
-      }
-    }
+    renderDetailHeader(item, detail);
+    const body = document.getElementById('dynamicDetailBody');
+    body.replaceChildren();
     if (item.content_type === 'law') {
       appendDetailSection(body, 'ชื่อเอกสารทางกฎหมาย', detail.official_title);
-      appendDetailSection(body, 'เลขที่เอกสาร', detail.document_no);
       appendDetailSection(body, 'ประเภทเอกสาร', detail.law_type);
-      appendDetailSection(body, 'หน่วยงานผู้ออก', detail.issuing_authority || detail.issuer);
       appendDetailSection(body, 'สถานะทางกฎหมาย', detail.legal_status);
       appendDetailSection(body, 'สาระสำคัญทางกฎหมาย', detail.legal_summary);
       appendDetailSection(body, 'แก้ไขหรือยกเลิกเอกสาร', detail.supersedes);
       appendDetailSection(body, 'เอกสารที่แก้ไขเพิ่มเติมฉบับนี้', detail.amended_by);
-      renderDocumentViewer(body, sourceUrl, item.title || detail.official_title);
     } else if (['judgment', 'committeeDecision'].includes(item.content_type)) {
-      appendDetailSection(body, 'เลขที่อ้างอิง', item.reference_no);
-      appendDetailSection(body, item.content_type === 'judgment' ? 'ศาล' : 'คณะกรรมการ', item.authority);
-      appendDetailSection(body, 'วันที่มีคำวินิจฉัย', item.decision_date);
-      appendDetailSection(body, 'สถานะ', item.reference_status);
+      appendDetailSection(body, 'สถานะอ้างอิง', item.reference_status);
       appendDetailSection(body, 'สรุปข้อเท็จจริง', item.facts);
       appendDetailSection(body, 'ประเด็นที่วินิจฉัย', item.decision_issue);
       appendDetailSection(body, 'หลักกฎหมายหรือสาระสำคัญ', item.legal_principle);
-      renderDocumentViewer(body, sourceUrl, item.title);
     } else if (item.content_type === 'guide') {
-      appendDetailSection(body, 'ประเภทคู่มือ', detail.guide_type);
       appendDetailSection(body, 'กลุ่มเป้าหมาย', detail.target_group);
       appendDetailSection(body, 'วัตถุประสงค์', detail.objective);
       appendDetailSection(body, 'ขั้นตอนปฏิบัติ', detail.steps);
       appendDetailSection(body, 'เอกสารและหลักฐานที่ต้องใช้', detail.required_documents);
-      renderDocumentViewer(body, sourceUrl, item.title || detail.official_title);
     } else if (item.content_type === 'lesson') {
       appendDetailSection(body, 'คำอธิบายบทเรียน', detail.description);
       appendDetailSection(body, 'ผลลัพธ์การเรียนรู้', detail.learning_outcomes);
@@ -2656,24 +2818,42 @@
       appendDetailSection(body, 'ข้อกฎหมายและแหล่งอ้างอิง', item.legal_references);
       appendDetailSection(body, 'แนวทางปฏิบัติ', item.guidance);
       appendDetailSection(body, 'ข้อควรระวัง', item.cautions);
-      renderDocumentViewer(body, sourceUrl, item.title);
       appendDetailSection(body, 'ตัวอย่าง', item.example);
     }
-    if (!body.children.length) appendDetailSection(body, 'รายละเอียด', 'ยังไม่มีรายละเอียดเพิ่มเติมสำหรับเนื้อหานี้');
+    if (!body.children.length) appendDetailSection(body, 'รายละเอียด', 'ไม่มีรายละเอียดเพิ่มเติมในรายการนี้');
 
-    const sourceButton = detailView.querySelector('.side-card .btn.primary');
+    let linkedFiles = [];
+    try {
+      const fileSnapshot = await getDocs(query(collection(db, 'files'), where('content_id', '==', currentContentId), limit(APP_LIMITS.detailFiles)));
+      linkedFiles = fileSnapshot.docs.map(entry => entry.data());
+    } catch (error) {
+      console.warn('Load related documents failed:', error);
+    }
+    if (options.isCurrentRequest && !options.isCurrentRequest()) return;
+    const resources = collectDetailResources(item, detail, linkedFiles);
+    const sourceUrl = resources[0]?.url || '';
+    if (sourceUrl) renderDocumentViewer(body, sourceUrl, item.title || detail.official_title);
+    const sideCards = detailView.querySelectorAll('.side-card');
+    const actionsCard = sideCards[0];
+    actionsCard.classList.add('detail-actions');
+    const sourceButton = actionsCard.querySelector('.btn.primary');
     sourceButton.hidden = !sourceUrl;
     sourceButton.textContent = 'เปิดเอกสารในแท็บใหม่ ↗';
     sourceButton.onclick = () => { if (sourceUrl) window.open(sourceUrl, '_blank', 'noopener,noreferrer'); };
+    sideCards[1].replaceChildren();
+    sideCards[1].hidden = true;
+    renderDetailResources(body, resources);
+    renderRelatedKnowledge(body, item);
     const issueButton = detailView.querySelector('#reportContentIssue');
     if (issueButton) issueButton.onclick = reportCurrentContentIssue;
-    const relatedCard = detailView.querySelectorAll('.side-card')[1];
-    if (relatedCard) relatedCard.hidden = true;
     await loadCommentsForContent();
+    if (options.isCurrentRequest && !options.isCurrentRequest()) return;
     const saveButton = detailView.querySelector('.save-action');
     updateDetailSaveButton();
     saveButton.onclick = () => toggleSavedContent(item, saveButton);
-    window.show('detailView', 'รายละเอียดองค์ความรู้');
+    window.show('detailView', 'รายละเอียดองค์ความรู้', { replaceCurrent: options.replaceCurrent === true });
+    options.onActivated?.();
+    renderDetailBreadcrumb(item);
   }
 
   function getSharedContentIdFromHash() {
@@ -2681,22 +2861,109 @@
     return new URLSearchParams(hash).get('content') || '';
   }
 
-  async function openSharedContentFromHash() {
-    if (sharedContentLinkHandled) return;
+  function openSharedContentFromHash(options = {}) {
     const requestedId = getSharedContentIdFromHash();
-    if (!requestedId) return;
-    sharedContentLinkHandled = true;
+    if (!requestedId) {
+      sharedContentResolutionAttempt = null;
+      return Promise.resolve();
+    }
+    if (!auth.currentUser || !currentUserProfile) return Promise.resolve();
+    const currentAttempt = sharedContentResolutionAttempt;
+    if (currentAttempt?.id === requestedId && options.retry !== true) {
+      if (currentAttempt.status === 'pending') return currentAttempt.promise || Promise.resolve();
+      return Promise.resolve();
+    }
+    const attempt = {
+      id: requestedId,
+      status: 'pending',
+      promise: null,
+      openUsageRecorded: options.retry === true && currentAttempt?.id === requestedId
+        ? currentAttempt.openUsageRecorded
+        : false
+    };
+    sharedContentResolutionAttempt = attempt;
+    const resolution = resolveSharedContentFromId(requestedId, attempt);
+    attempt.promise = resolution.finally(() => {
+      if (sharedContentResolutionAttempt === attempt) attempt.promise = null;
+    });
+    return attempt.promise;
+  }
+
+  function isCurrentSharedContentAttempt(attempt) {
+    return sharedContentResolutionAttempt === attempt
+      && getSharedContentIdFromHash() === attempt.id;
+  }
+
+  async function resolveSharedContentFromId(requestedId, attempt) {
     let item = contentItems.find(content => (content.content_id || content.id) === requestedId);
+    let directReadError = null;
     if (!item) {
       try {
         const snapshot = await getDoc(doc(db, 'contents', requestedId));
-        if (snapshot.exists()) item = { id: snapshot.id, ...snapshot.data() };
+        if (snapshot.exists()) {
+          const candidate = { id: snapshot.id, ...snapshot.data() };
+          if ((candidate.content_id || candidate.id) === requestedId) item = candidate;
+        }
       } catch (error) {
-        console.error('Load shared content failed:', error);
+        directReadError = error;
       }
     }
-    if (item) return openContentFromFirestore(item);
-    window.toast('ไม่พบเนื้อหาจากลิงก์นี้ หรือบัญชีไม่มีสิทธิ์เข้าถึง');
+    if (!item) {
+      const fallbackErrors = [];
+      for (const spec of accessibleContentQuerySpecs()) {
+        try {
+          const snapshot = await getDocs(query(
+            collection(db, 'contents'),
+            where('content_id', '==', requestedId),
+            ...spec.constraints,
+            limit(1)
+          ));
+          if (!snapshot.empty) {
+            const document = snapshot.docs[0];
+            item = { id: document.id, ...document.data() };
+            break;
+          }
+        } catch (error) {
+          fallbackErrors.push(error);
+        }
+      }
+      const resolutionError = fallbackErrors[0] || directReadError;
+      if (!item && resolutionError) {
+        if (!isCurrentSharedContentAttempt(attempt)) return;
+        attempt.status = 'failed';
+        console.error('Resolve shared content failed:', resolutionError);
+        showSystemBanner('เปิดเนื้อหาจากลิงก์ไม่สำเร็จ กรุณาตรวจสอบสิทธิหรือการเชื่อมต่อแล้วลองใหม่', 'error', () => openSharedContentFromHash({ retry: true }));
+        return;
+      }
+    }
+    if (!item) {
+      if (!isCurrentSharedContentAttempt(attempt)) return;
+      attempt.status = 'failed';
+      showSystemBanner('ไม่พบเนื้อหาจากลิงก์นี้', 'error', () => openSharedContentFromHash({ retry: true }));
+      return;
+    }
+    if (!isCurrentSharedContentAttempt(attempt)) return;
+    try {
+      await openContentFromFirestore(item, {
+        recordOpenUsage: !attempt.openUsageRecorded,
+        isCurrentRequest: () => isCurrentSharedContentAttempt(attempt),
+        onActivated: () => {
+          if (isCurrentSharedContentAttempt(attempt) && currentContentId === requestedId) {
+            attempt.status = 'success';
+          }
+        }
+      });
+      attempt.openUsageRecorded = true;
+      if (isCurrentSharedContentAttempt(attempt)) attempt.status = 'success';
+    } catch (error) {
+      if (attempt.status === 'success'
+        && currentContentId === requestedId
+        && document.getElementById('detailView')?.classList.contains('active')) return;
+      if (!isCurrentSharedContentAttempt(attempt)) return;
+      attempt.status = 'failed';
+      console.error('Open shared content failed:', error);
+      showSystemBanner('เปิดเนื้อหาจากลิงก์ไม่สำเร็จ กรุณาลองใหม่', 'error', () => openSharedContentFromHash({ retry: true }));
+    }
   }
 
   async function copyTextToClipboard(text) {
@@ -5287,7 +5554,6 @@
   document.querySelector('#learningView .page-head .btn').onclick = () => startNewContent('lesson');
   document.querySelector('#qaView .page-head .btn').onclick = () => startNewContent('qa');
   window.addEventListener('hashchange', () => {
-    sharedContentLinkHandled = false;
     void openSharedContentFromHash();
   });
   onAuthStateChanged(auth, async user => {

@@ -318,3 +318,173 @@ test('unified search preserves private search analytics and local emulator isola
   assert.match(productionHtml, /if \(isLocalReview\) \{\s*connectAuthEmulator\(auth, 'http:\/\/127\.0\.0\.1:9099'/);
   assert.match(productionHtml, /connectFirestoreEmulator\(db, '127\.0\.0\.1', 8080\)/);
 });
+
+test('knowledge catalogues reuse the shared detail reader while Q&A and lessons retain specialized readers', () => {
+  const readerStart = productionHtml.indexOf('async function openContentFromFirestore(item, options = {})');
+  const readerEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', readerStart);
+  const readerSource = productionHtml.slice(readerStart, readerEnd);
+  assert.ok(readerStart >= 0 && readerEnd > readerStart);
+  assert.match(readerSource, /renderDetailHeader\(item, detail\)/);
+  assert.match(readerSource, /renderDetailResources\(body, resources\)/);
+  assert.match(readerSource, /renderRelatedKnowledge\(body, item\)/);
+  for (const path of ['renderPublishedContents', 'renderKnowledgeContents', 'renderLegalReferenceList', 'renderLawRows', 'loadGuides']) {
+    const start = productionHtml.indexOf(`function ${path}(`);
+    const asyncStart = productionHtml.indexOf(`async function ${path}(`);
+    const functionStart = start >= 0 ? start : asyncStart;
+    assert.ok(functionStart >= 0, `${path} exists`);
+    assert.match(productionHtml.slice(functionStart, functionStart + 12000), /openContentFromFirestore\(/, `${path} opens the shared reader`);
+  }
+  assert.match(productionHtml, /function openQuestionFromFirestore\(/);
+  assert.match(productionHtml, /async function openLessonPlayer\(/);
+});
+
+test('shared detail header uses available public metadata and omits internal fields and placeholders', () => {
+  const headerStart = productionHtml.indexOf('function renderDetailHeader(item, detail)');
+  const headerEnd = productionHtml.indexOf('\n  function addDetailMetadata', headerStart);
+  const headerSource = productionHtml.slice(headerStart, headerEnd);
+  const valueStart = productionHtml.indexOf('function readableDetailValue(value)');
+  const valueEnd = productionHtml.indexOf('\n  function formatDetailDate', valueStart);
+  const valueSource = productionHtml.slice(valueStart, valueEnd);
+  assert.match(headerSource, /detailTypeLabels\[item\.content_type\]/);
+  assert.match(headerSource, /getCategoryDisplay\(categoryId\)/);
+  assert.match(headerSource, /document_no \|\| item\.document_no \|\| item\.document_number \|\| item\.reference_no/);
+  assert.match(headerSource, /item\.decision_date \|\| detail\.decision_date/);
+  assert.match(headerSource, /status\.hidden = item\.workflow_status !== 'published'/);
+  assert.doesNotMatch(headerSource, /created_by|owner_unit|workflow_status.*textContent/);
+  assert.match(valueSource, /'null', 'undefined'/);
+  assert.match(productionHtml, /function addDetailMetadata\(container, label, value\)/);
+});
+
+test('detail breadcrumbs and return controls preserve the in-memory source view and scroll position', () => {
+  const showStart = productionHtml.indexOf('function show(id,name,options={})');
+  const showEnd = productionHtml.indexOf('\n  function showPreviousView', showStart);
+  const showSource = productionHtml.slice(showStart, showEnd);
+  const breadcrumbStart = productionHtml.indexOf('function renderDetailBreadcrumb(item)');
+  const breadcrumbEnd = productionHtml.indexOf('\n  function renderDetailHeader', breadcrumbStart);
+  const breadcrumbSource = productionHtml.slice(breadcrumbStart, breadcrumbEnd);
+  assert.match(showSource, /viewHistory\.push\(\{id:current\.id,name:pageName\.textContent[\s\S]*scrollY:window\.scrollY/);
+  assert.match(showSource, /options\.restoreScroll\?scrollTo\(0,options\.restoreScroll\):scrollTo\(0,0\)/);
+  assert.match(showSource, /options\.replaceCurrent/);
+  assert.match(showSource, /window\.updateDetailReturnControl\?\.\(\)/);
+  assert.match(productionHtml, /window\.updateDetailReturnControl = updateDetailReturnControl/);
+  assert.match(breadcrumbSource, /setAttribute\('aria-label', 'เส้นทางนำทาง'\)/);
+  assert.match(breadcrumbSource, /previous\?\.id === 'searchView' \? 'ค้นหาความรู้'/);
+  assert.match(breadcrumbSource, /setAttribute\('aria-current', 'page'\)/);
+  assert.match(breadcrumbSource, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+  assert.match(productionHtml, /button\.setAttribute\('aria-label', label\)/);
+  assert.match(productionHtml, /#detailView \.detail-breadcrumb/);
+});
+
+test('detail reading body, resource links, and related knowledge use safe bounded existing data', () => {
+  const appendStart = productionHtml.indexOf('function appendDetailSection(container, title, value)');
+  const appendEnd = productionHtml.indexOf('\n  const detailTypeLabels', appendStart);
+  const appendSource = productionHtml.slice(appendStart, appendEnd);
+  const resourceStart = productionHtml.indexOf('function collectDetailResources(item, detail, files)');
+  const resourceEnd = productionHtml.indexOf('\n  function renderRelatedKnowledge', resourceStart);
+  const resourceSource = productionHtml.slice(resourceStart, resourceEnd);
+  const relatedStart = productionHtml.indexOf('function renderRelatedKnowledge(container, item)');
+  const relatedEnd = productionHtml.indexOf('\n  async function openContentFromFirestore', relatedStart);
+  const relatedSource = productionHtml.slice(relatedStart, relatedEnd);
+  const openStart = productionHtml.indexOf('async function openContentFromFirestore(item, options = {})');
+  const openEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', openStart);
+  const openSource = productionHtml.slice(openStart, openEnd);
+  assert.match(appendSource, /paragraph\.textContent/);
+  assert.match(appendSource, /document\.createElement\('ul'\)/);
+  assert.doesNotMatch(appendSource, /innerHTML/);
+  assert.match(resourceSource, /safeDocumentUrl\(entry\.url\)/);
+  assert.match(resourceSource, /link\.target = '_blank'/);
+  assert.match(resourceSource, /link\.rel = 'noopener noreferrer'/);
+  assert.match(openSource, /where\('content_id', '==', currentContentId\), limit\(APP_LIMITS\.detailFiles\)/);
+  assert.match(relatedSource, /candidate\.workflow_status === 'published'/);
+  assert.match(relatedSource, /\(candidate\.content_id \|\| candidate\.id\) !== currentId/);
+  assert.match(relatedSource, /contentItems\.filter/);
+  assert.match(relatedSource, /\.slice\(0, 4\)/);
+  assert.match(relatedSource, /section\.append\(heading, list\)/);
+  assert.doesNotMatch(relatedSource, /getDocs\(|getDoc\(/);
+  assert.match(productionHtml, /#detailView #dynamicDetailBody\{max-width:72ch/);
+  assert.match(productionHtml, /@media\(max-width:700px\)\{#detailView/);
+});
+
+test('detail deep links and reading controls remain compatible with analytics and existing features', () => {
+  assert.match(productionHtml, /link\.hash = `content=\$\{encodeURIComponent\(currentContentId\)\}`/);
+  assert.match(productionHtml, /window\.addEventListener\('hashchange'/);
+  assert.match(productionHtml, /document\.getElementById\('copyLink'\)\.onclick = copyCurrentContentLink/);
+  const readerStart = productionHtml.indexOf('async function openContentFromFirestore(item, options = {})');
+  const readerEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', readerStart);
+  const readerSource = productionHtml.slice(readerStart, readerEnd);
+  assert.match(readerSource, /recordCategoryUsage\(item\.category_id, 'open'\)/);
+  assert.match(readerSource, /recordSharedUsage\('open', 'content', currentContentId\)/);
+  assert.doesNotMatch(readerSource, /recordSharedUsage\('(?:search|no_result)'/);
+  assert.match(productionHtml, /function searchPublishedContents\(rawQuery\)/);
+  assert.match(productionHtml, /function setupRealFilters\(\)/);
+  assert.match(productionHtml, /function openLessonPlayer\(/);
+  assert.match(productionHtml, /learningProgress/);
+  assert.match(productionHtml, /\['localhost', '127\.0\.0\.1'\]\.includes\(window\.location\.hostname\)/);
+});
+
+test('stable content links resolve document IDs and content_id fallback before reporting errors', () => {
+  const copyStart = productionHtml.indexOf('async function copyCurrentContentLink()');
+  const copyEnd = productionHtml.indexOf('\n  async function loadCommentsForContent()', copyStart);
+  const copySource = productionHtml.slice(copyStart, copyEnd);
+  const readerStart = productionHtml.indexOf('async function openContentFromFirestore(item, options = {})');
+  const readerEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', readerStart);
+  const readerSource = productionHtml.slice(readerStart, readerEnd);
+  const resolverStart = productionHtml.indexOf('function openSharedContentFromHash(options = {})');
+  const resolverEnd = productionHtml.indexOf('\n  async function copyTextToClipboard', resolverStart);
+  const resolverSource = productionHtml.slice(resolverStart, resolverEnd);
+  const workerStart = resolverSource.indexOf('async function resolveSharedContentFromId(requestedId, attempt)');
+  const workerSource = resolverSource.slice(workerStart);
+
+  assert.match(readerSource, /currentContentId = item\.content_id \|\| item\.id/);
+  assert.match(copySource, /link\.hash = `content=\$\{encodeURIComponent\(currentContentId\)\}`/);
+  assert.doesNotMatch(copySource, /activeSearchQuery|realFilters|categorySearch|searchTypeFilter/);
+  assert.match(resolverSource, /contentItems\.find\(content => \(content\.content_id \|\| content\.id\) === requestedId\)/);
+  assert.match(workerSource, /getDoc\(doc\(db, 'contents', requestedId\)\)/);
+  assert.match(workerSource, /where\('content_id', '==', requestedId\),\s*\.\.\.spec\.constraints,\s*limit\(1\)/);
+  assert.ok(workerSource.indexOf('if (!item) {\n      const fallbackErrors') < workerSource.indexOf('if (!item && resolutionError)'));
+  assert.ok(workerSource.indexOf('if (!item && resolutionError)') < workerSource.indexOf('showSystemBanner(', workerSource.indexOf('if (!item && resolutionError)')));
+  assert.match(workerSource, /fallbackErrors\[0\] \|\| directReadError/);
+  assert.match(workerSource, /openSharedContentFromHash\(\{ retry: true \}\)/);
+  assert.match(readerSource, /catch \(error\) \{\s*console\.error\('Load content detail failed:'/);
+  assert.match(readerSource, /catch \(error\) \{\s*console\.warn\('Load related documents failed:'/);
+  assert.match(resolverSource, /currentAttempt\?\.id === requestedId && options\.retry !== true/);
+  assert.match(resolverSource, /currentAttempt\.status === 'pending'\) return currentAttempt\.promise/);
+  assert.match(resolverSource, /const attempt = \{[\s\S]*?id: requestedId,[\s\S]*?status: 'pending',[\s\S]*?openUsageRecorded: options\.retry === true && currentAttempt\?\.id === requestedId/);
+  assert.match(resolverSource, /sharedContentResolutionAttempt === attempt\) attempt\.promise = null/);
+  assert.match(resolverSource, /function isCurrentSharedContentAttempt\(attempt\)/);
+  assert.match(resolverSource, /sharedContentResolutionAttempt === attempt\s+&& getSharedContentIdFromHash\(\) === attempt\.id/);
+  assert.match(resolverSource, /options\.retry !== true/);
+  assert.match(resolverSource, /attempt\.status = 'failed'/);
+  assert.match(resolverSource, /attempt\.status = 'success'/);
+  assert.match(resolverSource, /if \(attempt\.status === 'success'[\s\S]*?currentContentId === requestedId[\s\S]*?detailView[\s\S]*?classList\.contains\('active'\)\) return/);
+  assert.match(readerSource, /options\.isCurrentRequest && !options\.isCurrentRequest\(\)\) return/);
+  assert.match(readerSource, /options\.onActivated\?\.\(\)/);
+  assert.match(productionHtml, /await openSharedContentFromHash\(\)/);
+  assert.match(productionHtml, /window\.addEventListener\('hashchange', \(\) => \{\s*void openSharedContentFromHash\(\)/);
+  assert.match(productionHtml, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+  assert.match(productionHtml, /previous\?\.id === 'searchView'/);
+});
+
+test('shared-link outcomes belong only to the current request and retry gets a fresh owner', () => {
+  const start = productionHtml.indexOf('function openSharedContentFromHash(options = {})');
+  const end = productionHtml.indexOf('\n  async function copyTextToClipboard', start);
+  const source = productionHtml.slice(start, end);
+  const openStart = productionHtml.indexOf('async function openContentFromFirestore(item, options = {})');
+  const openEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', openStart);
+  const openSource = productionHtml.slice(openStart, openEnd);
+  const retryGuard = source.indexOf('currentAttempt?.id === requestedId && options.retry !== true');
+  const freshAttempt = source.indexOf('const attempt = {');
+  const differentIdGuard = source.indexOf('if (!isCurrentSharedContentAttempt(attempt)) return;', source.indexOf('if (!item && resolutionError)'));
+  const retryAction = source.indexOf('openSharedContentFromHash({ retry: true })');
+
+  assert.ok(retryGuard >= 0 && freshAttempt > retryGuard, 'retry bypasses reuse and creates a new attempt object');
+  assert.ok(differentIdGuard >= 0 && differentIdGuard < retryAction, 'stale/different-hash failures return before publishing an error');
+  assert.match(source, /sharedContentResolutionAttempt === attempt\s+&& getSharedContentIdFromHash\(\) === attempt\.id/);
+  assert.match(source, /attempt\.status === 'success'[\s\S]*?currentContentId === requestedId[\s\S]*?detailView[\s\S]*?classList\.contains\('active'\)/);
+  assert.match(source, /attempt\.status = 'failed'[\s\S]*?showSystemBanner\([\s\S]*?openSharedContentFromHash\(\{ retry: true \}\)/);
+  assert.match(openSource, /if \(options\.isCurrentRequest && !options\.isCurrentRequest\(\)\) return/);
+  assert.match(openSource, /if \(options\.recordOpenUsage !== false\)\s*\{\s*recordCategoryUsage\(item\.category_id, 'open'\);\s*void recordSharedUsage\('open', 'content', currentContentId\);/);
+  assert.match(source, /recordOpenUsage: !attempt\.openUsageRecorded/);
+  assert.match(source, /attempt\.openUsageRecorded = true/);
+  assert.match(openSource, /window\.show\('detailView'[\s\S]*?options\.onActivated\?\.\(\)/);
+});
