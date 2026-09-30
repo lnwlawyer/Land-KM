@@ -111,6 +111,9 @@
     #lawsView tbody tr[data-openable],
     #lawsView tbody tr[data-openable] > td,
     #lawsView tbody tr[data-openable] > td * { cursor:pointer !important; }
+    .course-progress-state{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;margin:8px 0;color:var(--muted)}.course-progress-state strong{color:#344054}.course-card .progress{margin-bottom:11px}.lesson-player-layout{grid-template-columns:minmax(0,1fr) 300px}.lesson-player-content{max-width:100%;min-width:0}.lesson-player-progress{display:grid;grid-template-columns:minmax(90px,1fr) auto;gap:12px;align-items:center;margin-bottom:22px}.lesson-player-progress .progress{height:9px}.lesson-unit-content{white-space:pre-wrap;line-height:1.9;min-height:120px;max-width:76ch;color:#344054;margin:20px 0 24px;overflow-wrap:anywhere}.lesson-unit-list{display:grid;gap:8px}.lesson-unit-list .btn{text-align:left;white-space:normal;line-height:1.45}.lesson-unit-list .btn[aria-current="step"]{border-color:var(--brand);background:#effaf7;color:#075f57;font-weight:800}.lesson-unit-list .unit-complete{color:#087568}.lesson-completion{margin-top:22px;padding:18px;border:1px solid #b8ddd7;background:#f3fbf8;border-radius:12px}.lesson-completion b{color:#075f57;font-size:17px}.lesson-completion p{margin:7px 0 14px;color:#475467}.lesson-completion .btn{margin-right:7px}.lesson-player-empty{margin:10px 0 20px}.lesson-player-empty:not([hidden]){display:block}.lesson-player-content h2{line-height:1.45}.lesson-player-controls{gap:10px}.lesson-player-controls .btn:disabled{opacity:.48;cursor:not-allowed}.course-card:focus-within{outline:2px solid #8bd1c6;outline-offset:2px}
+    @media(max-width:900px){#lessonPlayerView .lesson-player-layout{grid-template-columns:1fr}#lessonPlayerView .lesson-player-nav{display:block;order:-1}#lessonPlayerView .lesson-player-content{order:1}}
+    @media(max-width:560px){.lesson-player-progress{grid-template-columns:1fr;gap:6px}.lesson-player-controls{align-items:stretch}.lesson-player-controls .btn{flex:1;padding:9px 6px;font-size:13px}.lesson-completion .btn{width:100%;margin:5px 0 0}.lesson-player-content{padding:18px}.lesson-player-content h2{font-size:22px!important}}
   </style>
 </head>
 <body>
@@ -275,9 +278,10 @@
 
       <section class="view" id="lessonPlayerView">
         <div class="page-head"><div><h1 id="lessonPlayerTitle">บทเรียนออนไลน์</h1><p id="lessonPlayerMeta">เลือกหน่วยการเรียนเพื่อเริ่มต้น</p></div><button class="btn" id="lessonPlayerBack">← กลับหน้าบทเรียน</button></div>
-        <div class="detail-wrap" style="grid-template-columns:minmax(0,1fr) 300px">
-          <article class="detail"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tag" id="lessonPlayerType">บทเรียน</span><span class="doc-meta" id="lessonPlayerDuration"></span></div><h2 id="lessonUnitTitle" style="font-size:26px"></h2><div class="callout" id="lessonUnitSummary" hidden></div><div class="lesson-media" id="lessonUnitMedia" hidden></div><div id="lessonUnitContent" style="white-space:pre-wrap;line-height:1.8;min-height:120px"></div><a class="btn primary" id="lessonUnitLink" href="#" target="_blank" rel="noopener noreferrer" hidden>เปิดสื่อการเรียนรู้ในแท็บใหม่ ↗</a><button class="btn" id="completeLessonUnit" style="margin-left:8px">✓ ทำเครื่องหมายว่าเรียนจบ</button><div class="form-footer" style="margin-top:28px"><button class="btn" id="previousLessonUnit">← หน่วยก่อนหน้า</button><span class="doc-meta" id="lessonUnitPosition"></span><button class="btn primary" id="nextLessonUnit">หน่วยถัดไป →</button></div></article>
-          <aside><div class="side-card"><h3>หน่วยการเรียน</h3><div id="lessonPlayerUnitList" style="display:grid;gap:8px"></div></div></aside>
+        <div class="empty-note lesson-player-empty" id="lessonPlayerEmpty" hidden>บทเรียนนี้ยังไม่มีหน่วยการเรียน</div>
+        <div class="detail-wrap lesson-player-layout" id="lessonPlayerLayout">
+          <article class="detail lesson-player-content"><div class="lesson-player-progress"><div class="progress"><i id="lessonPlayerProgressBar" style="width:0%"></i></div><span class="doc-meta" id="lessonPlayerProgressText"></span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="tag" id="lessonPlayerType">บทเรียน</span><span class="doc-meta" id="lessonPlayerDuration"></span></div><h2 id="lessonUnitTitle" style="font-size:26px"></h2><div class="callout" id="lessonUnitSummary" hidden></div><div class="lesson-media" id="lessonUnitMedia" hidden></div><div id="lessonUnitContent" class="lesson-unit-content"></div><a class="btn primary" id="lessonUnitLink" href="#" target="_blank" rel="noopener noreferrer" hidden>เปิดเอกสารประกอบ ↗</a><button class="btn" id="completeLessonUnit" style="margin-left:8px">✓ ทำเครื่องหมายว่าเรียนจบ</button><div class="lesson-completion" id="lessonCompletionState" hidden><b>เรียนจบบทเรียนแล้ว</b><p>คุณเรียนครบทุกหน่วยของบทเรียนนี้แล้ว</p><button class="btn" id="lessonCompletionReview">ทบทวนบทเรียน</button><button class="btn primary" id="lessonCompletionBack">กลับหน้าบทเรียน</button></div><div class="form-footer lesson-player-controls"><button class="btn" id="previousLessonUnit">← หน่วยก่อนหน้า</button><span class="doc-meta" id="lessonUnitPosition"></span><button class="btn primary" id="nextLessonUnit">หน่วยถัดไป →</button></div></article>
+          <aside class="lesson-player-nav"><div class="side-card"><h3>หน่วยการเรียน</h3><div id="lessonPlayerUnitList" class="lesson-unit-list"></div></div></aside>
         </div>
       </section>
 
@@ -396,8 +400,8 @@
 </script>
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
-  import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
-  import { arrayUnion, collection, doc, documentId, getDoc, getDocs, getFirestore, limit, orderBy, query, runTransaction, serverTimestamp, setDoc, startAfter, where, writeBatch } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+  import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, connectAuthEmulator } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
+  import { arrayUnion, collection, doc, documentId, getDoc, getDocs, getFirestore, limit, orderBy, query, runTransaction, serverTimestamp, setDoc, startAfter, where, writeBatch, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: 'AIzaSyB81hThbyJCsQxBLXoqj9bWtk7VhX1_jx0',
@@ -412,6 +416,11 @@
   const firebaseApp = initializeApp(firebaseConfig);
   const auth = getAuth(firebaseApp);
   const db = getFirestore(firebaseApp);
+  const isLocalReview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  if (isLocalReview) {
+    connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+    connectFirestoreEmulator(db, '127.0.0.1', 8080);
+  }
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   const gate = document.getElementById('authGate');
@@ -2920,7 +2929,7 @@
         card.className = 'course-card';
         card.dataset.media = format.media;
         card.dataset.category = content.category_id || '';
-        card.innerHTML = `<div class="course-cover"><div><span class="tag"></span><br><b></b></div><span class="media-icon"></span></div><div class="course-body"><h3></h3><p></p><div class="course-meta"><span></span><span></span></div><div style="display:flex;gap:8px"><button class="btn primary start-lesson" style="flex:1">เริ่มเรียน</button><button class="btn manage-units" style="flex:1">จัดการหน่วย</button></div></div>`;
+        card.innerHTML = `<div class="course-cover"><div><span class="tag"></span><br><b></b></div><span class="media-icon"></span></div><div class="course-body"><h3></h3><p></p><div class="course-meta"><span></span><span></span></div><div class="course-progress-state"><span></span><strong></strong></div><div class="progress" role="progressbar" aria-label="ความก้าวหน้าบทเรียน"><i></i></div><div style="display:flex;gap:8px"><button class="btn primary start-lesson" style="flex:1">เริ่มเรียน</button><button class="btn manage-units" style="flex:1">จัดการหน่วย</button></div></div>`;
         if (format.cover) card.querySelector('.course-cover').classList.add(format.cover);
         card.querySelector('.tag').textContent = format.label;
         card.querySelector('.course-cover b').textContent = `${lessonUnits.length || lesson.unit_count || 0} หน่วยการเรียน`;
@@ -2929,11 +2938,18 @@
         card.querySelector('p').textContent = content.summary || lesson.learning_outcomes || 'บทเรียนจากคลังความรู้';
         card.querySelector('.course-meta span:first-child').textContent = `⏱ ${lesson.duration_minutes || 0} นาที`;
         card.querySelector('.course-meta span:last-child').textContent = `เรียนแล้ว ${progressPercent}%`;
-        const progressBar = document.createElement('div');
-        progressBar.className = 'progress';
-        progressBar.style.marginBottom = '10px';
-        progressBar.innerHTML = `<i style="width:${progressPercent}%"></i>`;
-        card.querySelector('.course-meta').after(progressBar);
+        const remainingCount = Math.max(0, lessonUnits.length - completedCount);
+        const learningStatus = !lessonUnits.length ? 'ยังไม่มีหน่วยเรียน' : progressPercent === 100 ? 'เรียนครบแล้ว' : completedCount ? 'กำลังเรียน' : 'ยังไม่เริ่ม';
+        card.querySelector('.course-progress-state span').textContent = learningStatus;
+        card.querySelector('.course-progress-state strong').textContent = lessonUnits.length ? `เหลือ ${remainingCount} หน่วย` : '';
+        const progressBar = card.querySelector('.progress');
+        progressBar.setAttribute('aria-valuemin', '0');
+        progressBar.setAttribute('aria-valuemax', '100');
+        progressBar.setAttribute('aria-valuenow', String(progressPercent));
+        progressBar.setAttribute('aria-valuetext', `เรียนแล้ว ${progressPercent}%`);
+        progressBar.querySelector('i').style.width = `${progressPercent}%`;
+        const startButton = card.querySelector('.start-lesson');
+        startButton.textContent = !completedCount ? 'เริ่มเรียน' : progressPercent === 100 ? 'ทบทวนบทเรียน' : 'เรียนต่อ';
         card.querySelector('.start-lesson').onclick = () => openLessonPlayer(lesson.content_id || lesson.id);
         card.querySelector('.manage-units').onclick = () => openLessonUnitsManager(lesson.content_id || lesson.id);
         grid.appendChild(card);
@@ -2963,13 +2979,17 @@
         };
       });
       document.querySelector('#learningView .search button').onclick = () => filterDynamicLessons(document.querySelector('#lessonTabs .active').dataset.media);
-      const latestProgress = [...userProgress].sort((a, b) => (b.completed_at?.seconds || b.updated_at?.seconds || 0) - (a.completed_at?.seconds || a.updated_at?.seconds || 0))[0];
+      const recentProgress = [...userProgress].sort((a, b) => (b.completed_at?.seconds || b.updated_at?.seconds || 0) - (a.completed_at?.seconds || a.updated_at?.seconds || 0));
+      const latestProgress = recentProgress.find(progress => {
+        const lessonUnits = units.filter(unit => unit.content_id === progress.content_id);
+        return lessonUnits.some(unit => !userProgress.some(item => item.content_id === progress.content_id && item.unit_id === (unit.unit_id || unit.id)));
+      }) || recentProgress[0];
       const banner = document.querySelector('#learningView .learning-banner');
       banner.hidden = !latestProgress;
       if (latestProgress) {
         const recentLesson = lessons.find(item => item.content_id === latestProgress.content_id);
         const recentContent = contentItems.find(item => item.content_id === latestProgress.content_id || item.id === latestProgress.content_id) || {};
-        const recentUnits = units.filter(unit => unit.content_id === latestProgress.content_id);
+        const recentUnits = units.filter(unit => unit.content_id === latestProgress.content_id).sort((a, b) => Number(a.unit_order || a.order || a.sequence || 0) - Number(b.unit_order || b.order || b.sequence || 0));
         const recentCompleted = recentUnits.filter(unit => userProgress.some(progress => progress.content_id === latestProgress.content_id && progress.unit_id === (unit.unit_id || unit.id))).length;
         const recentPercent = recentUnits.length ? Math.round((recentCompleted / recentUnits.length) * 100) : 0;
         banner.querySelector('h2').textContent = recentContent.title || '(ไม่มีชื่อบทเรียน)';
@@ -3013,7 +3033,6 @@
       if (vimeoId) return { kind: 'iframe', src: `https://player.vimeo.com/video/${vimeoId}`, provider: 'Vimeo' };
     }
     if (/\.(mp4|webm|ogg)(?:$|[?#])/i.test(url.href)) return { kind: 'video', src: url.href, provider: 'ไฟล์วิดีโอ' };
-    if (/\/(embed|preview)(?:\/|$)/i.test(path)) return { kind: 'iframe', src: url.href, provider: host };
     return { kind: 'external', src: url.href, provider: host };
   }
 
@@ -3138,24 +3157,39 @@
     summaryBox.textContent = summary;
     summaryBox.hidden = !summary;
     const unitTitle = unit.unit_title || unit.title || `หน่วยที่ ${activeLessonUnitIndex + 1}`;
-    const url = unit.content_url || unit.media_url || activeLessonMediaUrl || '';
+    const url = unit.content_url || unit.media_url || unit.video_url || unit.file_url || unit.drive_url || unit.resource_url || activeLessonMediaUrl || '';
     const embedded = renderLessonMedia(url, unitTitle, unit.unit_type || '');
     const textContent = unit.unit_content || unit.content || '';
     const contentBox = document.getElementById('lessonUnitContent');
     contentBox.textContent = textContent || (embedded ? '' : 'หน่วยการเรียนนี้ยังไม่มีเนื้อหาที่แสดงภายในหน้า');
     contentBox.hidden = !textContent && embedded;
     const link = document.getElementById('lessonUnitLink');
-    link.href = url || '#';
-    link.hidden = !url;
+    let safeResourceUrl = '';
+    try {
+      const parsedResourceUrl = new URL(url);
+      if (parsedResourceUrl.protocol === 'https:') safeResourceUrl = parsedResourceUrl.href;
+    } catch (_) { /* Missing or malformed optional learning material. */ }
+    link.href = safeResourceUrl || '#';
+    link.hidden = !safeResourceUrl;
+    link.textContent = /(?:file_url|drive_url|resource_url)/.test(Object.keys(unit).find(key => unit[key] === url) || '') || /drive\.google\.com|\.pdf(?:$|[?#])/i.test(safeResourceUrl) ? 'เปิดเอกสารประกอบ ↗' : 'เปิดสื่อในแท็บใหม่ ↗';
     document.getElementById('lessonUnitPosition').textContent = `หน่วย ${activeLessonUnitIndex + 1} จาก ${activeLessonUnits.length}`;
     document.getElementById('previousLessonUnit').disabled = activeLessonUnitIndex === 0;
-    document.getElementById('nextLessonUnit').disabled = activeLessonUnitIndex === activeLessonUnits.length - 1;
+    const isFinalUnit = activeLessonUnitIndex === activeLessonUnits.length - 1;
+    const lessonComplete = completedLessonUnitIds.size >= activeLessonUnits.length;
+    const nextButton = document.getElementById('nextLessonUnit');
+    nextButton.disabled = isFinalUnit && !lessonComplete;
+    nextButton.textContent = isFinalUnit ? (lessonComplete ? 'ทบทวนบทเรียน' : 'หน่วยสุดท้าย') : 'หน่วยถัดไป →';
+    document.getElementById('lessonCompletionState').hidden = !lessonComplete;
+    document.getElementById('completeLessonUnit').hidden = completedLessonUnitIds.has(unit.unit_id || unit.id);
     const currentId = unit.unit_id || unit.id;
     const completeButton = document.getElementById('completeLessonUnit');
     completeButton.textContent = completedLessonUnitIds.has(currentId) ? '✓ เรียนจบแล้ว' : '✓ ทำเครื่องหมายว่าเรียนจบ';
     completeButton.classList.toggle('primary', completedLessonUnitIds.has(currentId));
     document.querySelectorAll('#lessonPlayerUnitList button').forEach((button, index) => {
       button.classList.toggle('primary', index === activeLessonUnitIndex);
+      button.classList.toggle('unit-complete', completedLessonUnitIds.has(activeLessonUnits[index].unit_id || activeLessonUnits[index].id));
+      if (index === activeLessonUnitIndex) button.setAttribute('aria-current', 'step');
+      else button.removeAttribute('aria-current');
       const itemId = activeLessonUnits[index].unit_id || activeLessonUnits[index].id;
       const prefix = completedLessonUnitIds.has(itemId) ? '✓ ' : '';
       button.textContent = `${prefix}${index + 1}. ${activeLessonUnits[index].unit_title || activeLessonUnits[index].title || 'หน่วยการเรียน'}`;
@@ -3163,6 +3197,8 @@
     const percent = Math.round((completedLessonUnitIds.size / activeLessonUnits.length) * 100);
     const lesson = lessonsData.find(item => (item.content_id || item.id) === activeLessonContentId) || {};
     document.getElementById('lessonPlayerMeta').textContent = `${activeLessonUnits.length} หน่วยการเรียน • ${lesson.duration_minutes || 0} นาที • เรียนแล้ว ${percent}%`;
+    document.getElementById('lessonPlayerProgressBar').style.width = `${percent}%`;
+    document.getElementById('lessonPlayerProgressText').textContent = `เรียนแล้ว ${completedLessonUnitIds.size} จาก ${activeLessonUnits.length} หน่วย (${percent}%)`;
   }
 
   async function openLessonPlayer(contentId) {
@@ -3170,8 +3206,7 @@
     const content = contentItems.find(item => item.content_id === contentId || item.id === contentId) || {};
     activeLessonUnits = lessonUnitsData
       .filter(unit => unit.content_id === contentId)
-      .sort((a, b) => Number(a.unit_order || 0) - Number(b.unit_order || 0));
-    if (!activeLessonUnits.length) return window.toast('บทเรียนนี้ยังไม่มีหน่วยการเรียน');
+      .sort((a, b) => Number(a.unit_order || a.order || a.sequence || 0) - Number(b.unit_order || b.order || b.sequence || 0));
     activeLessonContentId = contentId;
     activeLessonMediaUrl = lesson.media_url || content.media_url || '';
     completedLessonUnitIds = new Set();
@@ -3186,16 +3221,19 @@
     } catch (error) {
       console.error('Load learning progress failed:', error);
     }
-    activeLessonUnitIndex = 0;
+    activeLessonUnitIndex = activeLessonUnits.findIndex(unit => !completedLessonUnitIds.has(unit.unit_id || unit.id));
+    if (activeLessonUnitIndex < 0) activeLessonUnitIndex = 0;
     document.getElementById('lessonPlayerTitle').textContent = content.title || '(ไม่มีชื่อบทเรียน)';
     document.getElementById('lessonPlayerMeta').textContent = `${activeLessonUnits.length} หน่วยการเรียน • ${lesson.duration_minutes || 0} นาที`;
+    document.getElementById('lessonPlayerLayout').hidden = !activeLessonUnits.length;
+    document.getElementById('lessonPlayerEmpty').hidden = Boolean(activeLessonUnits.length);
     const list = document.getElementById('lessonPlayerUnitList');
     list.innerHTML = '';
     activeLessonUnits.forEach((unit, index) => {
       const button = document.createElement('button');
       button.className = 'btn';
       button.style.textAlign = 'left';
-      button.textContent = `${index + 1}. ${unit.unit_title || unit.title || 'หน่วยการเรียน'}`;
+      button.textContent = `${completedLessonUnitIds.has(unit.unit_id || unit.id) ? '✓ ' : ''}${index + 1}. ${unit.unit_title || unit.title || 'หน่วยการเรียน'}`;
       button.onclick = () => { activeLessonUnitIndex = index; renderLessonPlayerUnit(); };
       list.appendChild(button);
     });
@@ -3230,8 +3268,13 @@
 
   document.getElementById('lessonPlayerBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
   document.getElementById('previousLessonUnit').onclick = () => { if (activeLessonUnitIndex > 0) { activeLessonUnitIndex--; renderLessonPlayerUnit(); } };
-  document.getElementById('nextLessonUnit').onclick = () => { if (activeLessonUnitIndex < activeLessonUnits.length - 1) { activeLessonUnitIndex++; renderLessonPlayerUnit(); } };
+  document.getElementById('nextLessonUnit').onclick = () => {
+    if (activeLessonUnitIndex < activeLessonUnits.length - 1) { activeLessonUnitIndex++; renderLessonPlayerUnit(); }
+    else if (completedLessonUnitIds.size >= activeLessonUnits.length) { activeLessonUnitIndex = 0; renderLessonPlayerUnit(); }
+  };
   document.getElementById('completeLessonUnit').onclick = markCurrentLessonUnitComplete;
+  document.getElementById('lessonCompletionReview').onclick = () => { activeLessonUnitIndex = 0; renderLessonPlayerUnit(); };
+  document.getElementById('lessonCompletionBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
 
   function resetLessonUnitForm() {
     editingLessonUnitId = null;

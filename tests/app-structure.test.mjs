@@ -157,3 +157,64 @@ test('User Management ใน production source จำกัด role ที่ as
   assert.notEqual(validationIndex, -1, 'saveUserProfile() ต้องตรวจ canonical role');
   assert.ok(writeIndex > validationIndex, 'role validation ต้องเกิดก่อน Firestore write');
 });
+
+test('production lesson catalogue shows completion status and an accessible progress indicator', () => {
+  const loadLessonsStart = productionHtml.indexOf('async function loadLessons()');
+  const loadLessonsEnd = productionHtml.indexOf('\n  function getLessonMedia(', loadLessonsStart);
+  assert.notEqual(loadLessonsStart, -1);
+  assert.notEqual(loadLessonsEnd, -1);
+  const loadLessonsSource = productionHtml.slice(loadLessonsStart, loadLessonsEnd);
+
+  assert.match(loadLessonsSource, /class="course-progress-state"/);
+  assert.match(loadLessonsSource, /role="progressbar"/);
+  assert.match(loadLessonsSource, /aria-valuenow/);
+  assert.match(loadLessonsSource, /เรียนครบแล้ว/);
+  assert.match(loadLessonsSource, /กำลังเรียน/);
+  assert.match(loadLessonsSource, /startButton\.textContent = .*เริ่มเรียน.*ทบทวนบทเรียน.*เรียนต่อ/);
+});
+
+test('production lesson player supports unit navigation, completion, and continue from the next unfinished unit', () => {
+  const playerStart = productionHtml.indexOf('function renderLessonPlayerUnit()');
+  const playerEnd = productionHtml.indexOf('\n  async function markCurrentLessonUnitComplete()', playerStart);
+  const openStart = productionHtml.indexOf('async function openLessonPlayer(contentId)');
+  const openEnd = productionHtml.indexOf('\n  async function markCurrentLessonUnitComplete()', openStart);
+  assert.notEqual(playerStart, -1);
+  assert.notEqual(playerEnd, -1);
+  assert.notEqual(openStart, -1);
+  assert.notEqual(openEnd, -1);
+  const playerSource = productionHtml.slice(playerStart, playerEnd);
+  const openSource = productionHtml.slice(openStart, openEnd);
+
+  assert.match(productionHtml, /id="previousLessonUnit"/);
+  assert.match(productionHtml, /id="nextLessonUnit"/);
+  assert.match(playerSource, /previousLessonUnit'\)\.disabled = activeLessonUnitIndex === 0/);
+  assert.match(playerSource, /lessonCompletionState/);
+  assert.match(playerSource, /contentBox\.textContent = textContent/);
+  assert.match(openSource, /findIndex\(unit => !completedLessonUnitIds\.has/);
+  assert.match(openSource, /lessonPlayerEmpty/);
+  assert.match(productionHtml, /lessonCompletionReview/);
+});
+
+test('production lesson player handles optional video and resource URLs safely', () => {
+  const mediaStart = productionHtml.indexOf('function getLessonMedia(');
+  const mediaEnd = productionHtml.indexOf('\n  async function renderPdfViewer(', mediaStart);
+  assert.notEqual(mediaStart, -1);
+  assert.notEqual(mediaEnd, -1);
+  const mediaSource = productionHtml.slice(mediaStart, mediaEnd);
+  const playerStart = productionHtml.indexOf('function renderLessonPlayerUnit()');
+  const playerEnd = productionHtml.indexOf('\n  async function markCurrentLessonUnitComplete()', playerStart);
+  const playerSource = productionHtml.slice(playerStart, playerEnd);
+
+  for (const field of ['video_url', 'file_url', 'drive_url', 'resource_url']) assert.ok(playerSource.includes(field));
+  assert.match(mediaSource, /youtube-nocookie\.com\/embed/);
+  assert.match(mediaSource, /player\.vimeo\.com\/video/);
+  assert.match(mediaSource, /kind: 'external'/);
+  assert.match(playerSource, /parsedResourceUrl\.protocol === 'https:'/);
+  assert.doesNotMatch(playerSource, /innerHTML\s*=\s*textContent/);
+});
+
+test('localhost review connects Firebase clients to emulators', () => {
+  assert.match(productionHtml, /connectAuthEmulator\(auth, 'http:\/\/127\.0\.0\.1:9099'/);
+  assert.match(productionHtml, /connectFirestoreEmulator\(db, '127\.0\.0\.1', 8080\)/);
+  assert.match(productionHtml, /\['localhost', '127\.0\.0\.1'\]\.includes\(window\.location\.hostname\)/);
+});
