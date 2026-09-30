@@ -462,6 +462,10 @@
     contentPageSize: 50,
     detailFiles: 10,
     usageStats: 1000,
+    workspaceSaved: 100,
+    workspaceRecentScan: 100,
+    workspaceRecentItems: 8,
+    workspaceLearningProgress: 500,
     issueReports: 1000,
     knowledgePackages: 200,
     knowledgeGaps: 500,
@@ -878,6 +882,13 @@
   let usersData = [];
   let editingUserProfileId = null;
   let savedItemsData = [];
+  let workspaceRecentData = [];
+  let workspaceLearningProgressData = [];
+  let workspaceOwnerUid = null;
+  let workspaceRecentState = 'idle';
+  let workspaceSavedState = 'loading';
+  let workspaceLearningState = 'loading';
+  let workspaceRecentLoadedUid = null;
   let editingContentId = null;
   let questionsData = [];
   let answersData = [];
@@ -2018,14 +2029,23 @@
   }
 
   async function loadSavedItems() {
+    const user = auth.currentUser;
+    if (!user) return;
     try {
-      const snapshot = await getDocs(query(collection(db, 'savedItems'), where('user_email', '==', auth.currentUser.email)));
+      const snapshot = await getDocs(query(collection(db, 'savedItems'), where('user_email', '==', user.email), limit(APP_LIMITS.workspaceSaved)));
+      if (workspaceOwnerUid !== user.uid) return;
       savedItemsData = snapshot.docs.map(item => ({ id: item.id, ...item.data() })).filter(item => item.is_saved === true);
+      workspaceSavedState = 'ready';
       renderSavedItems();
+      renderWorkspaceSavedState();
       renderHomeDashboard(contentItems);
       renderPublishedContents(contentItems.filter(item => item.workflow_status === 'published'));
       updateDetailSaveButton();
     } catch (error) {
+      if (workspaceOwnerUid !== user.uid) return;
+      savedItemsData = [];
+      workspaceSavedState = 'error';
+      renderWorkspaceSavedState();
       console.error('Load saved items failed:', error);
       window.toast('อ่านรายการที่บันทึกไว้ไม่สำเร็จ');
     }
@@ -2049,7 +2069,7 @@
       row.querySelector('.doc-title').textContent = content.title || '(ไม่มีชื่อเรื่อง)';
       row.querySelector('.doc-meta').textContent = `${getCategoryDisplay(content.category_id).text} • บันทึกไว้ในบัญชีนี้`;
       row.querySelector('.save').onclick = event => { event.stopPropagation(); toggleSavedContent(content, event.currentTarget); };
-      row.onclick = () => openContentFromFirestore(content);
+      row.onclick = () => openWorkspaceContent(content);
       list.appendChild(row);
     });
     if (!savedContents.length) list.innerHTML = '<div class="empty-note" style="margin:16px">ยังไม่มีรายการที่บันทึกไว้</div>';
@@ -2068,7 +2088,11 @@
         updated_at: serverTimestamp()
       }, { merge: true });
       await loadSavedItems();
-      if (button) button.textContent = !currentlySaved ? '★' : '☆';
+      if (button?.matches('#detailView .save-action')) updateDetailSaveButton();
+      else if (button) {
+        button.textContent = !currentlySaved ? '★' : '☆';
+        button.setAttribute('aria-pressed', String(!currentlySaved));
+      }
       window.toast(!currentlySaved ? 'บันทึกรายการไว้แล้ว' : 'นำออกจากรายการที่บันทึกแล้ว');
     } catch (error) {
       console.error('Save favorite failed:', error);
@@ -2079,10 +2103,287 @@
   function updateDetailSaveButton() {
     const button = document.querySelector('#detailView .save-action');
     if (!button || !currentContentId) return;
-    button.textContent = isContentSaved(currentContentId) ? '★ บันทึกไว้อ่านแล้ว' : '☆ บันทึกไว้อ่าน';
+    const isSaved = isContentSaved(currentContentId);
+    button.textContent = isSaved ? '★ บันทึกแล้ว' : '☆ บันทึกไว้อ่าน';
+    button.setAttribute('aria-pressed', String(isSaved));
   }
 
   document.getElementById('savedTypeFilter').onchange = renderSavedItems;
+
+  function workspaceStatePanel(container, state, emptyText, retry) {
+    container.replaceChildren();
+    if (state === 'loading') {
+      const note = document.createElement('p');
+      note.className = 'workspace-state';
+      note.setAttribute('role', 'status');
+      note.textContent = 'กำลังโหลดรายการ…';
+      container.appendChild(note);
+    } else if (state === 'error') {
+      const note = document.createElement('div');
+      note.className = 'workspace-state workspace-error';
+      note.setAttribute('role', 'status');
+      const text = document.createElement('span');
+      text.textContent = 'โหลดส่วนนี้ไม่สำเร็จ';
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn';
+      button.textContent = 'ลองใหม่';
+      button.onclick = retry;
+      note.append(text, button);
+      container.appendChild(note);
+    } else {
+      const note = document.createElement('p');
+      note.className = 'workspace-state';
+      note.textContent = emptyText;
+      container.appendChild(note);
+    }
+  }
+
+  function workspaceTypeLabel(content) {
+    const labels = { knowledge: 'องค์ความรู้', law: 'กฎหมายและหนังสือเวียน', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัย', guide: 'คู่มือและแนวทาง', lesson: 'บทเรียนออนไลน์', qa: 'ถาม–ตอบ' };
+    return labels[content?.content_type] || '';
+  }
+
+  function workspaceCard(content, detail, actionLabel, onOpen) {
+    const card = document.createElement('article');
+    card.className = 'workspace-card';
+    const main = document.createElement('div');
+    main.className = 'workspace-card-main';
+    const type = document.createElement('span');
+    type.className = 'tag';
+    type.textContent = workspaceTypeLabel(content) || 'เนื้อหาที่บันทึกไว้';
+    const title = document.createElement('h3');
+    title.textContent = content?.title || 'เนื้อหาที่บันทึกไว้';
+    const meta = document.createElement('p');
+    meta.className = 'doc-meta';
+    const category = content?.category_id ? getCategoryDisplay(content.category_id).text : '';
+    meta.textContent = [category, detail].filter(Boolean).join(' • ');
+    main.append(type, title);
+    if (meta.textContent) main.appendChild(meta);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn primary workspace-open';
+    button.textContent = actionLabel;
+    button.onclick = onOpen;
+    card.append(main, button);
+    return card;
+  }
+
+  function openWorkspaceContent(reference) {
+    const ownerUid = auth.currentUser?.uid;
+    const id = reference?.content_id || reference?.id;
+    const loaded = contentItems.find(item => (item.content_id || item.id) === id);
+    if (loaded) return openContentFromFirestore(loaded);
+    void (async () => {
+      try {
+        let item = null;
+        try {
+          const direct = await getDoc(doc(db, 'contents', id));
+          if (workspaceOwnerUid !== ownerUid) return;
+          if (direct.exists()) item = { id: direct.id, ...direct.data() };
+        } catch (_) {}
+        if (!item || (item.content_id || item.id) !== id) {
+          for (const spec of accessibleContentQuerySpecs()) {
+            const result = await getDocs(query(collection(db, 'contents'), where('content_id', '==', id), ...spec.constraints, limit(1)));
+            if (workspaceOwnerUid !== ownerUid) return;
+            if (!result.empty) { item = { id: result.docs[0].id, ...result.docs[0].data() }; break; }
+          }
+        }
+        if (!item || (item.content_id || item.id) !== id) throw new Error('Saved content is unavailable');
+        await openContentFromFirestore(item);
+      } catch (error) {
+        console.warn('Open saved content failed:', error);
+        window.toast('เนื้อหานี้ไม่พร้อมใช้งานหรือไม่มีสิทธิ์เข้าถึง');
+      }
+    })();
+  }
+
+  function renderWorkspaceSavedState() {
+    const list = document.getElementById('savedItemsList');
+    if (!list) return;
+    if (workspaceSavedState === 'loading') {
+      workspaceStatePanel(list, 'loading', '', () => {});
+      return;
+    }
+    if (workspaceSavedState === 'error') {
+      workspaceStatePanel(list, 'error', '', () => void loadSavedItems());
+      return;
+    }
+    list.querySelectorAll('.doc').forEach(row => {
+      row.setAttribute('role', 'group');
+      row.tabIndex = 0;
+      row.setAttribute('aria-label', `เปิด ${row.querySelector('.doc-title')?.textContent || 'รายการที่บันทึกไว้'}`);
+      row.onkeydown = event => { if (event.target === row && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); row.click(); } };
+      const button = row.querySelector('.save');
+      if (button) { button.type = 'button'; button.setAttribute('aria-label', `นำ ${row.querySelector('.doc-title')?.textContent || 'รายการนี้'} ออกจากรายการที่บันทึก`); button.setAttribute('aria-pressed', 'true'); }
+    });
+    const knownIds = new Set(contentItems.map(item => item.content_id || item.id));
+    const unavailable = savedItemsData.filter(saved => !knownIds.has(saved.content_id));
+    if (unavailable.length) list.querySelector('.empty-note')?.remove();
+    unavailable.forEach(saved => {
+      const row = document.createElement('div');
+      row.className = 'workspace-card workspace-unavailable';
+      const text = document.createElement('p');
+      text.textContent = 'เนื้อหานี้ยังไม่อยู่ในรายการที่โหลด แตะเพื่อเปิดหรือนำออก';
+      const open = document.createElement('button');
+      open.type = 'button'; open.className = 'btn'; open.textContent = 'เปิดรายการ';
+      open.onclick = () => openWorkspaceContent(saved);
+      const remove = document.createElement('button');
+      remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'นำออก';
+      remove.onclick = () => toggleSavedContent({ content_id: saved.content_id }, remove);
+      row.append(text, open, remove);
+      list.appendChild(row);
+    });
+    if (!list.querySelector('.doc,.workspace-unavailable')) {
+      const empty = list.querySelector('.empty-note');
+      if (empty) {
+        const search = document.createElement('button');
+        search.type = 'button'; search.className = 'btn'; search.textContent = 'ค้นหาความรู้';
+        search.onclick = () => window.show('searchView', 'ค้นหาความรู้');
+        empty.appendChild(search);
+      }
+    }
+  }
+
+  function renderWorkspaceRecentState() {
+    const list = document.getElementById('workspaceRecentItems');
+    if (!list) return;
+    if (workspaceRecentState !== 'ready') {
+      workspaceStatePanel(list, workspaceRecentState, 'ยังไม่มีประวัติการอ่าน', () => { workspaceRecentLoadedUid = null; void loadWorkspaceRecent(true); });
+      return;
+    }
+    list.replaceChildren();
+    const unique = new Set();
+    const items = workspaceRecentData.filter(event => {
+      const id = event.target_id;
+      if (event.action !== 'open' || event.target_type !== 'content' || !id || unique.has(id)) return false;
+      unique.add(id);
+      return true;
+    }).map(event => ({ event, content: contentItems.find(item => (item.content_id || item.id) === event.target_id) }))
+      .slice(0, APP_LIMITS.workspaceRecentItems);
+    if (!items.length) { workspaceStatePanel(list, 'empty', 'ยังไม่มีประวัติการอ่าน', () => {}); return; }
+    items.forEach(({ event, content }) => {
+      const seconds = event.last_used_at?.seconds;
+      const openedAt = seconds ? new Date(seconds * 1000).toLocaleDateString('th-TH') : '';
+      list.appendChild(workspaceCard(content, openedAt ? `อ่านล่าสุด ${openedAt}` : '', 'เปิดอ่าน', () => openWorkspaceContent(content || { content_id: event.target_id })));
+    });
+  }
+
+  async function loadWorkspaceRecent(force = false) {
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!force && workspaceRecentLoadedUid === user.uid && workspaceRecentState === 'ready') return;
+    workspaceRecentState = 'loading';
+    renderWorkspaceRecentState();
+    try {
+      const snapshot = await getDocs(query(collection(db, 'usageStats'), where('user_id', '==', user.uid), orderBy('last_used_at', 'desc'), limit(APP_LIMITS.workspaceRecentScan)));
+      if (workspaceOwnerUid !== user.uid) return;
+      workspaceRecentData = snapshot.docs.map(item => ({ id: item.id, ...item.data() }))
+        .filter(item => item.action === 'open' && item.target_type === 'content');
+      workspaceRecentState = 'ready';
+      workspaceRecentLoadedUid = user.uid;
+      renderWorkspaceRecentState();
+    } catch (error) {
+      if (workspaceOwnerUid !== user.uid) return;
+      workspaceRecentData = [];
+      workspaceRecentState = 'error';
+      console.warn('Load personal reading history failed:', error);
+      renderWorkspaceRecentState();
+    }
+  }
+
+  function renderWorkspaceLearningState() {
+    const list = document.getElementById('workspaceLearningItems');
+    if (!list) return;
+    if (workspaceLearningState !== 'ready') {
+      workspaceStatePanel(list, workspaceLearningState, 'ยังไม่มีบทเรียนที่กำลังเรียน', () => { void loadLessons(); });
+      return;
+    }
+    list.replaceChildren();
+    const lessons = lessonsData.map(lesson => {
+      const id = lesson.content_id || lesson.id;
+      const content = contentItems.find(item => (item.content_id || item.id) === id);
+      const units = lessonUnitsData.filter(unit => unit.content_id === id);
+      const completed = units.filter(unit => workspaceLearningProgressData.some(progress => progress.content_id === id && progress.unit_id === (unit.unit_id || unit.id))).length;
+      return { lesson, id, content, units, completed, percent: units.length ? Math.round(completed / units.length * 100) : 0 };
+    }).filter(item => item.completed > 0 && item.completed < item.units.length && item.content?.workflow_status === 'published')
+      .sort((a, b) => b.percent - a.percent).slice(0, 5);
+    if (!lessons.length) {
+      const empty = document.createElement('div');
+      empty.className = 'workspace-state';
+      const text = document.createElement('p'); text.textContent = 'ยังไม่มีบทเรียนที่กำลังเรียน';
+      const link = document.createElement('button'); link.type = 'button'; link.className = 'btn'; link.textContent = 'ดูบทเรียนออนไลน์';
+      link.onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+      empty.append(text, link); list.appendChild(empty); return;
+    }
+    lessons.forEach(item => {
+      const card = workspaceCard(item.content, `เรียนแล้ว ${item.completed} จาก ${item.units.length} หน่วย • ${item.percent}%`, 'เรียนต่อ', () => openLessonPlayer(item.id));
+      const progress = document.createElement('progress'); progress.className = 'workspace-progress'; progress.max = 100; progress.value = item.percent; progress.setAttribute('aria-label', `เรียนแล้ว ${item.percent}%`);
+      card.querySelector('.workspace-card-main').appendChild(progress);
+      list.appendChild(card);
+    });
+  }
+
+  async function loadKnowledgeWorkspace() {
+    if (!auth.currentUser) return;
+    if (workspaceRecentState === 'idle' || workspaceRecentState === 'error') await loadWorkspaceRecent(workspaceRecentState === 'error');
+    renderWorkspaceSavedState();
+    renderWorkspaceLearningState();
+  }
+
+  function initializeKnowledgeWorkspace() {
+    const view = document.getElementById('savedView');
+    if (!view || view.dataset.workspaceReady === 'true') return;
+    view.dataset.workspaceReady = 'true';
+    const nav = document.querySelectorAll('[data-view="savedView"]');
+    nav.forEach(button => { button.textContent = '▣ พื้นที่ความรู้ของฉัน'; button.dataset.title = 'พื้นที่ความรู้ของฉัน'; button.addEventListener('click', () => void loadKnowledgeWorkspace(), { capture: true }); });
+    const heading = view.querySelector('.page-head h1');
+    if (heading) heading.textContent = 'พื้นที่ความรู้ของฉัน';
+    const description = view.querySelector('.page-head p');
+    if (description) description.textContent = 'รายการที่บันทึก ประวัติการอ่าน และบทเรียนที่เรียนค้างไว้';
+    const panel = view.querySelector('.panel');
+    const panelHead = panel?.querySelector('.panel-head');
+    if (panelHead?.firstChild) panelHead.firstChild.textContent = 'บันทึกไว้อ่าน ';
+    if (panel) panel.setAttribute('aria-labelledby', 'workspaceSavedHeading');
+    const filter = document.getElementById('savedTypeFilter');
+    if (filter) {
+      filter.setAttribute('aria-label', 'กรองรายการที่บันทึกตามประเภท');
+      filter.onchange = () => { renderSavedItems(); renderWorkspaceSavedState(); };
+    }
+    const makeSection = (id, title, listId) => {
+      const section = document.createElement('section'); section.className = 'workspace-section';
+      const h2 = document.createElement('h2'); h2.id = `${id}Heading`; h2.textContent = title;
+      const list = document.createElement('div'); list.id = listId; list.setAttribute('aria-live', 'polite');
+      section.append(h2, list); return section;
+    };
+    const savedHeading = document.createElement('h2'); savedHeading.id = 'workspaceSavedHeading'; savedHeading.className = 'workspace-visually-hidden'; savedHeading.textContent = 'บันทึกไว้อ่าน';
+    if (panelHead) panelHead.insertBefore(savedHeading, panelHead.firstChild);
+    const recent = makeSection('workspaceRecent', 'อ่านล่าสุด', 'workspaceRecentItems');
+    const learning = makeSection('workspaceLearning', 'เรียนต่อ', 'workspaceLearningItems');
+    panel?.insertAdjacentElement('afterend', recent); recent.insertAdjacentElement('afterend', learning);
+    const style = document.createElement('style');
+    style.textContent = '#savedView .workspace-section{margin-top:20px}.workspace-section h2{font-size:18px;margin:0 0 10px;color:var(--navy)}.workspace-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;margin-bottom:9px;background:var(--white);border:1px solid var(--line);border-radius:12px;min-width:0}.workspace-card-main{min-width:0}.workspace-card h3{font-size:15px;line-height:1.5;margin:4px 0;overflow-wrap:anywhere}.workspace-card .doc-meta{margin:3px 0;overflow-wrap:anywhere}.workspace-open{flex:none}.workspace-state{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px;background:var(--white);border:1px dashed var(--line);border-radius:10px;color:var(--muted)}.workspace-state p{margin:0}.workspace-progress{display:block;width:min(320px,100%);height:8px;margin-top:8px;accent-color:var(--brand)}.workspace-unavailable{flex-wrap:wrap}.workspace-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}#savedItemsList .doc{cursor:pointer;grid-template-columns:36px minmax(0,1fr) auto}#savedItemsList .doc>div:nth-child(2){min-width:0;overflow-wrap:anywhere}#savedItemsList .doc:focus-visible,.workspace-card button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}@media(max-width:700px){#savedView .page-head{margin-bottom:12px}#savedView .panel,#savedView .workspace-section{margin-top:13px}.workspace-card{align-items:flex-start;padding:11px;gap:8px}.workspace-card .workspace-open{align-self:center;min-height:42px;white-space:nowrap}.workspace-unavailable{align-items:stretch}.workspace-unavailable button{flex:1}}';
+    view.appendChild(style);
+    window.loadKnowledgeWorkspace = loadKnowledgeWorkspace;
+  }
+
+  function resetKnowledgeWorkspace(uid) {
+    workspaceOwnerUid = uid;
+    savedItemsData = [];
+    workspaceRecentData = [];
+    workspaceLearningProgressData = [];
+    workspaceRecentLoadedUid = null;
+    workspaceRecentState = 'idle';
+    workspaceSavedState = uid ? 'loading' : 'idle';
+    workspaceLearningState = uid ? 'loading' : 'idle';
+    renderSavedItems();
+    renderWorkspaceSavedState();
+    renderWorkspaceRecentState();
+    renderWorkspaceLearningState();
+    updateDetailSaveButton();
+  }
+
+  initializeKnowledgeWorkspace();
 
   function renderKnowledgeContents(rawQuery = '') {
     const list = document.getElementById('knowledgeList');
@@ -3320,18 +3621,23 @@
 
   async function loadLessons() {
     try {
+      const progressUser = auth.currentUser;
       const [lessonDocuments, unitDocuments, progressSnapshot] = await Promise.all([
         loadAccessibleDetailDocuments('lessons'),
         loadAccessibleDetailDocuments('lessonUnits'),
-        getDocs(query(collection(db, 'learningProgress'), where('user_email', '==', auth.currentUser.email)))
+        getDocs(query(collection(db, 'learningProgress'), where('user_email', '==', progressUser.email), limit(APP_LIMITS.workspaceLearningProgress)))
       ]);
+      if (workspaceOwnerUid !== progressUser.uid) return;
       const lessons = lessonDocuments.map(item => ({ id: item.id, ...item.data() }));
       const units = unitDocuments.map(item => ({ id: item.id, ...item.data() }));
       const userProgress = progressSnapshot.docs
         .map(item => ({ id: item.id, ...item.data() }))
         .filter(item => item.user_email === auth.currentUser?.email && item.completed === true);
+      workspaceLearningProgressData = userProgress;
+      workspaceLearningState = 'ready';
       lessonsData = lessons;
       lessonUnitsData = units;
+      renderWorkspaceLearningState();
       const grid = document.getElementById('courseGrid');
       if (!grid) return;
       grid.innerHTML = '';
@@ -3426,6 +3732,9 @@
       filterDynamicLessons('all');
     } catch (error) {
       console.error('Load lessons failed:', error);
+      workspaceLearningProgressData = [];
+      workspaceLearningState = 'error';
+      renderWorkspaceLearningState();
       window.toast('อ่านบทเรียนจาก Firestore ไม่สำเร็จ');
     }
   }
@@ -3635,7 +3944,7 @@
     activeLessonMediaUrl = lesson.media_url || content.media_url || '';
     completedLessonUnitIds = new Set();
     try {
-      const progressSnapshot = await getDocs(query(collection(db, 'learningProgress'), where('user_email', '==', auth.currentUser.email)));
+      const progressSnapshot = await getDocs(query(collection(db, 'learningProgress'), where('user_email', '==', auth.currentUser.email), limit(APP_LIMITS.workspaceLearningProgress)));
       progressSnapshot.docs.forEach(item => {
         const progress = item.data();
         if (progress.user_email === auth.currentUser.email && progress.content_id === contentId && progress.completed === true) {
@@ -5557,7 +5866,8 @@
     void openSharedContentFromHash();
   });
   onAuthStateChanged(auth, async user => {
-    if (!user) return showLogin();
+    if (workspaceOwnerUid !== (user?.uid || null)) resetKnowledgeWorkspace(user?.uid || null);
+    if (!user) { currentUserProfile = null; return showLogin(); }
     setLoading(true, 'กำลังตรวจสอบสิทธิและโหลดข้อมูล…');
     if (user.emailVerified === false) {
       await signOut(auth);

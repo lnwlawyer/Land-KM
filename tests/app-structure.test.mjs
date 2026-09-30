@@ -465,6 +465,87 @@ test('stable content links resolve document IDs and content_id fallback before r
   assert.match(productionHtml, /previous\?\.id === 'searchView'/);
 });
 
+test('personal knowledge workspace reuses the saved-items navigation and presents its three sections', () => {
+  const workspaceStart = productionHtml.indexOf('function initializeKnowledgeWorkspace()');
+  const workspaceEnd = productionHtml.indexOf('\n  function resetKnowledgeWorkspace', workspaceStart);
+  assert.notEqual(workspaceStart, -1);
+  assert.notEqual(workspaceEnd, -1);
+  const workspace = productionHtml.slice(workspaceStart, workspaceEnd);
+  assert.match(productionHtml, /data-view="savedView"/);
+  assert.match(workspace, /พื้นที่ความรู้ของฉัน/);
+  assert.match(workspace, /บันทึกไว้อ่าน/);
+  assert.match(workspace, /อ่านล่าสุด/);
+  assert.match(workspace, /เรียนต่อ/);
+  assert.match(workspace, /workspaceRecentItems/);
+  assert.match(workspace, /workspaceLearningItems/);
+  assert.match(workspace, /@media\(max-width:700px\)/);
+});
+
+test('saved knowledge stays owner-scoped, bounded, removable, and uses the shared detail flow', () => {
+  const savedStart = productionHtml.indexOf('async function loadSavedItems()');
+  const savedEnd = productionHtml.indexOf('\n  function renderSavedItems()', savedStart);
+  const toggleStart = productionHtml.indexOf('async function toggleSavedContent(');
+  const toggleEnd = productionHtml.indexOf('\n  function updateDetailSaveButton()', toggleStart);
+  const openStart = productionHtml.indexOf('function openWorkspaceContent(');
+  const openEnd = productionHtml.indexOf('\n  function renderWorkspaceSavedState()', openStart);
+  const savedLoader = productionHtml.slice(savedStart, savedEnd);
+  const saveToggle = productionHtml.slice(toggleStart, toggleEnd);
+  const workspaceOpen = productionHtml.slice(openStart, openEnd);
+  assert.match(savedLoader, /collection\(db, 'savedItems'\), where\('user_email', '==', user\.email\), limit\(APP_LIMITS\.workspaceSaved\)/);
+  assert.match(saveToggle, /doc\(db, 'savedItems', savedId\)/);
+  assert.match(saveToggle, /is_saved: !currentlySaved/);
+  assert.match(saveToggle, /content_id: contentId/);
+  assert.match(workspaceOpen, /openContentFromFirestore\(loaded\)/);
+  assert.match(workspaceOpen, /where\('content_id', '==', id\)/);
+  assert.match(productionHtml, /button\.setAttribute\('aria-pressed', String\(isSaved\)\)/);
+});
+
+test('recent reading uses bounded owner-scoped content opens, deduplicates IDs, and never surfaces search events', () => {
+  const recentStart = productionHtml.indexOf('async function loadWorkspaceRecent(');
+  const recentEnd = productionHtml.indexOf('\n  function renderWorkspaceLearningState()', recentStart);
+  assert.notEqual(recentStart, -1);
+  assert.notEqual(recentEnd, -1);
+  const recent = productionHtml.slice(recentStart, recentEnd);
+  assert.match(recent, /where\('user_id', '==', user\.uid\)/);
+  assert.match(recent, /orderBy\('last_used_at', 'desc'\)/);
+  assert.match(recent, /limit\(APP_LIMITS\.workspaceRecentScan\)/);
+  assert.match(recent, /item\.action === 'open' && item\.target_type === 'content'/);
+  const recentRendererStart = productionHtml.indexOf('function renderWorkspaceRecentState()');
+  const recentRenderer = productionHtml.slice(recentRendererStart, recentEnd);
+  assert.match(recentRenderer, /new Set\(\)/);
+  assert.match(recentRenderer, /event\.action !== 'open' \|\| event\.target_type !== 'content'/);
+  assert.doesNotMatch(recent, /usageAggregates|queryText|search_term/);
+});
+
+test('continue learning reuses bounded learningProgress and the existing lesson player', () => {
+  const lessonsStart = productionHtml.indexOf('async function loadLessons()');
+  const lessonsEnd = productionHtml.indexOf('\n  function getLessonMedia', lessonsStart);
+  const learningStart = productionHtml.indexOf('function renderWorkspaceLearningState()');
+  const learningEnd = productionHtml.indexOf('\n  async function loadKnowledgeWorkspace()', learningStart);
+  const lessonLoader = productionHtml.slice(lessonsStart, lessonsEnd);
+  const workspaceLearning = productionHtml.slice(learningStart, learningEnd);
+  assert.match(lessonLoader, /collection\(db, 'learningProgress'\), where\('user_email', '==', progressUser\.email\), limit\(APP_LIMITS\.workspaceLearningProgress\)/);
+  assert.match(workspaceLearning, /workspaceLearningProgressData/);
+  assert.match(workspaceLearning, /item\.completed > 0 && item\.completed < item\.units\.length/);
+  assert.match(workspaceLearning, /openLessonPlayer\(item\.id\)/);
+  assert.match(workspaceLearning, /window\.show\('learningView'/);
+});
+
+test('workspace account changes clear private state and detail return preserves the prior workspace view', () => {
+  const resetStart = productionHtml.indexOf('function resetKnowledgeWorkspace(uid)');
+  const resetEnd = productionHtml.indexOf('\n  initializeKnowledgeWorkspace();', resetStart);
+  const reset = productionHtml.slice(resetStart, resetEnd);
+  const authStart = productionHtml.indexOf('onAuthStateChanged(auth, async user => {', productionHtml.indexOf('document.getElementById(\'committeeDecisionSearch\').oninput'));
+  const auth = productionHtml.slice(authStart, authStart + 800);
+  assert.match(reset, /savedItemsData = \[\]/);
+  assert.match(reset, /workspaceRecentData = \[\]/);
+  assert.match(reset, /workspaceLearningProgressData = \[\]/);
+  assert.match(auth, /workspaceOwnerUid !== \(user\?\.uid \|\| null\)\) resetKnowledgeWorkspace/);
+  assert.match(productionHtml, /viewHistory\.push\(\{id:current\.id/);
+  assert.match(productionHtml, /function showPreviousView\(/);
+  assert.match(productionHtml, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+});
+
 test('shared-link outcomes belong only to the current request and retry gets a fresh owner', () => {
   const start = productionHtml.indexOf('function openSharedContentFromHash(options = {})');
   const end = productionHtml.indexOf('\n  async function copyTextToClipboard', start);
