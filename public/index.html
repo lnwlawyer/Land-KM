@@ -15,6 +15,8 @@
     .page{padding:30px;max-width:1280px;margin:auto}.view{display:none}.view.active{display:block}.hero{background:linear-gradient(120deg,#0d756d,#119b83);border-radius:19px;padding:33px;color:#fff;box-shadow:0 12px 35px rgba(8,127,115,.18)}.hero h1{font-size:30px;margin:0 0 7px}.hero p{margin:0 0 22px;color:#d8fff6}.search{display:flex;background:#fff;padding:6px;border-radius:12px;max-width:820px;box-shadow:0 6px 20px #07584f33}.search input{flex:1;border:0;outline:0;padding:10px 13px;min-width:0}.search button{border:0;background:#17233b;color:#fff;padding:11px 22px;border-radius:8px;font-weight:700}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chip{border:1px solid #ffffff55;background:#ffffff17;color:#fff;padding:7px 11px;border-radius:99px}.section-title{display:flex;align-items:end;justify-content:space-between;margin:27px 0 13px}.section-title h2{margin:0;font-size:20px}.section-title a{color:var(--brand);font-size:14px}.category-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.category{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;text-align:left}.category:hover{border-color:#77c9bd;transform:translateY(-2px)}.category b{display:block;margin:8px 0 4px}.category small{color:var(--muted)}
     .two-col{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}.panel{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);font-weight:800;display:flex;justify-content:space-between}.doc{display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:15px 18px;border-bottom:1px solid #edf0f3;align-items:start}.doc:last-child{border-bottom:0}.file{width:40px;height:40px;border-radius:9px;background:#eaf7f4;color:var(--brand);display:grid;place-items:center}.doc-title{font-weight:700;margin-bottom:4px}.doc-meta,.snippet{color:var(--muted);font-size:13px;line-height:1.55}.tag{display:inline-block;padding:4px 8px;border-radius:99px;background:#edf7f4;color:#087568;font-size:11px;font-weight:700}.tag.orange{background:#fff3e8;color:#b54708}.doc-actions{display:flex;gap:7px;align-items:center}.doc-actions .btn{white-space:nowrap}.save{border:0;background:transparent;font-size:19px;color:#98a2b3}.empty-note{padding:15px;border-radius:10px;background:#fff8eb;color:#8d5207;font-size:13px}
     .results-layout{display:grid;grid-template-columns:235px 1fr;gap:18px}.filters{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;height:max-content}.filters h3{margin:0 0 14px}.filter{border-top:1px solid var(--line);padding:14px 0}.filter label{display:block;font-size:13px;margin:8px 0;color:#475467}.results-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.select{border:1px solid var(--line);border-radius:8px;padding:8px;background:#fff}.result-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;margin-bottom:11px;display:grid;grid-template-columns:1fr auto;gap:12px}.result-card:hover{border-color:#8bd1c6}.result-card h3{margin:7px 0 6px;font-size:17px}.result-card mark{background:#fff1a8;padding:0 2px}.result-actions{display:flex;gap:7px;align-items:start}
+    #searchView .search-header{display:grid;gap:7px;margin:0 0 18px}#searchView .search-header h1{margin:0;font-size:27px;color:var(--navy)}#searchView .search-header p{margin:0;color:var(--muted)}#resultSearch{display:flex;gap:7px;align-items:center;width:100%!important;max-width:780px;margin-top:7px;padding:6px}#resultSearch input{flex:1;min-width:0;border:0;outline:0;padding:10px 12px;background:transparent;color:var(--ink)}#resultSearch button{white-space:nowrap}#clearSearch{white-space:nowrap}.type-filter-options{display:grid;gap:3px}.type-filter-options label{display:flex;align-items:center;gap:7px;margin:3px 0;padding:5px 2px;cursor:pointer}.search-result-row{position:relative;cursor:pointer;grid-template-columns:minmax(0,1fr) auto;transition:border-color .15s,box-shadow .15s}.search-result-row:hover,.search-result-row:focus-within{border-color:#77c9bd;box-shadow:0 4px 15px rgba(16,36,62,.07)}.search-result-link{display:block;min-width:0;color:inherit;text-decoration:none}.search-result-link:focus-visible{outline:none}.search-result-link:focus-visible .doc-title{text-decoration:underline;text-decoration-color:var(--brand);text-underline-offset:3px}.search-result-main{min-width:0}.search-result-main .tag{display:inline-block}.search-result-main .doc-title{margin:5px 0;font-weight:800;overflow-wrap:anywhere}.search-result-snippet{color:var(--muted);font-size:13px;line-height:1.6;overflow-wrap:anywhere}.search-result-meta{margin-top:5px;overflow-wrap:anywhere}.search-result-actions{position:relative;z-index:2;display:flex;gap:7px;align-items:flex-start}.search-state{padding:24px;background:var(--white);border:1px dashed var(--line);border-radius:12px;color:var(--muted);line-height:1.7}.search-state h3{margin:0 0 5px;color:var(--ink);font-size:16px}.search-state p{margin:0}.search-state mark{background:#fff1a8;padding:0 2px}.search-result-row mark{background:#fff1a8;padding:0 2px}
+    @media(max-width:700px){#searchView .search-header h1{font-size:23px}#resultSearch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}#resultSearch input{grid-column:1/-1;width:100%;border:1px solid var(--line);border-radius:8px}#resultSearch button{width:100%}#searchView .results-layout{gap:12px}.search-result-row{grid-template-columns:minmax(0,1fr)}.search-result-actions{justify-content:flex-end}.search-result-actions .btn{min-height:42px}.search-result-meta{line-height:1.55}}
     .detail-wrap{display:grid;grid-template-columns:1fr 260px;gap:18px}.detail{background:#fff;border:1px solid var(--line);border-radius:14px;padding:25px}.detail h1{font-size:26px;margin:9px 0}.status{background:#ecfdf3;color:#027a48;border-radius:99px;padding:5px 10px;font-size:12px;font-weight:700}.detail-meta{display:flex;gap:15px;flex-wrap:wrap;color:var(--muted);font-size:13px;padding-bottom:19px;border-bottom:1px solid var(--line)}.callout{background:#eef9f7;border-left:4px solid var(--brand);padding:15px 17px;margin:20px 0;border-radius:6px}.detail h2{font-size:18px;margin-top:25px}.detail p,.detail li{line-height:1.8;color:#344054}.side-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:16px;margin-bottom:12px}.side-card h3{font-size:15px;margin:0 0 12px}.side-card .btn{display:block;width:100%;margin-top:8px}.related{font-size:13px;padding:10px 0;border-bottom:1px solid var(--line);line-height:1.5}.related:last-child{border:0}
     .toast{position:fixed;right:24px;bottom:24px;background:#17233b;color:#fff;padding:12px 16px;border-radius:10px;opacity:0;transform:translateY(15px);pointer-events:none;transition:.25s}.toast.show{opacity:1;transform:none}.mobile-menu{display:none}.page-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.page-head h1{margin:0 0 4px;font-size:26px}.page-head p{margin:0;color:var(--muted)}.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:16px;overflow:auto}.tabs button{white-space:nowrap;border:0;background:transparent;padding:11px 14px;color:var(--muted)}.tabs button.active{color:var(--brand);font-weight:700;border-bottom:2px solid var(--brand)}.table-wrap{background:#fff;border:1px solid var(--line);border-radius:13px;overflow:auto}table{width:100%;border-collapse:collapse;min-width:700px}th,td{text-align:left;padding:13px 15px;border-bottom:1px solid var(--line);font-size:13px}th{background:#f8fafc;color:#475467}.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}.stat-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px}.stat-card small{color:var(--muted)}.stat-card strong{display:block;font-size:27px;margin-top:7px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px;background:#fff}.field small{display:block;color:var(--muted);margin-top:5px}.field.full{grid-column:1/-1}.qa-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:17px;margin-bottom:11px}.qa-card h3{margin:8px 0}.progress{height:7px;background:#edf0f3;border-radius:99px;overflow:hidden}.progress i{display:block;height:100%;background:var(--brand)}.category-picker{margin-top:9px}.category-search{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:9px}.popular-cats{display:flex;flex-wrap:wrap;gap:6px}.cat-pill{border:1px solid #b8ddd7;background:#f5fffc;color:#07675f;border-radius:99px;padding:6px 9px;font-size:12px}.cat-pill.selected{background:var(--brand);border-color:var(--brand);color:#fff}.category-box{border:1px solid var(--line);border-radius:9px;margin-top:10px;max-height:285px;overflow:auto;background:#fff}.category-group{border-bottom:1px solid var(--line)}.category-group:last-child{border:0}.category-group summary{padding:10px 11px;font-size:12px;font-weight:800;background:#fafbfc;cursor:pointer;position:sticky;top:0}.category-options{padding:4px 10px 8px}.category-options label{padding:6px 2px;margin:0}.selected-wrap{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.selected-item{border:0;background:#e8f6f3;color:#06665d;padding:5px 8px;border-radius:7px;font-size:12px}.filter-actions{display:flex;gap:7px;position:sticky;bottom:0;background:#fff;padding-top:10px}.filter-count{background:var(--brand);color:#fff;border-radius:99px;padding:2px 7px;font-size:11px}.form-type-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:18px}.form-type{border:1px solid var(--line);background:#fff;border-radius:11px;padding:13px 9px;text-align:center;color:#475467}.form-type span{display:block;font-size:22px;margin-bottom:5px}.form-type.active{border-color:var(--brand);background:#eaf8f5;color:#07675f;font-weight:800}.form-section-title{grid-column:1/-1;border-bottom:1px solid var(--line);padding:7px 0 9px;margin-top:5px;font-weight:800;color:#344054}.specific-fields{display:none;grid-column:1/-1;grid-template-columns:1fr 1fr;gap:14px}.specific-fields.active{display:grid}.upload-zone{border:1.5px dashed #aebcca;border-radius:10px;padding:18px;text-align:center;background:#fafcfd;color:var(--muted)}.form-footer{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:16px;margin-top:7px}.required-note{font-size:12px;color:var(--muted)}
     .guide-toolbar{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:15px}.guide-toolbar>label{font-size:13px;font-weight:800;white-space:nowrap}.multi-dropdown{position:relative;flex:1}.dropdown-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;border:1px solid #cfd7e2;background:#fff;border-radius:9px;padding:10px 12px;text-align:left}.dropdown-trigger.open{border-color:var(--brand);box-shadow:0 0 0 3px #dff5f1}.dropdown-panel{display:none;position:absolute;z-index:12;top:calc(100% + 7px);left:0;width:min(660px,90vw);background:#fff;border:1px solid var(--line);box-shadow:0 18px 45px #17233b26;border-radius:13px;padding:14px}.dropdown-panel.open{display:block}.guide-category-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:280px;overflow:auto;margin-top:10px}.guide-cat{display:flex;gap:7px;align-items:center;padding:8px;border-radius:7px;font-size:13px}.guide-cat:hover{background:#f2faf8}.guide-selected{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.guide-selected:empty{display:none}.guide-result-label{font-size:13px;color:var(--muted);margin-left:auto;white-space:nowrap}.course-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:15px}.course-card{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.2s}.course-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px #17233b16}.course-cover{height:135px;padding:16px;display:flex;align-items:flex-end;justify-content:space-between;background:linear-gradient(135deg,#dff7f2,#bdeade);color:#075f57}.course-cover.video{background:linear-gradient(135deg,#e8e8ff,#d7d2ff);color:#5146a5}.course-cover.slide{background:linear-gradient(135deg,#fff0d7,#ffe0a8);color:#a15c08}.course-cover.quiz{background:linear-gradient(135deg,#ffe7ef,#ffd1df);color:#a92f57}.media-icon{font-size:36px}.course-body{padding:16px}.course-body h3{font-size:16px;margin:8px 0}.course-body p{font-size:13px;color:var(--muted);line-height:1.55;min-height:40px}.course-meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:12px 0}.course-body .btn{width:100%}.learning-banner{background:#17233b;color:#fff;border-radius:15px;padding:19px 22px;display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.learning-banner p{color:#cbd5e1;margin:5px 0 0}.learning-banner .progress{width:260px;background:#ffffff22}.learning-banner .progress i{background:#50d6be}.document-viewer{margin:22px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#f8fafc}.document-viewer-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff}.document-viewer-head h2{font-size:16px;margin:0}.document-viewer iframe{display:block;width:100%;height:min(72vh,820px);min-height:520px;border:0;background:#fff}.document-viewer img{display:block;max-width:100%;max-height:78vh;margin:auto;padding:14px;object-fit:contain}.document-viewer-note{padding:18px;color:var(--muted);text-align:center}.comments{margin-top:30px;padding-top:22px;border-top:1px solid var(--line)}.comment-compose{background:#f8fafc;border:1px solid var(--line);border-radius:11px;padding:13px}.comment-compose textarea,.answer-form textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;resize:vertical}.compose-actions,.comment-actions{display:flex;gap:7px;align-items:center;margin-top:8px}.comment-item{display:grid;grid-template-columns:36px 1fr;gap:10px;padding:16px 0;border-bottom:1px solid var(--line)}.comment-item.reply{margin-left:45px}.comment-item p{margin:4px 0!important;line-height:1.6!important}.comment-actions button{border:0;background:transparent;color:var(--muted);padding:3px;font-size:12px}.comment-actions button:hover{color:var(--brand)}.answer-card{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px;margin-bottom:13px}.answer-card.accepted{border:2px solid #3eaf8e;background:#fbfffd}.answer-head{display:flex;justify-content:space-between;gap:10px}.answer-form{background:#fff;border:1px solid var(--line);border-radius:13px;padding:18px}.moderation{background:#fff8eb;border:1px solid #fed7aa;border-radius:11px;padding:13px}.qa-card{cursor:pointer}.qa-card:hover{border-color:#76c5b9}#lawsView tbody tr[data-openable]{cursor:pointer}#lawsView tbody tr[data-openable]:hover td{background:#f2faf8}#lawsView tbody tr[data-openable]:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}@media(max-width:900px){.app{grid-template-columns:1fr}aside{display:none}.page{padding:20px}.mobile-menu{display:block}.category-grid{grid-template-columns:repeat(2,1fr)}.two-col,.detail-wrap{grid-template-columns:1fr}.results-layout{grid-template-columns:1fr}.filters{display:none}.topbar{padding:0 18px}.hero{padding:24px}.hero h1{font-size:24px}.guide-toolbar{align-items:stretch;flex-direction:column}.guide-category-grid{grid-template-columns:1fr 1fr}.dropdown-panel{width:100%}.guide-result-label{margin-left:0}.course-grid{grid-template-columns:1fr 1fr}.learning-banner{align-items:flex-start;gap:15px;flex-direction:column}.learning-banner .progress{width:100%}.document-viewer iframe{min-height:430px}.form-type-grid{grid-template-columns:repeat(2,1fr)}.form-grid,.specific-fields{grid-template-columns:1fr}.field.full,.form-section-title,.specific-fields,.form-footer{grid-column:1}.form-footer{align-items:stretch;flex-direction:column}.form-footer>div{flex-wrap:wrap}}@media(max-width:560px){.course-grid{grid-template-columns:1fr}.comment-item.reply{margin-left:20px}.document-viewer iframe{min-height:62vh}.document-viewer-head{align-items:stretch;flex-direction:column}.document-viewer-head .btn{width:100%}}
@@ -114,6 +116,11 @@
     .course-progress-state{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;margin:8px 0;color:var(--muted)}.course-progress-state strong{color:#344054}.course-card .progress{margin-bottom:11px}.lesson-player-layout{grid-template-columns:minmax(0,1fr) 300px}.lesson-player-content{max-width:100%;min-width:0}.lesson-player-progress{display:grid;grid-template-columns:minmax(90px,1fr) auto;gap:12px;align-items:center;margin-bottom:22px}.lesson-player-progress .progress{height:9px}.lesson-unit-content{white-space:pre-wrap;line-height:1.9;min-height:120px;max-width:76ch;color:#344054;margin:20px 0 24px;overflow-wrap:anywhere}.lesson-unit-list{display:grid;gap:8px}.lesson-unit-list .btn{text-align:left;white-space:normal;line-height:1.45}.lesson-unit-list .btn[aria-current="step"]{border-color:var(--brand);background:#effaf7;color:#075f57;font-weight:800}.lesson-unit-list .unit-complete{color:#087568}.lesson-completion{margin-top:22px;padding:18px;border:1px solid #b8ddd7;background:#f3fbf8;border-radius:12px}.lesson-completion b{color:#075f57;font-size:17px}.lesson-completion p{margin:7px 0 14px;color:#475467}.lesson-completion .btn{margin-right:7px}.lesson-player-empty{margin:10px 0 20px}.lesson-player-empty:not([hidden]){display:block}.lesson-player-content h2{line-height:1.45}.lesson-player-controls{gap:10px}.lesson-player-controls .btn:disabled{opacity:.48;cursor:not-allowed}.course-card:focus-within{outline:2px solid #8bd1c6;outline-offset:2px}
     @media(max-width:900px){#lessonPlayerView .lesson-player-layout{grid-template-columns:1fr}#lessonPlayerView .lesson-player-nav{display:block;order:-1}#lessonPlayerView .lesson-player-content{order:1}}
     @media(max-width:560px){.lesson-player-progress{grid-template-columns:1fr;gap:6px}.lesson-player-controls{align-items:stretch}.lesson-player-controls .btn{flex:1;padding:9px 6px;font-size:13px}.lesson-completion .btn{width:100%;margin:5px 0 0}.lesson-player-content{padding:18px}.lesson-player-content h2{font-size:22px!important}}
+    .doc.search-result-row{position:relative;cursor:pointer;grid-template-columns:42px minmax(0,1fr) auto}.search-result-link{position:absolute;inset:0;z-index:1;display:block;color:inherit;text-decoration:none}.search-result-link:focus-visible{outline:3px solid #f0b64d;outline-offset:2px}.search-result-main{grid-column:2;grid-row:1;min-width:0;pointer-events:none}.search-result-main .doc-title,.search-result-snippet,.search-result-meta{overflow-wrap:anywhere;white-space:normal}.search-result-actions{grid-column:3;grid-row:1;position:relative;z-index:2;display:flex;gap:7px;align-items:flex-start}.search-result-row>.file{grid-column:1;grid-row:1}.search-state{padding:24px;background:var(--white);border:1px dashed var(--line);border-radius:12px;color:var(--muted);line-height:1.7}.search-state h3{margin:0 0 5px;color:var(--ink);font-size:16px}.search-state p{margin:0 0 12px}.search-result-row mark{background:#fff1a8;padding:0 2px}
+    .doc.search-result-row .search-result-meta{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.55}
+    @media(max-width:700px){#searchView .search-header h1{font-size:23px}#resultSearch{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}#resultSearch input{grid-column:1/-1;width:100%;border:1px solid var(--line);border-radius:8px}#resultSearch button{width:100%}.doc.search-result-row{grid-template-columns:minmax(0,1fr)}.search-result-row>.file{display:none}.search-result-main{grid-column:1;grid-row:1}.search-result-actions{grid-column:1;grid-row:2;justify-content:flex-end}.search-result-actions .btn{min-height:42px}.search-result-meta{line-height:1.55}}
+    .search-filter-toggle,.search-filter-active{display:none}
+    @media(max-width:700px){#searchView .search-header{gap:4px;margin-bottom:9px}#searchView .search-header p{font-size:13px;line-height:1.45}#resultSearch{margin-top:3px}#searchView .filters{padding:10px;margin-bottom:0}#searchView .filters h3{display:none}.search-filter-toggle{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:42px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-weight:700;text-align:left;cursor:pointer}.search-filter-toggle:focus-visible{outline:3px solid #9be3d7;outline-offset:2px}.search-filter-toggle-label{overflow-wrap:anywhere}.search-filter-toggle-count{flex:none;background:#e8f6f3;color:#06665d;border-radius:99px;padding:2px 8px;font-size:12px}.search-filter-active{display:block;margin:5px 2px 0;color:var(--brand);font-size:12px;line-height:1.4;overflow-wrap:anywhere}.search-filter-active[hidden]{display:none}#searchView .filters .filter{padding:9px 0}#searchView .filters .filter-actions{padding-top:7px}.search-filter-content[hidden]{display:none}}
   </style>
 </head>
 <body>
@@ -255,12 +262,10 @@
       <section class="view" id="packageDetailView"><div class="page-head"><div><button class="btn" id="packageDetailBack">← กลับหน้าก่อน</button><h1 id="packageDetailTitle" style="margin-top:16px">ชุดองค์ความรู้</h1><p id="packageDetailSummary"></p></div><span class="tag" id="packageDetailCategory"></span></div><div class="package-summary" id="packageDetailSummaryCounts"></div><div class="package-sections" id="packageDetailSections"></div></section>
 
       <section class="view" id="searchView">
-        <div class="section-title" style="margin-top:0"><div><h2>ผลการค้นหา</h2><div class="doc-meta" id="resultsSummary">แสดงเนื้อหาที่เผยแพร่ <b id="queryLabel">ทั้งหมด</b></div></div><form class="search" id="resultSearch" style="width:500px;border:1px solid var(--line);box-shadow:none"><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง หมวด หรือคำสำคัญ…"><button>ค้นหา</button></form></div>
-        <div class="results-layout"><aside class="filters" style="display:block;position:static;height:auto"><h3>ตัวกรอง <span class="filter-count" id="filterCount">1</span></h3><div class="filter" style="padding-top:0;border:0"><b>หมวดเนื้อหา</b><div class="doc-meta">เลือกได้หลายหมวด จากทั้งหมด 58 หมวด</div><div class="category-picker"><input class="category-search" id="categorySearch" placeholder="⌕ พิมพ์ค้นหาหมวด เช่น จำนอง"><div class="doc-meta" style="margin-bottom:6px">หมวดที่ใช้บ่อย</div><div class="popular-cats" id="popularCats"></div><div class="selected-wrap" id="selectedCats"></div><div class="category-box" id="categoryBox"></div></div></div><div class="filter"><b>ประเภทเอกสาร</b><label><input type="checkbox"> หนังสือเวียน (8)</label><label><input type="checkbox"> คู่มือ (6)</label><label><input type="checkbox"> แนววินิจฉัย (10)</label><label><input type="checkbox"> กฎหมาย/ระเบียบ (12)</label></div><div class="filter"><b>ปี พ.ศ.</b><label><input type="checkbox"> 2569 (12)</label><label><input type="checkbox"> 2568 (7)</label><label><input type="checkbox"> ก่อนปี 2568 (5)</label></div><div class="filter"><b>สถานะ</b><label><input type="checkbox" checked> ใช้บังคับ</label><label><input type="checkbox"> ยกเลิกแล้ว</label></div><div class="filter-actions"><button class="btn" id="clearFilters" style="flex:1">ล้างทั้งหมด</button><button class="btn primary" id="applyFilters" style="flex:1">แสดงผล</button></div></aside>
-          <div><div class="results-head"><b>เรียงตามความเกี่ยวข้อง</b><select class="select"><option>เกี่ยวข้องมากที่สุด</option><option>ใหม่ที่สุด</option><option>เปิดอ่านมากที่สุด</option></select></div>
-            <article class="result-card open-doc"><div><span class="tag">คู่มือปฏิบัติงาน</span><h3>การจดทะเบียนโอน<mark>มรดก</mark>ที่ดิน</h3><div class="snippet">สรุปขั้นตอน เอกสาร และระยะเวลาดำเนินการ ทั้งกรณีมีผู้จัดการมรดกและไม่มีผู้จัดการมรดก...</div><div class="doc-meta">ตรวจสอบล่าสุด 9 กันยายน 2569 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
-            <article class="result-card"><div><span class="tag orange">หนังสือเวียน</span><h3>แนวทางปฏิบัติกรณีรับ<mark>มรดก</mark>ตามหลักฐาน น.ส.3</h3><div class="snippet">แนวทางพิจารณาคำขอ การประกาศ และการจดทะเบียนสิทธิของทายาท...</div><div class="doc-meta">เลขที่ มท 0708/ว 23959 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
-            <article class="result-card"><div><span class="tag">แนววินิจฉัย</span><h3>ผู้จัดการ<mark>มรดก</mark>สามารถโอนให้ตนเองได้หรือไม่</h3><div class="snippet">รวบรวมข้อกฎหมาย หลักการ และข้อควรระวังสำหรับพนักงานเจ้าหน้าที่...</div><div class="doc-meta">ตรวจสอบล่าสุด 2 กันยายน 2569 • ใช้บังคับ</div></div><div class="result-actions"><button class="btn">☆</button><button class="btn primary">เปิดอ่าน</button></div></article>
+        <div class="search-header"><h1>ค้นหาความรู้</h1><p>ค้นหาองค์ความรู้ กฎหมาย คำพิพากษา แนววินิจฉัย คู่มือ บทเรียน และคำถาม–คำตอบ</p><form class="search" id="resultSearch"><label class="sr-only" for="resultInput">คำค้นหา</label><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่เอกสาร หมวด หรือคำสำคัญ…"><button class="btn primary" type="submit">ค้นหา</button><button class="btn" id="clearSearch" type="button" hidden>ล้างคำค้น</button></form></div>
+        <div class="results-layout"><aside class="filters" style="display:block;position:static;height:auto"><h3>ตัวกรอง <span class="filter-count" id="filterCount">0</span></h3><div class="filter" style="padding-top:0;border:0"><b>หมวดเนื้อหา</b><div class="doc-meta" id="categoryFilterSummary">เลือกได้หลายหมวด</div><div class="category-picker"><label class="sr-only" for="categorySearch">ค้นหาหมวดเนื้อหา</label><input class="category-search" id="categorySearch" aria-label="ค้นหาหมวดเนื้อหา" placeholder="⌕ พิมพ์ค้นหาหมวด เช่น จำนอง"><div class="doc-meta" style="margin-bottom:6px">หมวดที่ใช้บ่อย</div><div class="popular-cats" id="popularCats"></div><div class="selected-wrap" id="selectedCats"></div><div class="category-box" id="categoryBox"></div></div></div><div class="filter"><b>ประเภทความรู้</b><div id="realTypeFilters"></div></div><div class="filter"><b>ปีที่ปรับปรุง</b><div id="realYearFilters"></div></div><div class="filter"><b>สถานะ</b><div id="realStatusFilters"></div></div><div class="filter-actions"><button class="btn" id="clearFilters" type="button" style="flex:1">ล้างทั้งหมด</button><button class="btn primary" id="applyFilters" type="button" style="flex:1">แสดงผล</button></div></aside>
+          <div><div class="results-head"><b>เรียงตามความเกี่ยวข้อง</b><select class="select" aria-label="เรียงผลการค้นหา"><option>เกี่ยวข้องมากที่สุด</option><option>ใหม่ที่สุด</option><option>เปิดอ่านมากที่สุด</option></select></div>
+            <div class="doc-meta" id="resultsSummary" role="status" aria-live="polite"></div><div id="searchResultList" aria-busy="false"></div>
           </div></div>
       </section>
 
@@ -432,6 +437,10 @@
   let editingCategoryId = null;
   let usageStatsData = [];
   let lastSearchResults = [];
+  let activeSearchQuery = '';
+  let searchHasRun = false;
+  let searchDataStatus = 'loading';
+  let activeSearchNoResultRecorded = false;
   let lessonsData = [];
   let lessonUnitsData = [];
   let editingLessonUnitId = null;
@@ -1470,14 +1479,13 @@
 
   function showCategoryResults(category) {
     recordCategoryUsage(category.id);
-    const results = contentItems.filter(item => item.workflow_status === 'published' && item.category_id === category.id);
-    renderPublishedContents(results);
-    document.getElementById('resultInput').value = category.name;
-    const queryLabel = document.getElementById('queryLabel');
-    if (queryLabel) queryLabel.textContent = category.name;
-    const summary = document.getElementById('resultsSummary');
-    if (summary) summary.textContent = `${category.group} • ${category.name} • พบ ${results.length} รายการ`;
-    window.show('searchView', 'ค้นหาความรู้');
+    Object.values(realFilters).forEach(values => values.clear());
+    realFilters.categories.add(category.id);
+    activeSearchQuery = '';
+    searchHasRun = true;
+    document.getElementById('resultInput').value = '';
+    renderRealFilterControls();
+    applyRealFilters();
   }
 
   function renderDynamicCategoryRecommendations() {
@@ -1508,10 +1516,6 @@
         popularBox.appendChild(button);
       });
     }
-    const selectedBox = document.getElementById('selectedCats');
-    if (selectedBox) selectedBox.innerHTML = '';
-    const filterCount = document.getElementById('filterCount');
-    if (filterCount) filterCount.textContent = '0';
   }
 
   const realFilters = {
@@ -1536,18 +1540,28 @@
     return String(item.legal_status || item.status || 'ใช้บังคับ').trim();
   }
 
-  function realFilteredContents() {
-    const queryText = document.getElementById('resultInput').value.trim().toLocaleLowerCase('th-TH');
-    return contentItems.filter(item => {
-      if (item.workflow_status !== 'published') return false;
+  function searchablePublishedContents() {
+    const variants = searchVariants(activeSearchQuery);
+    return contentItems.filter(item => item.workflow_status === 'published')
+      .map(item => ({ item, score: variants.length ? contentSearchScore(item, variants) : 1 }))
+      .filter(result => result.score > 0)
+      .sort((a, b) => b.score - a.score || (b.item.updated_at?.seconds || b.item.created_at?.seconds || 0) - (a.item.updated_at?.seconds || a.item.created_at?.seconds || 0))
+      .map(result => result.item);
+  }
+
+  function recordCompletedNoResultSearch(matches = searchablePublishedContents()) {
+    if (!activeSearchQuery || matches.length || hasMoreAccessibleContents() || activeSearchNoResultRecorded) return;
+    activeSearchNoResultRecorded = true;
+    void recordSharedUsage('no_result', 'search', normalizeSearchText(activeSearchQuery));
+  }
+
+  function realFilteredContents(searchable = searchablePublishedContents()) {
+    return searchable.filter(item => {
       if (realFilters.categories.size && !realFilters.categories.has(item.category_id)) return false;
       if (realFilters.types.size && !realFilters.types.has(item.content_type)) return false;
       if (realFilters.years.size && !realFilters.years.has(contentYear(item))) return false;
       if (realFilters.statuses.size && !realFilters.statuses.has(contentStatus(item))) return false;
-      if (!queryText) return true;
-      const category = getCategoryDisplay(item.category_id);
-      return [item.title, item.summary, item.keywords, category.name, category.group, item.owner_unit]
-        .flat().filter(Boolean).join(' ').toLocaleLowerCase('th-TH').includes(queryText);
+      return true;
     });
   }
 
@@ -1566,6 +1580,13 @@
     });
     const total = Object.values(realFilters).reduce((sum, values) => sum + values.size, 0);
     document.getElementById('filterCount').textContent = total;
+    const toggleCount = document.getElementById('mobileFilterCount');
+    if (toggleCount) toggleCount.textContent = total;
+    const activeNotice = document.getElementById('mobileFilterActive');
+    if (activeNotice) {
+      activeNotice.hidden = total === 0 || !window.matchMedia('(max-width: 700px)').matches || document.getElementById('toggleSearchFilters')?.getAttribute('aria-expanded') !== 'false';
+      activeNotice.textContent = total ? `กำลังใช้ตัวกรอง ${total} รายการ` : '';
+    }
   }
 
   function makeFilterOptions(target, entries, selectedSet) {
@@ -1584,8 +1605,43 @@
     });
   }
 
+  function renderSearchTypeFilters(searchable) {
+    const target = document.getElementById('realTypeFilters');
+    if (!target) return;
+    target.innerHTML = '';
+    target.className = 'type-filter-options';
+    const allLabel = document.createElement('label');
+    const allRadio = document.createElement('input');
+    allRadio.type = 'radio';
+    allRadio.name = 'searchTypeAll';
+    allRadio.checked = realFilters.types.size === 0;
+    allRadio.onchange = () => {
+      realFilters.types.clear();
+      renderSelectedRealFilters();
+      renderRealFilterControls();
+      applyRealFilters();
+    };
+    allLabel.append(allRadio, document.createTextNode(` ทั้งหมด (${searchable.length})`));
+    target.appendChild(allLabel);
+    Object.entries(contentTypeLabels).forEach(([type, label]) => {
+      const count = searchable.filter(item => (item.content_type || 'knowledge') === type).length;
+      const row = document.createElement('label');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = realFilters.types.has(type);
+      checkbox.onchange = () => {
+        checkbox.checked ? realFilters.types.add(type) : realFilters.types.delete(type);
+        renderSelectedRealFilters();
+        renderRealFilterControls();
+        applyRealFilters();
+      };
+      row.append(checkbox, document.createTextNode(` ${label} (${count})`));
+      target.appendChild(row);
+    });
+  }
+
   function renderRealFilterControls() {
-    const published = contentItems.filter(item => item.workflow_status === 'published');
+    const published = searchablePublishedContents();
     const categoryTerm = document.getElementById('categorySearch').value.trim().toLocaleLowerCase('th-TH');
     const categoryBox = document.getElementById('categoryBox');
     categoryBox.innerHTML = '';
@@ -1629,6 +1685,7 @@
       published.forEach(item => { const key = getter(item); map.set(key, (map.get(key) || 0) + 1); });
       return map;
     };
+    renderSearchTypeFilters(published);
     const typeCounts = countsFor(item => item.content_type || 'knowledge');
     const yearCounts = countsFor(contentYear);
     const statusCounts = countsFor(contentStatus);
@@ -1638,18 +1695,54 @@
     renderSelectedRealFilters();
   }
 
-  function applyRealFilters() {
+  function applyRealFilters(showSearch = true) {
+    searchHasRun = true;
+    recordCompletedNoResultSearch();
     const results = realFilteredContents();
     renderPublishedContents(results);
     const activeCount = Object.values(realFilters).reduce((sum, values) => sum + values.size, 0);
-    document.getElementById('resultsSummary').textContent = `พบ ${results.length} รายการ${activeCount ? ` • ใช้ตัวกรอง ${activeCount} เงื่อนไข` : ''}`;
-    window.show('searchView', 'ค้นหาความรู้');
+    const querySummary = activeSearchQuery ? ` สำหรับ “${activeSearchQuery}”` : '';
+    const loadedSummary = hasMoreAccessibleContents() ? ` • ค้นจาก ${contentItems.length} รายการที่โหลดแล้ว กด “โหลดเนื้อหาเพิ่มเติม” เพื่อค้นหาต่อ` : '';
+    document.getElementById('resultsSummary').textContent = `พบ ${results.length} รายการ${querySummary}${activeCount ? ` • ใช้ตัวกรอง ${activeCount} เงื่อนไข` : ''}${loadedSummary}`;
+    document.getElementById('searchResultList').setAttribute('aria-busy', 'false');
+    if (showSearch) window.show('searchView', 'ค้นหาความรู้');
   }
 
   function setupRealFilters() {
     const sections = document.querySelectorAll('#searchView aside.filters > .filter');
     if (sections.length < 4) return;
-    sections[1].innerHTML = '<b>ประเภทเนื้อหา</b><div id="realTypeFilters"></div>';
+    const filterAside = document.querySelector('#searchView aside.filters');
+    const filterHeading = filterAside.querySelector('h3');
+    const filterContent = document.createElement('div');
+    filterContent.id = 'searchFilterContent';
+    filterContent.className = 'search-filter-content';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.id = 'toggleSearchFilters';
+    toggle.className = 'search-filter-toggle';
+    toggle.setAttribute('aria-controls', filterContent.id);
+    toggle.innerHTML = '<span class="search-filter-toggle-label">ตัวกรอง</span><span class="search-filter-toggle-count" id="mobileFilterCount">0</span>';
+    const activeNotice = document.createElement('div');
+    activeNotice.id = 'mobileFilterActive';
+    activeNotice.className = 'search-filter-active';
+    activeNotice.setAttribute('aria-live', 'polite');
+    activeNotice.hidden = true;
+    filterHeading.insertAdjacentElement('afterend', toggle);
+    toggle.insertAdjacentElement('afterend', activeNotice);
+    [...filterAside.children].filter(child => child !== filterHeading && child !== toggle && child !== activeNotice).forEach(child => filterContent.appendChild(child));
+    filterAside.appendChild(filterContent);
+    let mobileFiltersExpanded = !window.matchMedia('(max-width: 700px)').matches;
+    const setMobileFiltersExpanded = expanded => {
+      mobileFiltersExpanded = expanded;
+      toggle.setAttribute('aria-expanded', String(expanded));
+      filterContent.hidden = !expanded;
+      renderSelectedRealFilters();
+    };
+    toggle.onclick = () => setMobileFiltersExpanded(!mobileFiltersExpanded);
+    const mobileLayout = window.matchMedia('(max-width: 700px)');
+    mobileLayout.addEventListener?.('change', event => setMobileFiltersExpanded(!event.matches));
+    setMobileFiltersExpanded(mobileFiltersExpanded);
+    sections[1].innerHTML = '<b>ประเภทความรู้</b><div id="realTypeFilters"></div>';
     sections[2].innerHTML = '<b>ปีที่ปรับปรุง</b><div id="realYearFilters"></div>';
     sections[3].innerHTML = '<b>สถานะ</b><div id="realStatusFilters"></div>';
     document.getElementById('categorySearch').oninput = renderRealFilterControls;
@@ -1658,9 +1751,11 @@
       Object.values(realFilters).forEach(values => values.clear());
       document.getElementById('categorySearch').value = '';
       document.getElementById('resultInput').value = '';
+      activeSearchQuery = '';
+      searchHasRun = false;
       renderRealFilterControls();
-      applyRealFilters();
-      window.toast('ล้างตัวกรองแล้ว');
+      document.getElementById('clearSearch').hidden = true;
+      renderSearchState();
     };
     renderRealFilterControls();
   }
@@ -1744,6 +1839,8 @@
   async function loadContents(reset = true) {
     if (contentPageLoading) return;
     contentPageLoading = true;
+    searchDataStatus = 'loading';
+    renderSearchState();
     renderContentPagination();
     try {
       const documents = await loadAccessibleContentDocuments(reset);
@@ -1752,6 +1849,7 @@
       const items = [...merged.values()]
         .sort((a, b) => (b.updated_at?.seconds || 0) - (a.updated_at?.seconds || 0));
       contentItems = items;
+      searchDataStatus = 'ready';
       renderCategoryAdmin();
       renderContentReports(items);
       renderHomeDashboard(items);
@@ -1773,7 +1871,8 @@
         reviewBadge.textContent = `${reviewCount} รอตรวจ`;
         reviewBadge.hidden = reviewCount === 0;
       }
-      renderPublishedContents(items.filter(item => item.workflow_status === 'published'));
+      if (searchHasRun) applyRealFilters(false);
+      else renderSearchState();
       renderKnowledgeContents();
       renderLegalReferenceViews();
       await loadLaws();
@@ -1836,6 +1935,8 @@
       applyManageFilter();
     } catch (error) {
       console.error('Load contents failed:', error);
+      searchDataStatus = 'error';
+      renderSearchState();
       window.toast('อ่านรายการเนื้อหาจาก Firestore ไม่สำเร็จ');
       showSystemBanner('โหลดเนื้อหาไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่', 'error', loadContents);
     } finally {
@@ -2174,35 +2275,95 @@
 
   function renderPublishedContents(items) {
     lastSearchResults = [...items];
-    const resultsColumn = document.querySelector('#searchView .results-layout > div:last-child');
+    const resultsColumn = document.getElementById('searchResultList');
     if (!resultsColumn) return;
-    resultsColumn.querySelectorAll('.result-card, .search-result-row, .search-empty-note').forEach(card => card.remove());
+    resultsColumn.innerHTML = '';
+    document.getElementById('clearSearch').hidden = !document.getElementById('resultInput').value.trim();
+    if (!searchHasRun) return renderSearchState();
     const typeLabels = { knowledge: 'องค์ความรู้', law: 'กฎหมาย/หนังสือเวียน', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัยคณะกรรมการ', guide: 'คู่มือ/แนวทาง', lesson: 'บทเรียนออนไลน์', qa: 'คำถาม–คำตอบ' };
     const typeIcons = { knowledge: 'KM', law: 'LAW', judgment: 'ฎีกา', committeeDecision: 'วินิจ', guide: 'คู่มือ', lesson: 'LESSON', qa: 'Q&A' };
     items.forEach(item => {
       const row = document.createElement('article');
       row.className = 'doc search-result-row';
-      row.innerHTML = '<div class="file"></div><div><div class="doc-title"></div><div class="doc-meta"></div></div><div class="search-result-actions"><button class="btn save-result" aria-label="บันทึกไว้อ่าน">☆</button><button class="btn primary open-result">เปิดอ่าน</button></div>';
+      row.innerHTML = '<a href="#" class="search-result-link"><span class="sr-only"></span></a><div class="file"></div><div class="search-result-main"><span class="tag"></span><div class="doc-title"></div><div class="search-result-snippet"></div><div class="doc-meta search-result-meta"></div></div><div class="search-result-actions"><button type="button" class="btn save-result" aria-label="บันทึกไว้อ่าน">☆</button></div>';
       row.querySelector('.file').textContent = typeIcons[item.content_type] || 'KM';
-      row.querySelector('.doc-title').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
-      const views = contentViewCount(item.content_id || item.id);
-      const details = [typeLabels[item.content_type] || item.content_type || 'องค์ความรู้', getCategoryDisplay(item.category_id).text, item.summary, `เปิดอ่าน ${views.toLocaleString('th-TH')} ครั้ง`];
-      row.querySelector('.doc-meta').textContent = details.filter(Boolean).join(' • ');
+      row.querySelector('.tag').textContent = typeLabels[item.content_type] || item.content_type || 'องค์ความรู้';
+      const link = row.querySelector('.search-result-link');
+      link.setAttribute('aria-label', `เปิดอ่าน ${item.title || 'เนื้อหา'}`);
+      link.querySelector('.sr-only').textContent = `เปิดอ่าน ${item.title || 'เนื้อหา'}`;
+      link.onclick = event => { event.preventDefault(); openContentFromFirestore(item); };
+      appendSearchHighlights(row.querySelector('.doc-title'), item.title || '(ไม่มีชื่อเรื่อง)', activeSearchQuery);
+      const snippet = item.summary || item.decision_issue || item.legal_principle || '';
+      row.querySelector('.search-result-snippet').hidden = !snippet;
+      appendSearchHighlights(row.querySelector('.search-result-snippet'), snippet, activeSearchQuery);
+      const dateField = item.published_at ? 'เผยแพร่' : item.updated_at ? 'ปรับปรุง' : item.created_at ? 'เพิ่ม' : '';
+      const updatedValue = item.published_at || item.updated_at || item.created_at;
+      const updatedDate = updatedValue?.toDate ? updatedValue.toDate() : updatedValue?.seconds ? new Date(updatedValue.seconds * 1000) : updatedValue ? new Date(updatedValue) : null;
+      const dateLabel = dateField && updatedDate && !Number.isNaN(updatedDate.getTime()) ? `${dateField} ${updatedDate.toLocaleDateString('th-TH', { dateStyle: 'medium' })}` : '';
+      const details = [item.document_no || item.document_number || item.reference_no, getCategoryDisplay(item.category_id).text, dateLabel];
+      row.querySelector('.search-result-meta').textContent = details.filter(Boolean).join(' • ');
       const saveButton = row.querySelector('.save-result');
       saveButton.textContent = isContentSaved(item.content_id || item.id) ? '★' : '☆';
       saveButton.onclick = event => { event.stopPropagation(); toggleSavedContent(item, event.currentTarget); };
-      row.querySelector('.open-result').onclick = event => { event.stopPropagation(); openContentFromFirestore(item); };
-      row.onclick = () => openContentFromFirestore(item);
+      row.style.cursor = 'pointer';
       resultsColumn.appendChild(row);
     });
     if (!items.length) {
       const note = document.createElement('div');
-      note.className = 'empty-note search-empty-note';
-      note.textContent = 'ยังไม่มีเนื้อหาที่เผยแพร่';
+      note.className = 'search-state search-empty-note';
+      const heading = document.createElement('h3');
+      heading.textContent = 'ไม่พบรายการที่ตรงกับการค้นหา';
+      const message = document.createElement('p');
+      message.textContent = 'ลองเปลี่ยนคำค้นหา ล้างตัวกรอง หรือเลือกดูหมวดอื่น';
+      const clearButton = document.createElement('button');
+      clearButton.type = 'button';
+      clearButton.className = 'btn';
+      clearButton.textContent = 'ล้างคำค้นและตัวกรอง';
+      clearButton.onclick = () => document.getElementById('clearFilters').click();
+      note.append(heading, message, clearButton);
       resultsColumn.appendChild(note);
     }
+  }
+
+  function renderSearchState() {
+    const list = document.getElementById('searchResultList');
     const summary = document.getElementById('resultsSummary');
-    if (summary) summary.textContent = `พบเนื้อหาที่เผยแพร่ ${items.length} รายการ`;
+    if (!list || !summary) return;
+    list.replaceChildren();
+    if (searchDataStatus === 'loading') {
+      list.setAttribute('aria-busy', 'true');
+      list.innerHTML = '<div class="search-state" role="status"><h3>กำลังโหลดเนื้อหาที่ค้นหาได้…</h3><p>โปรดรอสักครู่</p></div>';
+      summary.textContent = 'กำลังเตรียมรายการค้นหา';
+      return;
+    }
+    list.setAttribute('aria-busy', 'false');
+    if (searchDataStatus === 'error') {
+      list.innerHTML = '<div class="search-state" role="alert"><h3>โหลดข้อมูลค้นหาไม่สำเร็จ</h3><p>ตรวจสอบการเชื่อมต่อแล้วลองโหลดอีกครั้ง</p><button type="button" class="btn" id="retrySearchLoad">ลองอีกครั้ง</button></div>';
+      list.querySelector('#retrySearchLoad').onclick = () => loadContents();
+      summary.textContent = 'ไม่สามารถโหลดรายการค้นหาได้';
+      return;
+    }
+    if (!searchHasRun) {
+      list.innerHTML = '<div class="search-state"><h3>ค้นหาความรู้ในที่เดียว</h3><p>ค้นหาจากชื่อเรื่อง คำสำคัญ เลขที่เอกสาร และหมวดเนื้อหาที่เผยแพร่ แล้วเลือกกรองตามประเภทหรือหมวดได้</p></div>';
+      summary.textContent = 'เริ่มค้นหาด้วยคำสำคัญ หรือเลือกหมวดเนื้อหาทางซ้าย';
+    }
+  }
+
+  function appendSearchHighlights(container, value, queryText) {
+    container.replaceChildren();
+    const tokens = [...new Set(searchVariants(queryText).flatMap(term => term.split(/\s+/)).filter(Boolean))]
+      .sort((a, b) => b.length - a.length);
+    if (!tokens.length) { container.textContent = String(value || ''); return; }
+    const escaped = tokens.map(token => token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    const matcher = new RegExp(`(${escaped.join('|')})`, 'giu');
+    String(value || '').split(matcher).forEach(part => {
+      if (!part) return;
+      if (tokens.some(token => normalizeSearchText(token) === normalizeSearchText(part))) {
+        const mark = document.createElement('mark');
+        mark.textContent = part;
+        container.appendChild(mark);
+      } else container.appendChild(document.createTextNode(part));
+    });
   }
 
   function normalizeSearchText(value) {
@@ -2233,7 +2394,7 @@
     const categoryText = normalizeSearchText(`${category.name} ${category.group}`);
     const keywords = normalizeSearchText(Array.isArray(item.keywords) ? item.keywords.join(' ') : item.keywords);
     const summary = normalizeSearchText(item.summary);
-    const other = normalizeSearchText(`${item.content_id || ''} ${item.owner_unit || ''} ${item.created_by || ''}`);
+    const other = normalizeSearchText(`${item.document_no || ''} ${item.document_number || ''} ${item.reference_no || ''} ${item.authority || ''} ${item.decision_issue || ''} ${item.legal_principle || ''}`);
     return variants.reduce((best, queryText) => {
       let score = 0;
       if (title === queryText) score += 100;
@@ -2277,21 +2438,15 @@
   function searchPublishedContents(rawQuery) {
     const queryText = String(rawQuery || '').trim();
     if (queryText) void recordSharedUsage('search', 'search', queryText.toLocaleLowerCase('th-TH'));
-    const variants = searchVariants(queryText);
-    const published = contentItems.filter(item => item.workflow_status === 'published');
-    const results = !variants.length ? published : published
-      .map(item => ({ item, score: contentSearchScore(item, variants) }))
-      .filter(result => result.score > 0)
-      .sort((a, b) => b.score - a.score || (b.item.updated_at?.seconds || 0) - (a.item.updated_at?.seconds || 0))
-      .map(result => result.item);
-    if (queryText && !results.length) void recordSharedUsage('no_result', 'search', normalizeSearchText(queryText));
-    renderPublishedContents(results);
+    activeSearchQuery = queryText;
+    activeSearchNoResultRecorded = false;
+    searchHasRun = true;
+    document.getElementById('clearSearch').hidden = !queryText;
     document.getElementById('resultInput').value = queryText;
-    const queryLabel = document.getElementById('queryLabel');
-    if (queryLabel) queryLabel.textContent = queryText || 'ทั้งหมด';
-    const summary = document.getElementById('resultsSummary');
-    if (summary) summary.textContent = queryText ? `ค้นหา “${queryText}” พบ ${results.length} รายการ` : `พบเนื้อหาที่เผยแพร่ ${results.length} รายการ`;
-    window.show('searchView', 'ค้นหาความรู้');
+    const matches = searchablePublishedContents();
+    recordCompletedNoResultSearch(matches);
+    renderRealFilterControls();
+    applyRealFilters();
   }
 
   document.getElementById('heroSearch').onsubmit = event => {
@@ -2302,6 +2457,7 @@
     event.preventDefault();
     searchPublishedContents(document.getElementById('resultInput').value);
   };
+  document.getElementById('clearSearch').onclick = () => searchPublishedContents('');
   const searchSortSelect = document.querySelector('#searchView .results-head .select');
   searchSortSelect.onchange = () => {
     const sorted = [...lastSearchResults];
@@ -2310,6 +2466,7 @@
     } else if (searchSortSelect.selectedIndex === 2) {
       sorted.sort((a, b) => contentViewCount(b.content_id || b.id) - contentViewCount(a.content_id || a.id));
     }
+    lastSearchResults = sorted;
     renderPublishedContents(sorted);
   };
   document.querySelectorAll('#home .chip').forEach(button => {
