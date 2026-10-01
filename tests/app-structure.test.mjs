@@ -826,23 +826,28 @@ test('Feature 8 authoring workspace keeps supported content types and existing s
   assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function queueContentBundle('), productionHtml.indexOf('\n  function queueKnowledgeGapLink', productionHtml.indexOf('function queueContentBundle('))), /batch\.delete/);
 });
 
-test('Feature 8 readiness checks follow existing validators and distinguish optional warnings', () => {
+test('Feature 8 readiness checks reuse deterministic shared rules and keep optional warnings non-blocking', () => {
   const checksStart = productionHtml.indexOf('function authoringBlockingChecks(');
   const warningsStart = productionHtml.indexOf('function authoringWarnings()', checksStart);
   const renderStart = productionHtml.indexOf('function renderAuthoringReadiness()', warningsStart);
   const workflowStart = productionHtml.indexOf('function renderAuthoringWorkflow(', renderStart);
+  const rulesStart = productionHtml.indexOf('const contentReadinessRules =');
+  const rulesEnd = productionHtml.indexOf('\n\n  function authoringReadinessModel', rulesStart);
+  const modelStart = productionHtml.indexOf('function authoringReadinessModel(', rulesEnd);
+  const modelEnd = productionHtml.indexOf('\n  function authoringBlockingChecks(', modelStart);
   const checks = productionHtml.slice(checksStart, warningsStart);
   const warnings = productionHtml.slice(warningsStart, renderStart);
   const render = productionHtml.slice(renderStart, workflowStart);
-  for (const id of ['contentTitle', 'contentCategory', 'contentOwnerUnit', 'knowledgeSummary', 'knowledgeGuidance', 'lawDocumentNo', 'lawDocumentDate', 'lawOfficialTitle', 'guideObjective', 'guideSteps', 'lessonLearningOutcomes', 'qaQuestionText', 'qaDetails', 'judgmentIssue', 'judgmentPrinciple', 'committeeDecisionIssue', 'committeeDecisionPrinciple']) assert.match(checks, new RegExp(`'${id}'`));
-  assert.match(checks, /Boolean\(field\?\.value\.trim\(\)\)/);
-  assert.match(warnings, /คำสำคัญ \(ไม่บังคับ\)/);
-  assert.match(warnings, /ลิงก์เอกสารอ้างอิง \(ไม่บังคับ\)/);
-  assert.match(render, /ยังขาดข้อมูลที่จำเป็น \$\{missing\.length\} รายการ/);
-  assert.match(render, /พร้อมส่งตรวจ/);
+  const rules = productionHtml.slice(rulesStart, rulesEnd);
+  const model = productionHtml.slice(modelStart, modelEnd);
+  for (const id of ['contentTitle', 'contentCategory', 'contentOwnerUnit', 'knowledgeSummary', 'knowledgeGuidance', 'lawDocumentNo', 'lawDocumentDate', 'lawOfficialTitle', 'guideObjective', 'guideSteps', 'lessonLearningOutcomes', 'qaQuestionText', 'qaDetails', 'judgmentIssue', 'judgmentPrinciple', 'committeeDecisionIssue', 'committeeDecisionPrinciple']) assert.ok(rules.includes(id) || model.includes(id), id);
+  assert.match(checks, /evaluateContentReadiness\(model\.item, model\.detail\)\.blocking/);
+  assert.match(rules, /function evaluateContentReadiness[\s\S]*?status: missing\.length \? 'incomplete' : warnings\.length \? 'improve' : 'ready'/);
+  assert.match(warnings, /warning\.key/);
+  assert.match(render, /missing\.length/);
   assert.match(render, /aria-label/);
-  assert.doesNotMatch(checks + warnings + render, /getDoc\(|getDocs\(|setDoc\(|recordSharedUsage\(/);
-  for (const validator of ['validateKnowledgePayload', 'validateLawPayload', 'validateGuidePayload', 'validateLessonPayload', 'validateQuestionPayload', 'validateLegalReferencePayload']) assert.match(productionHtml, new RegExp(`function ${validator}\\(`));
+  assert.doesNotMatch(checks + warnings + render + rules + model, /getDoc\(|getDocs\(|setDoc\(|recordSharedUsage\(/);
+  for (const validator of ['validateKnowledgePayload', 'validateLawPayload', 'validateGuidePayload', 'validateLessonPayload', 'validateQuestionPayload', 'validateLegalReferencePayload']) assert.ok(productionHtml.includes('function ' + validator + '('));
 });
 
 test('Feature 8 Preview uses in-memory fields and shared Detail presentation without read side effects', () => {
@@ -869,8 +874,7 @@ test('Feature 8 Preview uses in-memory fields and shared Detail presentation wit
   assert.match(sharedBody, /appendDetailSection\(body, 'คำถาม', detail\.question_text\)/);
   assert.match(sharedBody, /appendDetailSection\(body, 'ขั้นตอนปฏิบัติ', detail\.steps\)/);
   assert.match(productionHtml, /ตัวอย่างก่อนเผยแพร่ · ยังไม่บันทึก/);
-  assert.match(productionHtml, /authoringPreviewBack/);
-  assert.match(productionHtml, /authoringPreviewBack'\)\.onclick = \(\) => window\.showPreviousView\('formView'/);
+  assert.match(productionHtml, /authoringPreviewBack'\)\.onclick = \(\) => window\.showPreviousView\(authoringPreviewReturnView/);
 });
 
 test('Feature 8 Preview of saved content reads only needed existing type details and creates no open event', () => {
@@ -978,4 +982,145 @@ test('Feature 8 reviewer/admin management list integrates Preview and existing w
   assert.match(list, /applyManageFilter\(\)/);
   assert.match(productionHtml, /async function openVersionHistory\(contentId\)/);
   assert.match(productionHtml, /restore\.hidden = currentUserProfile\?\.role !== 'admin'/);
+});
+
+function createGovernanceReadinessEngine() {
+  const start = productionHtml.indexOf('const contentReadinessRules =');
+  const end = productionHtml.indexOf('\n\n  function authoringReadinessModel', start);
+  const source = productionHtml.slice(start, end);
+  return new Function('URL', `${source}; return { contentReadinessRules, evaluateContentReadiness };`)(URL);
+}
+
+test('Feature 9 adds a staff-only Governance Center outside the learner Dashboard', () => {
+  const viewStart = productionHtml.indexOf('<section class="view governance-view" id="governanceView"');
+  const viewEnd = productionHtml.indexOf('<section class="view" id="manageView"', viewStart);
+  const view = productionHtml.slice(viewStart, viewEnd);
+  assert.notEqual(viewStart, -1);
+  assert.match(productionHtml, /data-view="governanceView"/);
+  assert.match(productionHtml, /governanceNav\.hidden = !canManageContent/);
+  assert.match(productionHtml, /canManageContent = isAdmin \|\| role === 'editor' \|\| role === 'reviewer'/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('id="home"'), viewStart), /governanceView|ศูนย์ควบคุมคุณภาพองค์ความรู้/);
+  for (const id of ['governanceOverview', 'governanceReviewQueue', 'governancePublishQueue', 'governancePublishedHealth', 'governancePackageHealth', 'governanceFilterForm']) assert.match(view, new RegExp(`id="${id}"`));
+});
+
+test('Feature 9 governance record visibility keeps editor ownership and staff role boundaries', () => {
+  const start = productionHtml.indexOf('function governanceRecordVisibleForRole(');
+  const end = productionHtml.indexOf('\n  function governanceRecordMatches(', start);
+  const source = productionHtml.slice(start, end);
+  const visibleFor = (role, email, item) => new Function('currentUserProfile', 'auth', `${source}; return governanceRecordVisibleForRole;`)({ role }, { currentUser: { email } })(item);
+  assert.equal(visibleFor('editor', 'EDITOR@example.test', { created_by: 'editor@example.test' }), true);
+  assert.equal(visibleFor('editor', 'editor@example.test', { created_by: 'someone-else@example.test' }), false);
+  assert.equal(visibleFor('reviewer', 'reviewer@example.test', { created_by: 'someone-else@example.test' }), true);
+  assert.equal(visibleFor('admin', 'admin@example.test', { created_by: 'someone-else@example.test' }), true);
+  assert.equal(visibleFor('user', 'user@example.test', { created_by: 'user@example.test' }), false);
+  assert.match(productionHtml, /role === 'admin' \|\| \(role === 'editor' && owns && \['draft', 'review'\]\.includes\(item\.workflow_status\)\)/);
+});
+
+test('Feature 9 shared evaluator preserves Feature 8 blocking rules and separates warnings', () => {
+  const { evaluateContentReadiness, contentReadinessRules } = createGovernanceReadinessEngine();
+  const incomplete = evaluateContentReadiness({ content_type: 'knowledge' });
+  assert.equal(incomplete.status, 'incomplete');
+  assert.deepEqual(incomplete.missing.map(check => check.key), ['title', 'category', 'ownerUnit', 'summary', 'guidance']);
+  const item = { title: 'Title', category_id: 'cat', owner_unit: 'unit', content_type: 'knowledge', summary: 'Summary', guidance: 'Guidance', keywords: ['term'], source_url: 'https://example.test/source' };
+  const ready = evaluateContentReadiness(item, {}, { categories: [{ category_id: 'cat' }] });
+  assert.equal(ready.status, 'ready');
+  assert.equal(ready.warnings.length, 0);
+  const warningOnly = evaluateContentReadiness({ ...item, keywords: '', source_url: '' }, {}, { categories: [{ category_id: 'cat' }] });
+  assert.equal(warningOnly.status, 'improve');
+  assert.equal(warningOnly.missing.length, 0);
+  assert.deepEqual(warningOnly.warnings.map(warning => warning.key), ['keywords', 'source']);
+  const brokenCategory = evaluateContentReadiness(item, {}, { categories: [] });
+  assert.ok(brokenCategory.warnings.some(warning => warning.key === 'categoryReference'));
+  assert.ok(contentReadinessRules.types.law.some(rule => rule.field === 'document_no'));
+  assert.ok(contentReadinessRules.types.qa.some(rule => rule.field === 'question_text'));
+  assert.ok(contentReadinessRules.types.lesson.some(rule => rule.field === 'learning_outcomes'));
+});
+
+test('Feature 9 review queues use submitted_at and deterministic fallback, never update/create dates', () => {
+  const start = productionHtml.indexOf('function governanceTimestampSeconds(');
+  const end = productionHtml.indexOf('\n  function governanceDetailFor(', start);
+  const source = productionHtml.slice(start, end);
+  const engine = new Function(`${source}; return { sortGovernanceQueue };`)();
+  const sorted = engine.sortGovernanceQueue([
+    { id: 'undated-z', title: 'Zeta', updated_at: { seconds: 99 } },
+    { id: 'old', title: 'Older', submitted_at: { seconds: 10 }, updated_at: { seconds: 900 } },
+    { id: 'new', title: 'Newer', submitted_at: { seconds: 20 }, created_at: { seconds: 999 } },
+    { id: 'undated-a', title: 'Alpha', created_at: { seconds: 999 } }
+  ]);
+  assert.deepEqual(sorted.map(item => item.id), ['new', 'old', 'undated-a', 'undated-z']);
+  assert.match(source, /a\[timestampField\]/);
+  assert.doesNotMatch(source, /updated_at|created_at/);
+  assert.match(productionHtml, /submitted_at: serverTimestamp\(\)/);
+  assert.match(productionHtml, /approved_at: serverTimestamp\(\)/);
+  assert.match(productionHtml, /published_at: serverTimestamp\(\)/);
+});
+
+test('Feature 9 governance filters reuse search normalization and do not record search analytics', () => {
+  const matchStart = productionHtml.indexOf('function governanceRecordMatches(');
+  const matchEnd = productionHtml.indexOf('\n  function governanceTypeLabel', matchStart);
+  const filterSource = productionHtml.slice(matchStart, matchEnd);
+  assert.match(filterSource, /normalizeSearchText\(state\.query\)/);
+  for (const field of ['title', 'summary', 'keywords', 'document_no', 'reference_no', 'authority', 'decision_issue', 'legal_principle']) assert.ok(filterSource.includes(field));
+  assert.match(filterSource, /item\.workflow_status/);
+  assert.match(filterSource, /item\.content_type/);
+  assert.match(filterSource, /item\.category_id/);
+  assert.match(filterSource, /evaluation\.status/);
+  assert.doesNotMatch(filterSource, /recordSearch|recordSharedUsage|usageStats|usageAggregates|getDocs\(|getDoc\(/);
+});
+
+test('Feature 9 Governance Center uses loaded pools and has no per-record Firestore reads', () => {
+  const start = productionHtml.indexOf('function governanceTimestampSeconds(');
+  const end = productionHtml.indexOf('\n  async function previewSavedContent(', start);
+  const governanceSource = productionHtml.slice(start, end);
+  assert.match(governanceSource, /contentItems\.filter\(governanceRecordVisibleForRole\)/);
+  assert.match(governanceSource, /categories: allCategoriesData/);
+  assert.match(governanceSource, /knowledgePackagesData\.filter/);
+  assert.doesNotMatch(governanceSource, /getDocs\(|getDoc\(|setDoc\(|writeBatch\(|recordSharedUsage\(|recordCategoryUsage\(/);
+  assert.match(productionHtml, /โหลดเพิ่มได้จากหน้าจัดการเนื้อหา/);
+  assert.match(productionHtml, /previewSavedContent\(item, 'governanceView'\)/);
+  assert.match(productionHtml, /editContent\(item\.id\)/);
+  assert.match(productionHtml, /approveContent\(workflowItem\.id, approve\)/);
+  assert.match(productionHtml, /publishContent\(workflowItem\.id, publish\)/);
+});
+
+test('Feature 9 package health reports aggregate loaded-pool conditions without member disclosure or path mutation', () => {
+  const start = productionHtml.indexOf('function governancePackageHealth(');
+  const end = productionHtml.indexOf('\n  function renderGovernanceCenter(', start);
+  const source = productionHtml.slice(start, end);
+  assert.match(source, /packageSectionDefs\.forEach/);
+  assert.match(source, /contentItems\.forEach/);
+  assert.match(source, /workflow_status !== 'published'/);
+  assert.match(source, /unresolvedInLoadedPool/);
+  assert.doesNotMatch(source, /setDoc\(|writeBatch\(|sections\[[^]]+\]\s*=|window\.show\('detailView'/);
+  const cardSource = productionHtml.slice(productionHtml.indexOf('function renderGovernancePackages('), end);
+  assert.match(cardSource, /title\.textContent = item\.title/);
+  assert.doesNotMatch(cardSource, /reference\)|member\.title|member\.id/);
+  assert.match(productionHtml, /ยังสรุปว่าไม่มีในระบบไม่ได้/);
+});
+
+test('Feature 9 Preview returns through existing viewHistory and clears governance private state on account change', () => {
+  assert.match(productionHtml, /window\.showPreviousView\(authoringPreviewReturnView/);
+  assert.match(productionHtml, /authoringPreviewReturnView = returnView/);
+  assert.match(productionHtml, /function show\(id,name,options=\{\}\)[\s\S]*?viewHistory\.push\(\{id:current\.id/);
+  assert.match(productionHtml, /governanceState = \{ status: 'all', type: 'all', category: 'all', quality: 'all', query: '' \};[\s\S]*?activeCollectionPathContext = null/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function governanceRecordMatches('), productionHtml.indexOf('async function previewSavedContent')), /localStorage|sessionStorage|usageStats|usageAggregates/);
+});
+
+test('Feature 9 Governance Center has labeled controls, text quality reasons, and compact mobile cards', () => {
+  const start = productionHtml.indexOf('<section class="view governance-view" id="governanceView"');
+  const end = productionHtml.indexOf('<section class="view" id="manageView"', start);
+  const view = productionHtml.slice(start, end);
+  const stylesStart = productionHtml.indexOf('<style id="governanceCenterStyles">');
+  const stylesEnd = productionHtml.indexOf('</style>', stylesStart);
+  const styles = productionHtml.slice(stylesStart, stylesEnd);
+  for (const id of ['governanceQuery', 'governanceStatusFilter', 'governanceTypeFilter', 'governanceCategoryFilter', 'governanceQualityFilter']) {
+    assert.match(view, new RegExp(`for="${id}"`));
+    assert.match(view, new RegExp(`id="${id}"`));
+  }
+  assert.match(view, /<details class="governance-filter-disclosure"/);
+  assert.match(productionHtml, /evaluation\.statusLabel/);
+  assert.match(productionHtml, /evaluation\.missing\.map\(check => check\.message\)/);
+  assert.match(styles, /@media\(max-width:600px\)/);
+  assert.match(styles, /grid-template-columns:minmax\(0,1fr\)/);
+  assert.match(styles, /overflow-wrap:anywhere/);
 });

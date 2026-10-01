@@ -129,6 +129,11 @@
   <style id="authoringWorkspaceStyles">
     .authoring-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:16px;align-items:start}.authoring-layout>.panel{min-width:0}.authoring-side{position:sticky;top:18px;display:grid;gap:12px}.authoring-side .side-card{margin:0}.authoring-status{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0 0;padding:0;list-style:none}.authoring-status li{flex:1 1 70px;min-width:0;padding:7px 8px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:12px;text-align:center;overflow-wrap:anywhere}.authoring-status li[aria-current="step"]{border-color:var(--brand);background:#eaf8f5;color:#075f57;font-weight:800}.authoring-checklist{display:grid;gap:7px;padding:0;margin:10px 0;list-style:none}.authoring-checklist li{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.authoring-checklist .blocking{font-weight:700}.authoring-checklist .ready{color:#08745f}.authoring-checklist .missing{color:#9b3b18}.authoring-checklist .warning{color:#72520a}.authoring-summary{padding:9px 10px;border-radius:8px;background:#f5f7f9;font-size:13px;font-weight:700}.authoring-feedback{min-height:1.5em;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.authoring-preview{max-width:1000px;margin:0 auto}.authoring-preview-banner{padding:10px 12px;margin-bottom:14px;border:1px solid #d8c18b;border-radius:9px;background:#fff8e8;color:#654b13;font-weight:700}.authoring-preview .detail{min-width:0}.authoring-preview .detail h1{overflow-wrap:anywhere}.authoring-readonly-note{padding:10px 12px;margin-bottom:14px;border:1px solid var(--line);border-radius:9px;background:#f8fafc;color:var(--muted)}#formView .form-type-grid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}#formView .field :disabled{background:#f3f5f7;color:#667085}#authoringPreviewView .page-head{gap:12px;flex-wrap:wrap}@media(max-width:900px){.authoring-layout{grid-template-columns:minmax(0,1fr)}.authoring-side{position:static;order:-1;grid-template-columns:minmax(0,1fr)}.authoring-status li{flex-basis:60px}.authoring-preview{width:100%}}@media(max-width:560px){.authoring-layout>.panel{padding:16px!important}.authoring-layout .form-footer>div{display:grid!important;grid-template-columns:minmax(0,1fr)}.authoring-layout .form-footer .btn{width:100%;min-height:44px;white-space:normal}.authoring-status{gap:4px}.authoring-status li{padding:6px 4px;font-size:11px}}
   </style>
+  <style id="governanceCenterStyles">
+    .governance-view{min-width:0}.governance-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0}.governance-stat{min-width:0;padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fff}.governance-stat span{display:block;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.governance-stat strong{display:block;margin-top:4px;color:var(--navy);font-size:24px}.governance-pool-note{margin:0 0 14px}.governance-filter-panel{padding:14px 16px;margin:0 0 20px}.governance-filter-disclosure>summary{cursor:pointer;font-weight:700}.governance-filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.governance-filters .field{min-width:0}.governance-filters input,.governance-filters select{width:100%;max-width:100%}.governance-filter-actions{display:flex;align-items:end;gap:8px;flex-wrap:wrap}.governance-filter-actions .btn{min-height:42px}.governance-section{margin:24px 0}.governance-section .section-title{align-items:flex-start}.governance-section .section-title h2{margin-bottom:4px}.governance-section .section-title p{margin:0}.governance-card-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.governance-card{min-width:0;padding:15px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow-wrap:anywhere}.governance-card h3{margin:0 0 8px;color:var(--navy);font-size:16px;line-height:1.5}.governance-card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}.governance-card-meta .tag{max-width:100%;overflow-wrap:anywhere}.governance-quality-label{font-weight:800}.governance-reasons{margin:8px 0 0;padding-left:20px;color:var(--muted);font-size:13px;line-height:1.55}.governance-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.governance-actions .btn{min-height:42px;white-space:normal}.governance-empty{grid-column:1/-1;padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}.governance-package-summary{font-size:13px;color:var(--muted);line-height:1.55}
+    @media(max-width:900px){.governance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.governance-card-list{grid-template-columns:minmax(0,1fr)}}
+    @media(max-width:600px){.governance-filters{grid-template-columns:minmax(0,1fr);gap:9px}.governance-filter-panel{padding:12px}.governance-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.governance-filter-actions .btn{width:100%;padding:9px 10px}.governance-stat{padding:12px}.governance-stat strong{font-size:21px}.governance-section{margin:19px 0}.governance-card{padding:13px}.governance-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}.governance-actions .btn{width:100%}}
+  </style>
 </head>
 <body>
 <script>
@@ -239,7 +244,7 @@
       <button class="active" data-view="home" data-title="หน้าแรก">⌂ หน้าแรก</button><button data-view="searchView" data-title="ค้นหาความรู้">⌕ ค้นหาความรู้</button><button data-view="knowledgeView" data-title="องค์ความรู้">◈ องค์ความรู้</button><button data-view="packagesView" data-title="ชุดองค์ความรู้">▣ ชุดองค์ความรู้</button><button data-view="lawsView" data-title="กฎหมายและหนังสือเวียน">⚖ กฎหมายและหนังสือเวียน</button><button data-view="judgmentsView" data-title="คำพิพากษา">▥ คำพิพากษา</button><button data-view="committeeDecisionsView" data-title="คำวินิจฉัยคณะกรรมการ">◉ คำวินิจฉัยคณะกรรมการ</button><button data-view="guidesView" data-title="คู่มือและแนวทางปฏิบัติ">▤ คู่มือและแนวทางปฏิบัติ</button><button data-view="learningView" data-title="บทเรียนออนไลน์">▷ บทเรียนออนไลน์</button><button data-view="qaView" data-title="ถาม–ตอบ">◎ ถาม–ตอบ</button><button data-view="savedView" data-title="รายการที่บันทึกไว้">♡ รายการที่บันทึกไว้</button>
     </nav>
     <div class="nav-label">ผู้ดูแลระบบ</div>
-    <nav class="nav"><button data-view="manageView" data-title="จัดการเนื้อหา">☷ จัดการเนื้อหา <span style="margin-left:auto" class="tag orange">7 รอตรวจ</span></button><button data-view="packageManageView" data-title="จัดการชุดองค์ความรู้">▣ จัดการชุดองค์ความรู้</button><button data-view="gapDashboardView" data-title="Knowledge Gap Dashboard">◫ Knowledge Gap Dashboard</button><button data-view="categoryManageView" data-title="จัดการหมวดเนื้อหา">▦ จัดการหมวดเนื้อหา</button><button data-view="usersView" data-title="ผู้ใช้งานและสิทธิ">♙ ผู้ใช้งานและสิทธิ</button><button data-view="reportsView" data-title="รายงานการใช้งาน">▥ รายงานการใช้งาน</button></nav>
+    <nav class="nav"><button data-view="manageView" data-title="จัดการเนื้อหา">☷ จัดการเนื้อหา <span style="margin-left:auto" class="tag orange">7 รอตรวจ</span></button><button data-view="packageManageView" data-title="จัดการชุดองค์ความรู้">▣ จัดการชุดองค์ความรู้</button><button data-view="gapDashboardView" data-title="Knowledge Gap Dashboard">◫ Knowledge Gap Dashboard</button><button data-view="categoryManageView" data-title="จัดการหมวดเนื้อหา">▦ จัดการหมวดเนื้อหา</button><button data-view="usersView" data-title="ผู้ใช้งานและสิทธิ">♙ ผู้ใช้งานและสิทธิ</button><button data-view="reportsView" data-title="รายงานการใช้งาน">▥ รายงานการใช้งาน</button><button data-view="governanceView" data-title="ศูนย์ควบคุมคุณภาพองค์ความรู้">✓ ศูนย์ควบคุมคุณภาพองค์ความรู้</button></nav>
     <div class="account"><div class="avatar" id="userAvatar">P</div><div><b id="userName">ผู้ดูแลระบบ</b><small id="userEmail">ยังไม่ได้เข้าสู่ระบบ</small></div></div>
   </aside>
   <main>
@@ -306,6 +311,28 @@
         <div class="panel"><div class="panel-head">บันทึกล่าสุด <select class="select" id="savedTypeFilter"><option value="all">ทุกประเภท</option><option value="knowledge">องค์ความรู้</option><option value="law">กฎหมาย/หนังสือเวียน</option><option value="guide">คู่มือ/แนวทาง</option><option value="lesson">บทเรียนออนไลน์</option><option value="qa">คำถาม–คำตอบ</option></select></div><div id="savedItemsList"></div></div>
       </section>
 
+      <section class="view governance-view" id="governanceView" aria-labelledby="governanceHeading">
+        <div class="page-head"><div><h1 id="governanceHeading">ศูนย์ควบคุมคุณภาพองค์ความรู้</h1><p>ตรวจสอบสถานะ ความครบถ้วน และจุดที่ควรปรับปรุงจากข้อมูลที่โหลดและเข้าถึงได้</p></div></div>
+        <div class="governance-overview" id="governanceOverview" aria-label="ภาพรวมสถานะเนื้อหา"></div>
+        <p class="doc-meta governance-pool-note" id="governancePoolNote" role="status"></p>
+        <section class="panel governance-filter-panel" aria-labelledby="governanceFilterHeading">
+          <details class="governance-filter-disclosure" open><summary id="governanceFilterHeading">ค้นหาและกรองรายการ</summary>
+            <form id="governanceFilterForm" class="governance-filters">
+              <div class="field"><label for="governanceQuery">ค้นหาชื่อเรื่อง สรุป คำสำคัญ หรือเลขอ้างอิง</label><input id="governanceQuery" type="search" autocomplete="off"></div>
+              <div class="field"><label for="governanceStatusFilter">สถานะงาน</label><select id="governanceStatusFilter" class="select"><option value="all">ทุกสถานะ</option><option value="draft">ฉบับร่าง</option><option value="review">รอตรวจสอบ</option><option value="approved">ผ่านการตรวจสอบ</option><option value="published">เผยแพร่แล้ว</option></select></div>
+              <div class="field"><label for="governanceTypeFilter">ประเภทเนื้อหา</label><select id="governanceTypeFilter" class="select"><option value="all">ทุกประเภท</option><option value="knowledge">องค์ความรู้</option><option value="law">กฎหมาย/หนังสือเวียน</option><option value="judgment">คำพิพากษา</option><option value="committeeDecision">คำวินิจฉัยคณะกรรมการ</option><option value="guide">คู่มือ/แนวทาง</option><option value="lesson">บทเรียนออนไลน์</option><option value="qa">ถาม–ตอบ</option></select></div>
+              <div class="field"><label for="governanceCategoryFilter">หมวด</label><select id="governanceCategoryFilter" class="select"><option value="all">ทุกหมวด</option></select></div>
+              <div class="field"><label for="governanceQualityFilter">ความพร้อม</label><select id="governanceQualityFilter" class="select"><option value="all">ทุกสภาพ</option><option value="ready">พร้อมใช้งาน</option><option value="improve">ควรปรับปรุง</option><option value="incomplete">ข้อมูลไม่ครบ</option></select></div>
+              <div class="governance-filter-actions"><button class="btn primary" type="submit">ใช้ตัวกรอง</button><button class="btn" type="reset">ล้างตัวกรอง</button></div>
+            </form>
+          </details>
+        </section>
+        <section class="governance-section" id="governanceMyWorkSection" aria-labelledby="governanceMyWorkHeading" hidden><div class="section-title"><h2 id="governanceMyWorkHeading">งานคุณภาพของฉัน</h2></div><div class="governance-card-list" id="governanceMyWork"></div></section>
+        <section class="governance-section" id="governanceReviewSection" aria-labelledby="governanceReviewHeading"><div class="section-title"><div><h2 id="governanceReviewHeading">คิวตรวจสอบ</h2><p class="doc-meta">เรียงตามวันที่ส่งตรวจเมื่อมีข้อมูล หากไม่มีจะเรียงตามชื่อเรื่องและรหัสรายการ</p></div></div><div class="governance-card-list" id="governanceReviewQueue"></div></section>
+        <section class="governance-section" id="governancePublishSection" aria-labelledby="governancePublishHeading" hidden><div class="section-title"><h2 id="governancePublishHeading">คิวเผยแพร่</h2></div><div class="governance-card-list" id="governancePublishQueue"></div></section>
+        <section class="governance-section" id="governancePublishedSection" aria-labelledby="governancePublishedHeading"><div class="section-title"><div><h2 id="governancePublishedHeading">สุขภาพเนื้อหาที่เผยแพร่</h2><p class="doc-meta">ตรวจความครบถ้วนของข้อมูลที่รองรับเท่านั้น ไม่ได้ประเมินความถูกต้องทางกฎหมายหรือข้อเท็จจริง</p></div></div><div class="governance-card-list" id="governancePublishedHealth"></div></section>
+        <section class="governance-section" id="governancePackagesSection" aria-labelledby="governancePackagesHeading"><div class="section-title"><div><h2 id="governancePackagesHeading">สุขภาพชุดองค์ความรู้</h2><p class="doc-meta">ตรวจสมาชิกจากข้อมูลที่โหลดอยู่ โดยไม่เปลี่ยนลำดับหรือแก้ชุดองค์ความรู้</p></div></div><div class="governance-card-list" id="governancePackageHealth"></div></section>
+      </section>
       <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
 
       <section class="view" id="packageManageView"><div class="page-head"><div><h1>จัดการชุดองค์ความรู้</h1><p>เชื่อมโยงเนื้อหาที่เผยแพร่แล้วให้เป็นชุดความรู้เรื่องเดียวกัน</p></div><button class="btn primary" id="newPackage">＋ สร้างชุดองค์ความรู้</button></div><div class="form-card" id="packageFormCard" hidden style="margin:0 0 18px"><form id="packageForm" class="form-grid"><div class="form-section-title" id="packageFormTitle">สร้างชุดองค์ความรู้</div><div class="field full"><label>ชื่อชุดองค์ความรู้ *</label><input id="packageTitle" required placeholder="เช่น การจดทะเบียนโอนมรดกที่ดิน"></div><div class="field"><label>หมวดเนื้อหา *</label><select id="packageCategory" required><option value="">เลือกหมวด</option></select></div><div class="field"><label>คำสำคัญ</label><input id="packageKeywords" placeholder="คั่นด้วยเครื่องหมายจุลภาค"></div><div class="field full"><label>บทสรุปของชุดองค์ความรู้ *</label><textarea id="packageDescription" rows="3" required></textarea></div><div id="packageSectionSelectors" class="field full form-grid"></div><div class="field"><label>วันที่ครบกำหนดทบทวน</label><input id="packageReviewDue" type="date"></div><div class="form-footer"><span class="required-note">เลือกเนื้อหาที่เผยแพร่แล้วได้หลายรายการในแต่ละส่วน</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="cancelPackage">ยกเลิก</button><button type="button" class="btn" id="savePackageDraft">บันทึกฉบับร่าง</button><button class="btn primary">ส่งให้ตรวจสอบ</button></div></div></form></div><div class="table-wrap"><table><thead><tr><th>ชื่อชุด</th><th>เนื้อหาเชื่อมโยง</th><th>ผู้รับผิดชอบ</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody id="packageManageTable"></tbody></table></div></section>
@@ -407,7 +434,7 @@
   function setFormType(type){document.querySelectorAll('.form-type').forEach(b=>b.classList.toggle('active',b.dataset.formtype===type));document.querySelectorAll('.specific-fields').forEach(p=>{const active=p.dataset.fields===type;p.classList.toggle('active',active);p.querySelectorAll('input,select,textarea').forEach(x=>x.disabled=!active)});document.getElementById('contentTitleLabel').textContent='ชื่อ'+formNames[type]+' *';document.getElementById('contentTitle').placeholder=type==='law'?'ระบุชื่อเรื่องตามเอกสาร':type==='lesson'?'ระบุชื่อบทเรียนหรือหลักสูตร':type==='qa'?'สรุปคำถามให้ชัดเจน':'ระบุชื่อเรื่องให้ชัดเจนและค้นหาได้ง่าย';show('formView','เพิ่ม'+formNames[type])}
   document.querySelectorAll('.form-type').forEach(b=>b.onclick=()=>setFormType(b.dataset.formtype));setFormType('knowledge');show('home','หน้าแรก');
   document.querySelector('#lawsView .page-head .btn').onclick=()=>setFormType('law');document.querySelector('#guidesView .page-head .btn').onclick=()=>setFormType('guide');document.querySelector('#learningView .page-head .btn').onclick=()=>setFormType('lesson');document.querySelector('#qaView .page-head .btn').onclick=()=>setFormType('qa');document.getElementById('propose').onclick=()=>setFormType('knowledge');document.getElementById('newContent').onclick=()=>setFormType('knowledge');
-  document.getElementById('formBack').onclick=()=>show('manageView','จัดการเนื้อหา');
+  document.getElementById('formBack').onclick=()=>window.showPreviousView(authoringWorkspaceReturnView, authoringWorkspaceReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
   document.getElementById('qaBack').onclick=()=>showPreviousView('qaView','ถาม–ตอบ');
 </script>
 <script type="module">
@@ -458,6 +485,10 @@
   let completedLessonUnitIds = new Set();
   let currentUserProfile = null;
   let knowledgePackagesData = [];
+  let governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
+  let governanceDetailLoadState = { law: 'loading', guide: 'loading', lesson: 'loading', qa: 'loading' };
+  let authoringPreviewReturnView = 'formView';
+  let authoringWorkspaceReturnView = 'manageView';
   let editingPackageId = null;
   let packageSectionOrderState = {};
   let activeCollectionPathContext = null;
@@ -487,6 +518,7 @@
   let pendingKnowledgeGapSignal = null;
   let activeKnowledgeGapForContentId = '';
   let lawsData = [];
+  let guidesData = [];
   let activeLawType = 'ทั้งหมด';
   let lawSearchText = '';
   let activeLawCategoryGroup = '';
@@ -1035,12 +1067,14 @@
     const canViewReports = isAdmin || role === 'reviewer';
 
     const manageNav = document.querySelector('[data-view="manageView"]');
+    const governanceNav = document.querySelector('[data-view="governanceView"]');
     const categoryNav = document.querySelector('[data-view="categoryManageView"]');
     const usersNav = document.querySelector('[data-view="usersView"]');
     const reportsNav = document.querySelector('[data-view="reportsView"]');
     const packageManageNav = document.querySelector('[data-view="packageManageView"]');
     const gapDashboardNav = document.querySelector('[data-view="gapDashboardView"]');
     if (manageNav) manageNav.hidden = !canManageContent;
+    if (governanceNav) governanceNav.hidden = !canManageContent;
     if (categoryNav) categoryNav.hidden = !isAdmin;
     if (usersNav) usersNav.hidden = !isAdmin;
     if (reportsNav) reportsNav.hidden = !canViewReports;
@@ -1912,6 +1946,7 @@
       await loadQuestions();
       await loadNotifications();
       await loadKnowledgePackages();
+      renderGovernanceCenter();
       await loadKnowledgeGapDashboard();
       await openSharedContentFromHash();
       renderContentPagination();
@@ -3762,6 +3797,7 @@
   }
 
   async function loadLaws() {
+    governanceDetailLoadState.law = 'loading';
     try {
       const documents = await loadAccessibleDetailDocuments('laws');
       lawsData = documents.map(item => {
@@ -3769,16 +3805,20 @@
         law._content = contentItems.find(content => content.content_id === law.content_id || content.id === law.content_id) || {};
         return law;
       });
+      governanceDetailLoadState.law = 'ready';
       renderLawCategoryCards();
       setupLawFilters();
       renderLawRows();
     } catch (error) {
+      governanceDetailLoadState.law = 'error';
+      lawsData = [];
       console.error('Load laws failed:', error);
       window.toast('อ่านข้อมูลกฎหมายจาก Firestore ไม่สำเร็จ');
     }
   }
 
   async function loadGuides() {
+    governanceDetailLoadState.guide = 'loading';
     try {
       const documents = await loadAccessibleDetailDocuments('guides');
       const guideDocuments = documents.map(item => {
@@ -3796,6 +3836,8 @@
         const bTime = b._content.updated_at?.seconds || b.updated_at?.seconds || b._content.created_at?.seconds || 0;
         return bTime - aTime;
       });
+      guidesData = guides;
+      governanceDetailLoadState.guide = 'ready';
       const panel = document.querySelector('#guidesView .panel');
       if (!panel) return;
       panel.querySelectorAll(':scope > :not(.panel-head)').forEach(item => item.remove());
@@ -3862,12 +3904,15 @@
         count.textContent = `พบ ${guides.length} รายการ`;
       };
     } catch (error) {
+      governanceDetailLoadState.guide = 'error';
+      guidesData = [];
       console.error('Load guides failed:', error);
       window.toast('อ่านคู่มือจาก Firestore ไม่สำเร็จ');
     }
   }
 
   async function loadLessons() {
+    governanceDetailLoadState.lesson = 'loading';
     try {
       const progressUser = auth.currentUser;
       const [lessonDocuments, unitDocuments, progressSnapshot] = await Promise.all([
@@ -3884,6 +3929,7 @@
       workspaceLearningProgressData = userProgress;
       workspaceLearningState = 'ready';
       lessonsData = lessons;
+      governanceDetailLoadState.lesson = 'ready';
       lessonUnitsData = units;
       renderWorkspaceLearningState();
       renderHomeDashboard(contentItems);
@@ -3980,6 +4026,7 @@
       }
       filterDynamicLessons('all');
     } catch (error) {
+      governanceDetailLoadState.lesson = 'error';
       console.error('Load lessons failed:', error);
       workspaceLearningProgressData = [];
       workspaceLearningState = 'error';
@@ -4458,6 +4505,7 @@
   }
 
   async function loadQuestions() {
+    governanceDetailLoadState.qa = 'loading';
     try {
       const questionDocuments = await loadAccessibleDetailDocuments('questions');
       const answerDocuments = await loadAccessibleAnswerDocuments(questionDocuments);
@@ -4466,6 +4514,7 @@
         question._content = contentItems.find(content => content.content_id === question.content_id || content.id === question.content_id) || {};
         return question;
       });
+      governanceDetailLoadState.qa = 'ready';
       answersData = answerDocuments.map(item => ({ id: item.id, ...item.data() }));
       const view = document.getElementById('qaView');
       if (!view) return;
@@ -4475,6 +4524,8 @@
         await loadModerationQueue();
       }
     } catch (error) {
+      governanceDetailLoadState.qa = 'error';
+      questionsData = [];
       console.error('Load questions failed:', error);
       window.toast('อ่านข้อมูลถาม–ตอบจาก Firestore ไม่สำเร็จ');
     }
@@ -4662,33 +4713,113 @@
     renderAuthoringReadiness();
   }
 
-  function authoringBlockingChecks(type = activeAuthoringType()) {
-    const checks = [
-      { id: 'contentTitle', label: 'มีชื่อเรื่อง', ready: Boolean(document.getElementById('contentTitle').value.trim()) },
-      { id: 'contentCategory', label: 'กำหนดหมวดหมู่', ready: Boolean(document.getElementById('contentCategory').value) },
-      { id: 'contentOwnerUnit', label: 'กำหนดหน่วยงานเจ้าของเนื้อหา', ready: Boolean(document.getElementById('contentOwnerUnit').value) }
-    ];
-    const requiredByType = {
-      knowledge: [['knowledgeSummary', 'มีสรุปสาระสำคัญ'], ['knowledgeGuidance', 'มีแนวทางปฏิบัติ']],
-      law: [['lawDocumentNo', 'มีเลขที่เอกสาร'], ['lawDocumentDate', 'มีวันที่ลงนามหรือประกาศ'], ['lawOfficialTitle', 'มีชื่อเรื่องตามเอกสาร']],
-      judgment: [['judgmentReferenceNo', 'มีเลขที่คดีหรือเอกสาร'], ['judgmentAuthority', 'ระบุศาล'], ['judgmentIssue', 'มีประเด็นที่วินิจฉัย'], ['judgmentPrinciple', 'มีหลักกฎหมายหรือสาระสำคัญ']],
-      committeeDecision: [['committeeDecisionReferenceNo', 'มีเลขที่คำวินิจฉัย'], ['committeeDecisionAuthority', 'ระบุคณะกรรมการ'], ['committeeDecisionIssue', 'มีประเด็นที่วินิจฉัย'], ['committeeDecisionPrinciple', 'มีหลักกฎหมายหรือสาระสำคัญ']],
-      guide: [['guideObjective', 'มีวัตถุประสงค์'], ['guideSteps', 'มีขั้นตอนปฏิบัติ']],
-      lesson: [['lessonLearningOutcomes', 'มีผลลัพธ์การเรียนรู้']],
-      qa: [['qaQuestionText', 'มีคำถาม'], ['qaDetails', 'มีรายละเอียดข้อเท็จจริง']]
-    };
-    (requiredByType[type] || []).forEach(([id, label]) => {
-      const field = document.getElementById(id);
-      checks.push({ id, label, ready: Boolean(field?.value.trim()) });
+  const contentReadinessRules = {
+    base: [
+      { key: 'title', field: 'title', scope: 'item', id: 'contentTitle', label: 'มีชื่อเรื่อง', message: 'ยังไม่มีชื่อเรื่อง' },
+      { key: 'category', field: 'category_id', scope: 'item', id: 'contentCategory', label: 'กำหนดหมวดหมู่', message: 'ยังไม่ได้กำหนดหมวดหมู่' },
+      { key: 'ownerUnit', field: 'owner_unit', scope: 'item', id: 'contentOwnerUnit', label: 'กำหนดหน่วยงานเจ้าของเนื้อหา', message: 'ยังไม่ได้กำหนดหน่วยงานเจ้าของเนื้อหา' }
+    ],
+    types: {
+      knowledge: [
+        { key: 'summary', field: 'summary', scope: 'item', id: 'knowledgeSummary', label: 'มีสรุปสาระสำคัญ', message: 'ยังไม่มีสรุปสาระสำคัญ' },
+        { key: 'guidance', field: 'guidance', scope: 'item', id: 'knowledgeGuidance', label: 'มีแนวทางปฏิบัติ', message: 'ยังไม่มีแนวทางปฏิบัติ' }
+      ],
+      law: [
+        { key: 'documentNo', field: 'document_no', scope: 'detail', id: 'lawDocumentNo', label: 'มีเลขที่เอกสาร', message: 'ยังไม่มีเลขที่เอกสาร' },
+        { key: 'documentDate', field: 'document_date', scope: 'detail', id: 'lawDocumentDate', label: 'มีวันที่ลงนามหรือประกาศ', message: 'ยังไม่มีวันที่ลงนามหรือประกาศ' },
+        { key: 'officialTitle', field: 'official_title', scope: 'detail', id: 'lawOfficialTitle', label: 'มีชื่อเรื่องตามเอกสาร', message: 'ยังไม่มีชื่อเรื่องตามเอกสาร' }
+      ],
+      judgment: [
+        { key: 'referenceNo', field: 'reference_no', scope: 'item', id: 'judgmentReferenceNo', label: 'มีเลขที่คดีหรือเอกสาร', message: 'ยังไม่มีเลขที่คดีหรือเอกสาร' },
+        { key: 'authority', field: 'authority', scope: 'item', id: 'judgmentAuthority', label: 'ระบุศาล', message: 'ยังไม่ได้ระบุศาล' },
+        { key: 'decisionIssue', field: 'decision_issue', scope: 'item', id: 'judgmentIssue', label: 'มีประเด็นที่วินิจฉัย', message: 'ยังไม่มีประเด็นที่วินิจฉัย' },
+        { key: 'legalPrinciple', field: 'legal_principle', scope: 'item', id: 'judgmentPrinciple', label: 'มีหลักกฎหมายหรือสาระสำคัญ', message: 'ยังไม่มีหลักกฎหมายหรือสาระสำคัญ' }
+      ],
+      committeeDecision: [
+        { key: 'referenceNo', field: 'reference_no', scope: 'item', id: 'committeeDecisionReferenceNo', label: 'มีเลขที่คำวินิจฉัย', message: 'ยังไม่มีเลขที่คำวินิจฉัย' },
+        { key: 'authority', field: 'authority', scope: 'item', id: 'committeeDecisionAuthority', label: 'ระบุคณะกรรมการ', message: 'ยังไม่ได้ระบุคณะกรรมการ' },
+        { key: 'decisionIssue', field: 'decision_issue', scope: 'item', id: 'committeeDecisionIssue', label: 'มีประเด็นที่วินิจฉัย', message: 'ยังไม่มีประเด็นที่วินิจฉัย' },
+        { key: 'legalPrinciple', field: 'legal_principle', scope: 'item', id: 'committeeDecisionPrinciple', label: 'มีหลักกฎหมายหรือสาระสำคัญ', message: 'ยังไม่มีหลักกฎหมายหรือสาระสำคัญ' }
+      ],
+      guide: [
+        { key: 'objective', field: 'objective', scope: 'detail', id: 'guideObjective', label: 'มีวัตถุประสงค์', message: 'ยังไม่มีวัตถุประสงค์' },
+        { key: 'steps', field: 'steps', scope: 'detail', id: 'guideSteps', label: 'มีขั้นตอนปฏิบัติ', message: 'ยังไม่มีขั้นตอนปฏิบัติ' }
+      ],
+      lesson: [
+        { key: 'learningOutcomes', field: 'learning_outcomes', scope: 'detail', id: 'lessonLearningOutcomes', label: 'มีผลลัพธ์การเรียนรู้', message: 'ยังไม่มีผลลัพธ์การเรียนรู้' }
+      ],
+      qa: [
+        { key: 'questionText', field: 'question_text', scope: 'detail', id: 'qaQuestionText', label: 'มีคำถาม', message: 'ยังไม่มีคำถาม' },
+        { key: 'details', field: 'details', scope: 'detail', id: 'qaDetails', label: 'มีรายละเอียดข้อเท็จจริง', message: 'ยังไม่มีรายละเอียดข้อเท็จจริง' }
+      ]
+    }
+  };
+
+  function evaluateContentReadiness(item = {}, detail = {}, options = {}) {
+    const requiredRules = [...contentReadinessRules.base];
+    const typeRules = contentReadinessRules.types[item.content_type] || [];
+    const typeDetailsUnavailable = typeRules.some(rule => rule.scope === 'detail') && options.typeDetailsAvailable === false;
+    requiredRules.push(...typeRules.filter(rule => rule.scope !== 'detail' || !typeDetailsUnavailable));
+    const blocking = requiredRules.map(rule => {
+      const source = rule.scope === 'detail' ? detail : item;
+      const value = source?.[rule.field];
+      return { ...rule, ready: Boolean(typeof value === 'string' ? value.trim() : value) };
     });
-    return checks;
+    const warnings = [];
+    if (!String(item.summary || '').trim() && item.content_type !== 'knowledge') warnings.push({ key: 'summary', label: 'ยังไม่มีบทสรุป' });
+    if (!String(Array.isArray(item.keywords) ? item.keywords.join(' ') : item.keywords || '').trim()) warnings.push({ key: 'keywords', label: 'ยังไม่ได้ระบุคำสำคัญ' });
+    if (!String(item.source_url || '').trim()) warnings.push({ key: 'source', label: 'ไม่มีแหล่งอ้างอิงหรือลิงก์เอกสาร' });
+    if (String(item.source_url || '').trim()) {
+      try {
+        const sourceUrl = new URL(item.source_url);
+        if (!['http:', 'https:'].includes(sourceUrl.protocol)) warnings.push({ key: 'sourceUrl', label: 'ลิงก์แหล่งอ้างอิงไม่ใช่ HTTP(S)' });
+      } catch (_) { warnings.push({ key: 'sourceUrl', label: 'รูปแบบลิงก์แหล่งอ้างอิงไม่ถูกต้อง' }); }
+    }
+    if (item.category_id && options.categories && !options.categories.some(category => (category.category_id || category.id) === item.category_id)) {
+      warnings.push({ key: 'categoryReference', label: 'ไม่พบหมวดหมู่ที่อ้างอิงในข้อมูลหมวดที่โหลดอยู่' });
+    }
+    if (typeDetailsUnavailable) warnings.push({ key: 'typeDetails', label: 'ยังตรวจข้อมูลเฉพาะประเภทไม่ได้จากข้อมูลที่โหลดอยู่' });
+    const missing = blocking.filter(check => !check.ready);
+    return {
+      blocking,
+      warnings,
+      missing,
+      status: missing.length ? 'incomplete' : warnings.length ? 'improve' : 'ready',
+      statusLabel: missing.length ? 'ข้อมูลไม่ครบ' : warnings.length ? 'ควรปรับปรุง' : 'พร้อมใช้งาน'
+    };
+  }
+
+  function authoringReadinessModel(type) {
+    const value = id => document.getElementById(id)?.value?.trim() || '';
+    const item = {
+      title: value('contentTitle'), category_id: value('contentCategory'), owner_unit: value('contentOwnerUnit'),
+      content_type: type, summary: type === 'knowledge' ? value('knowledgeSummary') : '',
+      guidance: value('knowledgeGuidance'), keywords: value('contentKeywords'), source_url: value('contentSourceUrl')
+    };
+    const detail = {
+      document_no: value('lawDocumentNo'), document_date: value('lawDocumentDate'), official_title: value('lawOfficialTitle'),
+      objective: value('guideObjective'), steps: value('guideSteps'), learning_outcomes: value('lessonLearningOutcomes'),
+      question_text: value('qaQuestionText'), details: value('qaDetails')
+    };
+    if (type === 'judgment' || type === 'committeeDecision') {
+      item.reference_no = value(`${type}ReferenceNo`);
+      item.authority = value(`${type}Authority`);
+      item.decision_issue = value(`${type}Issue`);
+      item.legal_principle = value(`${type}Principle`);
+    }
+    return { item, detail };
+  }
+
+  function authoringBlockingChecks(type = activeAuthoringType()) {
+    const model = authoringReadinessModel(type);
+    return evaluateContentReadiness(model.item, model.detail).blocking;
   }
 
   function authoringWarnings() {
-    const warnings = [];
-    if (!document.getElementById('contentKeywords').value.trim()) warnings.push('ยังไม่มีคำสำคัญ (ไม่บังคับ)');
-    if (!document.getElementById('contentSourceUrl').value.trim()) warnings.push('ยังไม่มีลิงก์เอกสารอ้างอิง (ไม่บังคับ)');
-    return warnings;
+    const model = authoringReadinessModel(activeAuthoringType());
+    return evaluateContentReadiness(model.item, model.detail).warnings
+      .filter(warning => ['keywords', 'source'].includes(warning.key))
+      .map(warning => `${warning.label} (ไม่บังคับ)`);
   }
 
   function renderAuthoringReadiness() {
@@ -4852,6 +4983,7 @@
   }
 
   function previewAuthoringForm() {
+    authoringPreviewReturnView = 'formView';
     renderAuthoringPreview(buildAuthoringPreviewModel());
   }
 
@@ -4865,32 +4997,297 @@
   }
 
   function savedContentReadinessError(item, detail = {}) {
-    if (!item.title?.trim()) return 'ยังไม่มีชื่อเรื่อง';
-    if (!item.category_id) return 'ยังไม่ได้กำหนดหมวดหมู่';
-    if (!item.owner_unit) return 'ยังไม่ได้กำหนดหน่วยงานเจ้าของเนื้อหา';
-    if (item.content_type === 'knowledge' && !item.summary?.trim()) return 'ยังไม่มีสรุปสาระสำคัญ';
-    if (item.content_type === 'knowledge' && !item.guidance?.trim()) return 'ยังไม่มีแนวทางปฏิบัติ';
-    if (item.content_type === 'law' && !detail.document_no?.trim()) return 'ยังไม่มีเลขที่เอกสาร';
-    if (item.content_type === 'law' && !detail.document_date) return 'ยังไม่มีวันที่ลงนามหรือประกาศ';
-    if (item.content_type === 'law' && !detail.official_title?.trim()) return 'ยังไม่มีชื่อเรื่องตามเอกสาร';
-    if (item.content_type === 'judgment' && !item.reference_no?.trim()) return 'ยังไม่มีเลขที่คดีหรือเอกสาร';
-    if (item.content_type === 'judgment' && !item.authority?.trim()) return 'ยังไม่ได้ระบุศาล';
-    if (item.content_type === 'judgment' && !item.decision_issue?.trim()) return 'ยังไม่มีประเด็นที่วินิจฉัย';
-    if (item.content_type === 'judgment' && !item.legal_principle?.trim()) return 'ยังไม่มีหลักกฎหมายหรือสาระสำคัญ';
-    if (item.content_type === 'committeeDecision' && !item.reference_no?.trim()) return 'ยังไม่มีเลขที่คำวินิจฉัย';
-    if (item.content_type === 'committeeDecision' && !item.authority?.trim()) return 'ยังไม่ได้ระบุคณะกรรมการ';
-    if (item.content_type === 'committeeDecision' && !item.decision_issue?.trim()) return 'ยังไม่มีประเด็นที่วินิจฉัย';
-    if (item.content_type === 'committeeDecision' && !item.legal_principle?.trim()) return 'ยังไม่มีหลักกฎหมายหรือสาระสำคัญ';
-    if (item.content_type === 'guide' && !detail.objective?.trim()) return 'ยังไม่มีวัตถุประสงค์';
-    if (item.content_type === 'guide' && !detail.steps?.trim()) return 'ยังไม่มีขั้นตอนปฏิบัติ';
-    if (item.content_type === 'lesson' && !detail.learning_outcomes?.trim()) return 'ยังไม่มีผลลัพธ์การเรียนรู้';
-    if (item.content_type === 'qa' && !detail.question_text?.trim()) return 'ยังไม่มีคำถาม';
-    if (item.content_type === 'qa' && !detail.details?.trim()) return 'ยังไม่มีรายละเอียดข้อเท็จจริง';
-    return '';
+    return evaluateContentReadiness(item, detail).missing[0]?.message || '';
   }
 
-  async function previewSavedContent(item) {
+  function governanceTimestampSeconds(value) {
+    if (value?.toDate) {
+      const date = value.toDate();
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+    }
+    if (Number.isFinite(value?.seconds)) return value.seconds * 1000;
+    if (Number.isFinite(value)) return value;
+    const date = value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date.getTime() : 0;
+  }
+
+  function sortGovernanceQueue(items, timestampField = 'submitted_at') {
+    return [...items].sort((a, b) => {
+      const aTime = governanceTimestampSeconds(a[timestampField]);
+      const bTime = governanceTimestampSeconds(b[timestampField]);
+      if (aTime && bTime && aTime !== bTime) return bTime - aTime;
+      if (aTime !== bTime) return aTime ? -1 : 1;
+      return String(a.title || '').localeCompare(String(b.title || ''), 'th')
+        || String(a.content_id || a.id || '').localeCompare(String(b.content_id || b.id || ''), 'en');
+    });
+  }
+
+  function governanceDetailFor(item) {
+    const identity = item.content_id || item.id;
+    const findDetail = values => values.find(detail => detail.content_id === identity || detail.content_id === item.id || detail.id === item.id);
+    const type = item.content_type;
+    if (type === 'law') return { detail: findDetail(lawsData) || {}, available: governanceDetailLoadState.law === 'ready' };
+    if (type === 'guide') return { detail: findDetail(guidesData) || {}, available: governanceDetailLoadState.guide === 'ready' };
+    if (type === 'lesson') return { detail: findDetail(lessonsData) || {}, available: governanceDetailLoadState.lesson === 'ready' };
+    if (type === 'qa') return { detail: findDetail(questionsData) || {}, available: governanceDetailLoadState.qa === 'ready' };
+    return { detail: {}, available: true };
+  }
+
+  function governanceEvaluateItem(item) {
+    const loadedDetail = governanceDetailFor(item);
+    return evaluateContentReadiness(item, loadedDetail.detail, {
+      categories: allCategoriesData,
+      typeDetailsAvailable: loadedDetail.available
+    });
+  }
+
+  function governanceRecordVisibleForRole(item) {
+    const role = currentUserProfile?.role;
+    if (role === 'admin' || role === 'reviewer') return true;
+    if (role === 'editor') return String(item.created_by || '').toLowerCase() === String(auth.currentUser?.email || '').toLowerCase();
+    return false;
+  }
+
+  function governanceRecordMatches(item, evaluation, state = governanceState) {
+    if (state.status !== 'all' && item.workflow_status !== state.status) return false;
+    if (state.type !== 'all' && item.content_type !== state.type) return false;
+    if (state.category !== 'all' && item.category_id !== state.category) return false;
+    if (state.quality !== 'all' && evaluation.status !== state.quality) return false;
+    const queryText = normalizeSearchText(state.query);
+    if (!queryText) return true;
+    const detail = governanceDetailFor(item).detail;
+    const searchable = [
+      item.title, item.summary, item.keywords,
+      item.document_no, item.document_number, item.reference_no, item.authority, item.decision_issue, item.legal_principle,
+      detail.document_no, detail.official_title, detail.objective, detail.steps, detail.question_text, detail.details
+    ].flat().filter(Boolean).join(' ');
+    return normalizeSearchText(searchable).includes(queryText);
+  }
+
+  function governanceTypeLabel(type) {
+    return contentTypeLabels[type] || type || 'ไม่ระบุประเภท';
+  }
+
+  function governanceWorkflowLabel(status) {
+    return authoringStatusLabels[status] || status || 'ไม่ระบุสถานะ';
+  }
+
+  function governanceAppendEmpty(container, text) {
+    container.replaceChildren();
+    const note = document.createElement('p');
+    note.className = 'governance-empty';
+    note.textContent = text;
+    container.appendChild(note);
+  }
+
+  function renderGovernanceCard(item, evaluation, container, options = {}) {
+    const card = document.createElement('article');
+    card.className = 'governance-card';
+    const title = document.createElement('h3');
+    title.textContent = item.title || '(ไม่มีชื่อเรื่อง)';
+    card.appendChild(title);
+    const metadata = document.createElement('div');
+    metadata.className = 'governance-card-meta';
+    [governanceTypeLabel(item.content_type), governanceWorkflowLabel(item.workflow_status), getCategoryDisplay(item.category_id).text, evaluation.statusLabel]
+      .filter(Boolean).forEach((label, index) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        if (index === 3) tag.classList.add(evaluation.status === 'ready' ? 'governance-quality-ready' : evaluation.status === 'incomplete' ? 'orange' : 'governance-quality-warning');
+        tag.textContent = label;
+        metadata.appendChild(tag);
+      });
+    card.appendChild(metadata);
+    const reasons = [...evaluation.missing.map(check => check.message), ...evaluation.warnings.map(warning => warning.label)];
+    if (reasons.length) {
+      const list = document.createElement('ul');
+      list.className = 'governance-reasons';
+      reasons.slice(0, 6).forEach(reason => {
+        const entry = document.createElement('li');
+        entry.textContent = reason;
+        list.appendChild(entry);
+      });
+      card.appendChild(list);
+    } else {
+      const note = document.createElement('p');
+      note.className = 'governance-package-summary';
+      note.textContent = 'ข้อมูลครบตามรายการตรวจที่รองรับ';
+      card.appendChild(note);
+    }
+    if (item.workflow_status === 'review') {
+      const submitted = governanceTimestampSeconds(item.submitted_at);
+      const date = document.createElement('p');
+      date.className = 'doc-meta';
+      date.textContent = submitted ? `ส่งตรวจเมื่อ ${new Date(submitted).toLocaleDateString('th-TH')}` : 'ไม่บันทึกวันที่ส่งตรวจ';
+      card.appendChild(date);
+    }
+    const actions = document.createElement('div');
+    actions.className = 'governance-actions';
+    const preview = document.createElement('button');
+    preview.type = 'button';
+    preview.className = 'btn';
+    preview.textContent = 'ดูตัวอย่าง';
+    preview.setAttribute('aria-label', `ดูตัวอย่าง ${item.title || item.content_id || item.id}`);
+    preview.onclick = () => previewSavedContent(item, 'governanceView');
+    actions.appendChild(preview);
+    const role = currentUserProfile?.role;
+    const owns = String(item.created_by || '').toLowerCase() === String(auth.currentUser?.email || '').toLowerCase();
+    if (role === 'admin' || (role === 'editor' && owns && ['draft', 'review'].includes(item.workflow_status))) {
+      const edit = document.createElement('button');
+      edit.type = 'button';
+      edit.className = 'btn';
+      edit.textContent = 'แก้ไข';
+      edit.setAttribute('aria-label', `แก้ไข ${item.title || item.content_id || item.id}`);
+      edit.onclick = () => editContent(item.id);
+      actions.appendChild(edit);
+    }
+    if (options.packageAction) {
+      const manage = document.createElement('button');
+      manage.type = 'button';
+      manage.className = 'btn';
+      manage.textContent = 'เปิดการจัดการชุดองค์ความรู้';
+      manage.onclick = () => window.show('packageManageView', 'จัดการชุดองค์ความรู้');
+      actions.appendChild(manage);
+    }
+    card.appendChild(actions);
+    container.appendChild(card);
+  }
+
+  function renderGovernanceSection(containerId, records, emptyText, options = {}) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.replaceChildren();
+    if (!records.length) return governanceAppendEmpty(container, emptyText);
+    records.forEach(({ item, evaluation }) => renderGovernanceCard(item, evaluation, container, options));
+  }
+
+  function governancePackageHealth(item) {
+    const references = [];
+    packageSectionDefs.forEach(section => {
+      (Array.isArray(item.sections?.[section.key]) ? item.sections[section.key] : []).forEach(reference => references.push(reference));
+    });
+    const uniqueReferences = [...new Set(references.filter(Boolean))];
+    const byIdentity = new Map();
+    contentItems.forEach(content => {
+      if (content.content_id) byIdentity.set(content.content_id, content);
+      if (content.id) byIdentity.set(content.id, content);
+    });
+    let usable = 0;
+    let unpublished = 0;
+    let unresolvedInLoadedPool = 0;
+    let inaccessibleOrUnavailable = 0;
+    uniqueReferences.forEach(reference => {
+      const member = byIdentity.get(reference);
+      if (!member) { unresolvedInLoadedPool += 1; return; }
+      if (member.workflow_status !== 'published') { unpublished += 1; return; }
+      if (!packageMemberIsAccessible(member)) { inaccessibleOrUnavailable += 1; return; }
+      usable += 1;
+    });
+    return { totalReferences: uniqueReferences.length, usable, unpublished, unresolvedInLoadedPool, inaccessibleOrUnavailable };
+  }
+
+  function renderGovernancePackages() {
+    const container = document.getElementById('governancePackageHealth');
+    const section = document.getElementById('governancePackagesSection');
+    const role = currentUserProfile?.role;
+    if (!container || !section) return;
+    section.hidden = !['admin', 'reviewer', 'editor'].includes(role);
+    const email = String(auth.currentUser?.email || '').toLowerCase();
+    const packages = knowledgePackagesData.filter(item => {
+      if (role === 'admin') return true;
+      if (role === 'reviewer') return item.workflow_status === 'review';
+      return role === 'editor' && String(item.created_by || '').toLowerCase() === email;
+    });
+    container.replaceChildren();
+    if (!packages.length) return governanceAppendEmpty(container, 'ยังไม่มีชุดองค์ความรู้ที่อยู่ในขอบเขตที่คุณตรวจสอบได้');
+    packages.forEach(item => {
+      const health = governancePackageHealth(item);
+      const card = document.createElement('article');
+      card.className = 'governance-card';
+      const title = document.createElement('h3');
+      title.textContent = item.title || item.package_id || 'ชุดองค์ความรู้';
+      card.appendChild(title);
+      const state = document.createElement('p');
+      state.className = 'governance-package-summary';
+      state.textContent = `${governanceWorkflowLabel(item.workflow_status)} · ใช้ศึกษาได้ ${health.usable} จาก ${health.totalReferences} รายการที่อ้างอิง`;
+      card.appendChild(state);
+      const issues = [];
+      if (!health.usable) issues.push('ไม่มีสมาชิกที่พร้อมใช้งานในข้อมูลที่โหลดอยู่');
+      if (health.unpublished) issues.push(`มี ${health.unpublished} รายการที่ยังไม่เผยแพร่`);
+      if (health.unresolvedInLoadedPool) issues.push(`ไม่พบ ${health.unresolvedInLoadedPool} รายการในข้อมูลที่โหลดอยู่ (ยังสรุปว่าไม่มีในระบบไม่ได้)`);
+      if (health.inaccessibleOrUnavailable) issues.push(`มี ${health.inaccessibleOrUnavailable} รายการที่ไม่พร้อมแสดงตามสิทธิ์ปัจจุบัน`);
+      const summary = document.createElement('p');
+      summary.className = 'governance-package-summary';
+      summary.textContent = issues.join(' · ') || 'ไม่พบปัญหาอ้างอิงในข้อมูลที่โหลดอยู่';
+      card.appendChild(summary);
+      const actions = document.createElement('div');
+      actions.className = 'governance-actions';
+      const manage = document.createElement('button');
+      manage.type = 'button';
+      manage.className = 'btn';
+      manage.textContent = 'เปิดการจัดการชุดองค์ความรู้';
+      manage.onclick = () => window.show('packageManageView', 'จัดการชุดองค์ความรู้');
+      actions.appendChild(manage);
+      card.appendChild(actions);
+      container.appendChild(card);
+    });
+  }
+
+  function renderGovernanceCenter() {
+    const view = document.getElementById('governanceView');
+    if (!view || !currentUserProfile || !['admin', 'reviewer', 'editor'].includes(currentUserProfile.role)) return;
+    const role = currentUserProfile.role;
+    const eligible = contentItems.filter(governanceRecordVisibleForRole);
+    const evaluations = eligible.map(item => ({ item, evaluation: governanceEvaluateItem(item) }));
+    const counts = Object.fromEntries(['draft', 'review', 'approved', 'published'].map(status => [status, eligible.filter(item => item.workflow_status === status).length]));
+    const overview = document.getElementById('governanceOverview');
+    overview.replaceChildren();
+    [['ฉบับร่าง', counts.draft], ['รอตรวจสอบ', counts.review], ['ผ่านการตรวจสอบ', counts.approved], ['เผยแพร่แล้ว', counts.published]].forEach(([label, count]) => {
+      const card = document.createElement('div');
+      card.className = 'governance-stat';
+      const name = document.createElement('span'); name.textContent = label;
+      const value = document.createElement('strong'); value.textContent = String(count);
+      card.append(name, value); overview.appendChild(card);
+    });
+    document.getElementById('governancePoolNote').textContent = `นับจากรายการ ${eligible.length} รายการที่โหลดแล้วและบัญชีนี้เข้าถึงได้เท่านั้น · โหลดเพิ่มได้จากหน้าจัดการเนื้อหา`;
+    const categoryFilter = document.getElementById('governanceCategoryFilter');
+    const selectedCategory = governanceState.category;
+    categoryFilter.replaceChildren(new Option('ทุกหมวด', 'all'));
+    categoriesData.forEach(category => categoryFilter.add(new Option(category.category_name || category.id, category.category_id || category.id)));
+    categoryFilter.value = [...categoryFilter.options].some(option => option.value === selectedCategory) ? selectedCategory : 'all';
+    document.getElementById('governanceStatusFilter').value = governanceState.status;
+    document.getElementById('governanceTypeFilter').value = governanceState.type;
+    document.getElementById('governanceQualityFilter').value = governanceState.quality;
+    document.getElementById('governanceQuery').value = governanceState.query;
+    const filtered = evaluations.filter(({ item, evaluation }) => governanceRecordMatches(item, evaluation));
+    const review = sortGovernanceQueue(filtered.filter(({ item }) => item.workflow_status === 'review'), 'submitted_at');
+    const publication = sortGovernanceQueue(filtered.filter(({ item }) => item.workflow_status === 'approved'), 'approved_at');
+    const published = filtered.filter(({ item }) => item.workflow_status === 'published');
+    const myWork = filtered.filter(({ item }) => String(item.created_by || '').toLowerCase() === String(auth.currentUser?.email || '').toLowerCase());
+    document.getElementById('governanceMyWorkSection').hidden = role !== 'editor';
+    document.getElementById('governancePublishSection').hidden = role !== 'admin';
+    document.getElementById('governanceReviewSection').hidden = role === 'editor';
+    document.getElementById('governancePublishedSection').hidden = role === 'reviewer' && !published.length;
+    if (role === 'editor') renderGovernanceSection('governanceMyWork', myWork, governanceState.query || governanceState.status !== 'all' ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีงานของคุณในข้อมูลที่โหลดอยู่');
+    if (role !== 'editor') renderGovernanceSection('governanceReviewQueue', review, governanceState.query || governanceState.status !== 'all' ? 'ไม่พบรายการรอตรวจสอบตามตัวกรอง' : 'ไม่มีรายการรอตรวจสอบในข้อมูลที่โหลดอยู่');
+    if (role === 'admin') renderGovernanceSection('governancePublishQueue', publication, governanceState.query || governanceState.status !== 'all' ? 'ไม่พบรายการพร้อมเผยแพร่ตามตัวกรอง' : 'ไม่มีรายการพร้อมเผยแพร่ในข้อมูลที่โหลดอยู่');
+    if (!document.getElementById('governancePublishedSection').hidden) renderGovernanceSection('governancePublishedHealth', published, 'ไม่พบรายการเผยแพร่ตามตัวกรองในข้อมูลที่โหลดอยู่');
+    renderGovernancePackages();
+  }
+
+  function updateGovernanceStateFromControls() {
+    governanceState = {
+      status: document.getElementById('governanceStatusFilter').value,
+      type: document.getElementById('governanceTypeFilter').value,
+      category: document.getElementById('governanceCategoryFilter').value,
+      quality: document.getElementById('governanceQualityFilter').value,
+      query: document.getElementById('governanceQuery').value.trim()
+    };
+    renderGovernanceCenter();
+  }
+
+  async function previewSavedContent(item, returnView = 'manageView') {
     if (!item || !['admin', 'reviewer', 'editor'].includes(currentUserProfile?.role)) return;
+    authoringPreviewReturnView = returnView;
     try {
       const detail = await loadSavedContentDetail(item);
       renderAuthoringPreview(buildAuthoringPreviewModel(item, detail), item);
@@ -4927,7 +5324,7 @@
       await createContentVersion(id, 'approve', 'อนุมัติเนื้อหา');
       await loadContents();
       window.toast(`อนุมัติเนื้อหาแล้ว • ${item.content_id || id}`);
-      if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show('manageView', 'จัดการเนื้อหา');
+      if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show(authoringPreviewReturnView, authoringPreviewReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
     } catch (error) {
       console.error('Approve content failed:', error);
       window.toast('อนุมัติเนื้อหาไม่สำเร็จ');
@@ -4977,7 +5374,7 @@
       await createContentVersion(id, 'publish', 'เผยแพร่เนื้อหา');
       await loadContents();
       window.toast(`เผยแพร่เนื้อหาแล้ว • ${item.content_id || id}`);
-      if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show('manageView', 'จัดการเนื้อหา');
+      if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show(authoringPreviewReturnView, authoringPreviewReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
     } catch (error) {
       console.error('Publish content failed:', error);
       window.toast('เผยแพร่เนื้อหาไม่สำเร็จ');
@@ -5008,6 +5405,7 @@
     if (currentUserProfile?.role !== 'admin' && !(currentUserProfile?.role === 'editor' && editorOwnsItem && ['draft', 'review'].includes(item.workflow_status))) {
       return window.toast('บัญชีนี้ไม่มีสิทธิแก้ไขรายการนี้');
     }
+    authoringWorkspaceReturnView = document.querySelector('.view.active')?.id === 'governanceView' ? 'governanceView' : 'manageView';
     editingContentId = id;
     const reasonField = ensureChangeReasonField();
     reasonField.hidden = false;
@@ -5145,6 +5543,7 @@
     if (!['admin', 'editor'].includes(currentUserProfile?.role)) return window.toast('บัญชีนี้ไม่มีสิทธิสร้างเนื้อหา');
     if (document.querySelector('.view.active')?.id === 'formView' && authoringDirty
       && !window.confirm('มีการแก้ไขที่ยังไม่ได้บันทึก ต้องการออกจากหน้านี้หรือไม่')) return;
+    authoringWorkspaceReturnView = document.querySelector('.view.active')?.id === 'governanceView' ? 'governanceView' : 'manageView';
     setAuthoringDirty(false);
     editingContentId = null;
     activeKnowledgeGapForContentId = '';
@@ -5167,6 +5566,11 @@
     ensureChangeReasonField().hidden = true;
     renderAuthoringWorkflow(null);
     captureAuthoringBaseline();
+  }
+
+  function showAuthoringReturnView() {
+    const governance = authoringWorkspaceReturnView === 'governanceView';
+    window.show(authoringWorkspaceReturnView, governance ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
   }
 
   function readCommonContentFields() {
@@ -5462,7 +5866,7 @@
       window.toast(`${isEditing ? 'แก้ไขฉบับร่างแล้ว' : 'บันทึกฉบับร่างแล้ว'} • ${contentId}`);
       await loadContents();
       finishContentCreation();
-      window.show('manageView', 'จัดการเนื้อหา');
+      showAuthoringReturnView();
     } catch (error) {
       console.error('Save draft failed:', error);
       document.getElementById('authoringActionFeedback').textContent = 'บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในแบบฟอร์ม';
@@ -5547,7 +5951,7 @@
       captureAuthoringBaseline();
       await loadContents();
       finishContentCreation();
-      window.show('manageView', 'จัดการเนื้อหา');
+      showAuthoringReturnView();
       window.toast(`ส่งให้ผู้ตรวจสอบแล้ว • ${contentId}`);
     } catch (error) {
       console.error('Submit for review failed:', error);
@@ -6625,10 +7029,12 @@
       renderPackageCards(document.getElementById('packageSearch')?.value || '');
       renderPackageManagement();
       renderHomeDashboard(contentItems);
+      renderGovernanceCenter();
     } catch (error) {
       console.error('Load knowledge packages failed:', error);
       knowledgePackagesData = [];
       renderHomeDashboard(contentItems);
+      renderGovernanceCenter();
     }
   }
 
@@ -6640,6 +7046,18 @@
   document.getElementById('savePackageDraft').onclick = () => savePackage('draft');
   document.getElementById('packageForm').onsubmit = event => { event.preventDefault(); savePackage('review'); };
 
+  const governanceFilterForm = document.getElementById('governanceFilterForm');
+  governanceFilterForm.onsubmit = event => { event.preventDefault(); updateGovernanceStateFromControls(); };
+  ['governanceStatusFilter', 'governanceTypeFilter', 'governanceCategoryFilter', 'governanceQualityFilter'].forEach(id => {
+    document.getElementById(id).addEventListener('change', updateGovernanceStateFromControls);
+  });
+  document.getElementById('governanceQuery').addEventListener('input', updateGovernanceStateFromControls);
+  governanceFilterForm.addEventListener('reset', () => {
+    queueMicrotask(() => {
+      governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
+      renderGovernanceCenter();
+    });
+  });
   document.getElementById('signOutButton').addEventListener('click', () => signOut(auth));
   document.getElementById('saveDraft').onclick = saveDraftToFirestore;
   document.getElementById('contentForm').onsubmit = submitForReview;
@@ -6651,7 +7069,7 @@
     renderAuthoringWorkflow(editingContentId ? contentItems.find(item => item.id === editingContentId) || null : null);
   })));
   document.getElementById('previewContent').onclick = previewAuthoringForm;
-  document.getElementById('authoringPreviewBack').onclick = () => window.showPreviousView('formView', 'แก้ไขเนื้อหา');
+  document.getElementById('authoringPreviewBack').onclick = () => window.showPreviousView(authoringPreviewReturnView, authoringPreviewReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'แก้ไขเนื้อหา');
   renderAuthoringWorkflow(null);
   captureAuthoringBaseline();
   window.addEventListener('beforeunload', event => {
@@ -6686,6 +7104,7 @@
   });
   onAuthStateChanged(auth, async user => {
     if (workspaceOwnerUid !== (user?.uid || null)) {
+      governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
       activeCollectionPathContext = null;
       collectionDetailHistory.length = 0;
       relatedDetailHistory.length = 0;
