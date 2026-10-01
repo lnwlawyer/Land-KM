@@ -799,3 +799,183 @@ test('Feature 7 integrates view history, local section failures, and existing re
   assert.match(productionHtml, /relatedDetailHistory\.length = 0/);
   assert.match(productionHtml, /function returnToCollectionOverview\([\s\S]*?showPreviousView\?\.\('packagesView'/);
 });
+
+test('Feature 8 authoring workspace keeps supported content types and existing schema fields', () => {
+  const viewStart = productionHtml.indexOf('<section class="view" id="formView">');
+  const viewEnd = productionHtml.indexOf('<section class="view legal-reference-view" id="judgmentsView">', viewStart);
+  const formView = productionHtml.slice(viewStart, viewEnd);
+  const formStart = formView.indexOf('<form id="contentForm"');
+  const formEnd = formView.indexOf('</form>', formStart);
+  const form = formView.slice(formStart, formEnd);
+  assert.match(form, /button type="submit"/);
+  for (const type of ['knowledge', 'law', 'guide', 'lesson', 'qa', 'judgment', 'committeeDecision']) {
+    assert.match(formView, new RegExp(`data-formtype="${type}"`));
+    assert.match(form, new RegExp(`data-fields="${type}"`));
+  }
+  for (const field of [
+    'contentTitle', 'contentCategory', 'contentOwnerUnit', 'contentKeywords', 'knowledgeSummary', 'knowledgeGuidance',
+    'lawDocumentNo', 'lawDocumentDate', 'lawOfficialTitle', 'guideObjective', 'guideSteps', 'lessonLearningOutcomes',
+    'qaQuestionText', 'qaDetails', 'judgmentReferenceNo', 'judgmentIssue', 'committeeDecisionReferenceNo', 'committeeDecisionIssue',
+    'contentSourceUrl', 'contentAccessLevel'
+  ]) assert.match(form, new RegExp(`id="${field}"`));
+  assert.match(form, /<label[^>]+for="contentTitle"/);
+  assert.match(form, /<label[^>]+for="contentCategory"/);
+  assert.match(form, /id="contentSourceUrl" type="url"/);
+  assert.match(productionHtml, /function setFormType\(type\)[\s\S]*?x\.disabled=!active/);
+  assert.match(productionHtml, /content_type: activeType/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function queueContentBundle('), productionHtml.indexOf('\n  function queueKnowledgeGapLink', productionHtml.indexOf('function queueContentBundle('))), /batch\.delete/);
+});
+
+test('Feature 8 readiness checks follow existing validators and distinguish optional warnings', () => {
+  const checksStart = productionHtml.indexOf('function authoringBlockingChecks(');
+  const warningsStart = productionHtml.indexOf('function authoringWarnings()', checksStart);
+  const renderStart = productionHtml.indexOf('function renderAuthoringReadiness()', warningsStart);
+  const workflowStart = productionHtml.indexOf('function renderAuthoringWorkflow(', renderStart);
+  const checks = productionHtml.slice(checksStart, warningsStart);
+  const warnings = productionHtml.slice(warningsStart, renderStart);
+  const render = productionHtml.slice(renderStart, workflowStart);
+  for (const id of ['contentTitle', 'contentCategory', 'contentOwnerUnit', 'knowledgeSummary', 'knowledgeGuidance', 'lawDocumentNo', 'lawDocumentDate', 'lawOfficialTitle', 'guideObjective', 'guideSteps', 'lessonLearningOutcomes', 'qaQuestionText', 'qaDetails', 'judgmentIssue', 'judgmentPrinciple', 'committeeDecisionIssue', 'committeeDecisionPrinciple']) assert.match(checks, new RegExp(`'${id}'`));
+  assert.match(checks, /Boolean\(field\?\.value\.trim\(\)\)/);
+  assert.match(warnings, /คำสำคัญ \(ไม่บังคับ\)/);
+  assert.match(warnings, /ลิงก์เอกสารอ้างอิง \(ไม่บังคับ\)/);
+  assert.match(render, /ยังขาดข้อมูลที่จำเป็น \$\{missing\.length\} รายการ/);
+  assert.match(render, /พร้อมส่งตรวจ/);
+  assert.match(render, /aria-label/);
+  assert.doesNotMatch(checks + warnings + render, /getDoc\(|getDocs\(|setDoc\(|recordSharedUsage\(/);
+  for (const validator of ['validateKnowledgePayload', 'validateLawPayload', 'validateGuidePayload', 'validateLessonPayload', 'validateQuestionPayload', 'validateLegalReferencePayload']) assert.match(productionHtml, new RegExp(`function ${validator}\\(`));
+});
+
+test('Feature 8 Preview uses in-memory fields and shared Detail presentation without read side effects', () => {
+  const modelStart = productionHtml.indexOf('function buildAuthoringPreviewModel(');
+  const savedDetailStart = productionHtml.indexOf('async function loadSavedContentDetail(', modelStart);
+  const model = productionHtml.slice(modelStart, savedDetailStart);
+  const previewStart = productionHtml.indexOf('function renderAuthoringPreview(');
+  const savedPreviewStart = productionHtml.indexOf('async function previewSavedContent(', previewStart);
+  const renderer = productionHtml.slice(previewStart, savedPreviewStart);
+  const bodyStart = productionHtml.indexOf('function renderPrimaryDetailBody(');
+  const bodyEnd = productionHtml.indexOf('\n  function getSharedContentIdFromHash()', bodyStart);
+  const sharedBody = productionHtml.slice(bodyStart, bodyEnd);
+  assert.match(model, /document\.getElementById\('contentTitle'\)\.value/);
+  assert.match(model, /document\.getElementById\('contentSourceUrl'\)\.value/);
+  assert.match(model, /content_type: type/);
+  assert.match(model, /judgment|committeeDecision/);
+  assert.doesNotMatch(model, /getDoc\(|getDocs\(|collection\(db|recordSharedUsage|recordCategoryUsage|setDoc\(/);
+  assert.match(renderer, /detailHeaderRenderTarget = root/);
+  assert.match(renderer, /renderDetailHeader\(item, detail\)/);
+  assert.match(renderer, /renderPrimaryDetailBody\(item, detail/);
+  assert.match(renderer, /collectDetailResources\(item, detail, \[\]\)/);
+  assert.match(renderer, /renderDetailResources\(resourceHost, resources\)/);
+  assert.match(renderer, /window\.show\('authoringPreviewView'/);
+  assert.match(sharedBody, /appendDetailSection\(body, 'คำถาม', detail\.question_text\)/);
+  assert.match(sharedBody, /appendDetailSection\(body, 'ขั้นตอนปฏิบัติ', detail\.steps\)/);
+  assert.match(productionHtml, /ตัวอย่างก่อนเผยแพร่ · ยังไม่บันทึก/);
+  assert.match(productionHtml, /authoringPreviewBack/);
+  assert.match(productionHtml, /authoringPreviewBack'\)\.onclick = \(\) => window\.showPreviousView\('formView'/);
+});
+
+test('Feature 8 Preview of saved content reads only needed existing type details and creates no open event', () => {
+  const loadDetailStart = productionHtml.indexOf('async function loadSavedContentDetail(');
+  const loadDetailEnd = productionHtml.indexOf('\n  function savedContentReadinessError', loadDetailStart);
+  const loadDetail = productionHtml.slice(loadDetailStart, loadDetailEnd);
+  const previewStart = productionHtml.indexOf('async function previewSavedContent(');
+  const previewEnd = productionHtml.indexOf('\n  async function approveContent(', previewStart);
+  const preview = productionHtml.slice(previewStart, previewEnd);
+  assert.match(productionHtml, /const contentDetailCollections = \{ law: 'laws', guide: 'guides', lesson: 'lessons', qa: 'questions' \}/);
+  assert.match(loadDetail, /getDoc\(doc\(db, collectionName, item\.id\)\)/);
+  assert.doesNotMatch(loadDetail, /getDocs\(|limit\(|recordSharedUsage|recordCategoryUsage|usageStats|comments|savedItems|learningProgress/);
+  assert.match(preview, /loadSavedContentDetail\(item\)/);
+  assert.match(preview, /renderAuthoringPreview\(buildAuthoringPreviewModel\(item, detail\), item\)/);
+  assert.doesNotMatch(preview, /recordSharedUsage|recordCategoryUsage|setDoc\(|writeBatch\(|content-open/);
+  assert.match(productionHtml, /function renderDetailHeader\(item, detail\)/);
+  assert.match(productionHtml, /detailHeaderRenderTarget \|\| document\.querySelector\('#detailView \.detail'\)/);
+  assert.match(productionHtml, /renderPrimaryDetailBody\(item, detail, body\)/);
+});
+
+test('Feature 8 dirty state preserves in-memory edits and protects internal and browser navigation', () => {
+  const snapshotStart = productionHtml.indexOf('function authoringFormSnapshot()');
+  const captureStart = productionHtml.indexOf('function captureAuthoringBaseline()', snapshotStart);
+  const dirtyStart = productionHtml.indexOf('function updateAuthoringDirtyState()', captureStart);
+  const dirtySource = productionHtml.slice(snapshotStart, dirtyStart);
+  const showStart = productionHtml.indexOf('function show(id,name,options={})');
+  const previousStart = productionHtml.indexOf('function showPreviousView(', showStart);
+  const showSource = productionHtml.slice(showStart, productionHtml.indexOf('\n  navs.forEach', previousStart));
+  assert.match(dirtySource, /JSON\.stringify\(\[activeAuthoringType\(\), fields\]\)/);
+  assert.match(productionHtml, /authoringForm\.addEventListener\('input', updateAuthoringDirtyState\)/);
+  assert.match(productionHtml, /authoringForm\.addEventListener\('change', updateAuthoringDirtyState\)/);
+  const dirtyStateStart = productionHtml.indexOf('function updateAuthoringDirtyState()', dirtyStart);
+  const readinessStart = productionHtml.indexOf('function authoringBlockingChecks(', dirtyStateStart);
+  assert.match(productionHtml.slice(dirtyStateStart, readinessStart), /setAuthoringDirty\(authoringFormSnapshot\(\) !== authoringBaseline\)/);
+  assert.match(showSource, /current\?\.id==='formView'&&window\.authoringDirty/);
+  assert.match(showSource, /id!=='authoringPreviewView'/);
+  assert.match(showSource, /showPreviousView[\s\S]*?window\.confirm\('มีการแก้ไขที่ยังไม่ได้บันทึก/);
+  assert.match(productionHtml, /window\.addEventListener\('beforeunload'[\s\S]*?event\.returnValue = ''/);
+  assert.match(productionHtml, /if \(authoringDirty && !window\.confirm\([\s\S]*?stopImmediatePropagation\(\)/);
+  assert.match(productionHtml, /function finishContentCreation\([\s\S]*?captureAuthoringBaseline\(\)/);
+  assert.match(productionHtml, /function startNewContent\([\s\S]*?if \(document\.querySelector\('\.view\.active'\)\?\.id === 'formView' && authoringDirty/);
+});
+
+test('Feature 8 role-aware workflow and transition locks match current Firestore Rules', () => {
+  const contentsStart = firestoreRules.indexOf('match /contents/{documentId}');
+  const detailsStart = firestoreRules.indexOf('match /{collectionName}/{documentId}', contentsStart);
+  const contentRules = firestoreRules.slice(contentsStart, detailsStart);
+  assert.match(contentRules, /allow create: if isAdmin\(\)[\s\S]*?isEditor\(\)[\s\S]*?created_by[\s\S]*?workflow_status[\s\S]*?\['draft', 'review'\]/);
+  assert.match(contentRules, /resource\.data\.created_by[\s\S]*?resource\.data\.workflow_status[\s\s\S]*?\['draft', 'review'\]/);
+  assert.match(contentRules, /isReviewer\(\)[\s\S]*?resource\.data\.workflow_status == 'review'[\s\S]*?request\.resource\.data\.workflow_status == 'approved'/);
+  assert.match(contentRules, /'workflow_status',[\s\S]*?'approved_by',[\s\S]*?'approved_at',[\s\S]*?'updated_at'/);
+  const actionsStart = productionHtml.indexOf('function renderAuthoringWorkflow(');
+  const actionsEnd = productionHtml.indexOf('\n  function authoringCanWrite()', actionsStart);
+  const actions = productionHtml.slice(actionsStart, actionsEnd);
+  assert.match(actions, /role === 'admin' \|\| \(role === 'editor' && ownsItem && \['draft', 'review'\]\.includes\(status\)\)/);
+  assert.match(actions, /button\.disabled = !canEdit \|\| Boolean\(item && button\.dataset\.formtype !== item\.content_type\)/);
+  assert.match(actions, /submit\.hidden = !canEdit[^;]*status !== 'draft'/);
+  assert.match(productionHtml, /if \(!\['admin', 'reviewer'\]\.includes\(currentUserProfile\?\.role\)\) return window\.toast\('บัญชีนี้ไม่มีสิทธิอนุมัติเนื้อหา'\)/);
+  assert.match(productionHtml, /if \(currentUserProfile\?\.role !== 'admin'\) return window\.toast\('เฉพาะผู้ดูแลระบบที่เผยแพร่เนื้อหาได้'\)/);
+  assert.match(productionHtml, /authoringWriteInFlight = 'approve'/);
+  assert.match(productionHtml, /authoringWriteInFlight = 'publish'/);
+  assert.match(productionHtml, /เผยแพร่ “\$\{item\.title \|\| item\.content_id \|\| id\}” \?/);
+  assert.match(productionHtml, /published_at: serverTimestamp\(\)/);
+  assert.match(productionHtml, /savedContentReadinessError\(item, detail\)/);
+});
+
+test('Feature 8 Save, submit, approve, and publish reuse existing persistence and version history', () => {
+  const bundleStart = productionHtml.indexOf('function queueContentBundle(');
+  const bundleEnd = productionHtml.indexOf('\n  function queueKnowledgeGapLink', bundleStart);
+  const bundle = productionHtml.slice(bundleStart, bundleEnd);
+  const saveStart = productionHtml.indexOf('async function saveDraftToFirestore()');
+  const submitStart = productionHtml.indexOf('async function submitForReview(event)', saveStart);
+  const save = productionHtml.slice(saveStart, submitStart);
+  const submitEnd = productionHtml.indexOf('\n  function completeManagementTabs', submitStart);
+  const submit = productionHtml.slice(submitStart, submitEnd);
+  assert.match(save, /authoringWriteInFlight = 'save'/);
+  assert.match(save, /queueContentBundle\(batch, contentId/);
+  assert.match(save, /createContentVersion\(contentId, isEditing \? 'edit_draft' : 'create'/);
+  assert.match(save, /captureAuthoringBaseline\(\)/);
+  assert.match(save, /บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในแบบฟอร์ม/);
+  assert.match(submit, /authoringWriteInFlight = 'submit'/);
+  assert.match(submit, /queueContentBundle\(batch, contentId/);
+  assert.match(submit, /createContentVersion\(contentId, isNew \? 'create_and_submit' : 'submit_review'/);
+  assert.match(submit, /ส่งตรวจไม่สำเร็จ ข้อมูลยังอยู่ในแบบฟอร์ม/);
+  assert.match(bundle, /doc\(db, 'contents', contentId\)/);
+  assert.match(bundle, /doc\(db, 'questions', contentId\)/);
+  const fileReferenceStart = productionHtml.indexOf('function queueFileReference(');
+  const fileReferenceEnd = productionHtml.indexOf('\n  function queueContentBundle', fileReferenceStart);
+  assert.match(productionHtml.slice(fileReferenceStart, fileReferenceEnd), /doc\(db, 'files', fileId\)/);
+  assert.match(productionHtml, /function createContentVersion\(contentId, action, reason\)/);
+  assert.match(productionHtml, /transaction\.set\(versionRef/);
+  assert.match(productionHtml, /function restoreContentVersion\(version\)/);
+  assert.match(productionHtml, /restore\.hidden = currentUserProfile\?\.role !== 'admin'/);
+});
+
+test('Feature 8 reviewer/admin management list integrates Preview and existing workflow actions', () => {
+  const listStart = productionHtml.indexOf('async function loadContents(reset = true)');
+  const listEnd = productionHtml.indexOf('\n  function renderContentReports', listStart);
+  const list = productionHtml.slice(listStart, listEnd);
+  assert.match(list, /button class="btn preview-content">ดูตัวอย่าง/);
+  assert.match(list, /previewButton\.onclick = \(\) => previewSavedContent\(item\)/);
+  assert.match(list, /item\.workflow_status === 'review' && \(role === 'admin' \|\| role === 'reviewer'\)/);
+  assert.match(list, /item\.workflow_status === 'approved' && role === 'admin'/);
+  assert.match(list, /setupManageTabs\(\)/);
+  assert.match(list, /applyManageFilter\(\)/);
+  assert.match(productionHtml, /async function openVersionHistory\(contentId\)/);
+  assert.match(productionHtml, /restore\.hidden = currentUserProfile\?\.role !== 'admin'/);
+});
