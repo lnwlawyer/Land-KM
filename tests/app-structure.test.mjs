@@ -176,7 +176,7 @@ test('production lesson catalogue shows completion status and an accessible prog
 test('production lesson player supports unit navigation, completion, and continue from the next unfinished unit', () => {
   const playerStart = productionHtml.indexOf('function renderLessonPlayerUnit()');
   const playerEnd = productionHtml.indexOf('\n  async function markCurrentLessonUnitComplete()', playerStart);
-  const openStart = productionHtml.indexOf('async function openLessonPlayer(contentId)');
+  const openStart = productionHtml.indexOf('async function openLessonPlayer(contentId, options = {})');
   const openEnd = productionHtml.indexOf('\n  async function markCurrentLessonUnitComplete()', openStart);
   assert.notEqual(playerStart, -1);
   assert.notEqual(playerEnd, -1);
@@ -370,7 +370,7 @@ test('detail breadcrumbs and return controls preserve the in-memory source view 
   assert.match(breadcrumbSource, /setAttribute\('aria-label', 'เส้นทางนำทาง'\)/);
   assert.match(breadcrumbSource, /previous\?\.id === 'searchView' \? 'ค้นหาความรู้'/);
   assert.match(breadcrumbSource, /setAttribute\('aria-current', 'page'\)/);
-  assert.match(breadcrumbSource, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+  assert.match(breadcrumbSource, /sourceButton\.onclick = \(\) => \{[\s\S]*?showPreviousView\(\)/);
   assert.match(productionHtml, /button\.setAttribute\('aria-label', label\)/);
   assert.match(productionHtml, /#detailView \.detail-breadcrumb/);
 });
@@ -488,6 +488,88 @@ test('related knowledge uses shared detail navigation and leaves search, deep li
   assert.doesNotMatch(productionHtml, /collection\(db, '(recommendations|relatedContent|knowledgeGraph|contentRelations|semanticIndex|embeddings|vectors)'\)/);
 });
 
+function createCuratedPackagePathEngine(pool, profile = { role: 'viewer' }, email = 'reviewer@landkm.test') {
+  const start = productionHtml.indexOf('const packageSectionDefs = [');
+  const end = productionHtml.indexOf('\n  function isActiveCollectionPathItem', start);
+  const source = productionHtml.slice(start, end);
+  return new Function('contentItems', 'currentUserProfile', 'auth', `${source}; return { packageSectionDefs, getCuratedPackageItems, packageMemberIsAccessible };`)(pool, profile, { currentUser: { email } });
+}
+
+test('knowledge collections reuse ordered knowledgePackages sections and preserve their stored curated sequence', () => {
+  const pool = [
+    { id: 'law-b', content_id: 'LAW-B', title: 'กฎหมายลำดับสอง', content_type: 'law', workflow_status: 'published', access_level: 'internal' },
+    { id: 'law-a', content_id: 'LAW-A', title: 'กฎหมายลำดับหนึ่ง', content_type: 'law', workflow_status: 'published', access_level: 'internal' },
+    { id: 'guide', content_id: 'GUIDE', title: 'คู่มือ', content_type: 'guide', workflow_status: 'published', access_level: 'internal' },
+    { id: 'knowledge', content_id: 'KNOWLEDGE', title: 'องค์ความรู้', content_type: 'knowledge', workflow_status: 'published', access_level: 'internal' },
+    { id: 'qa', content_id: 'QA', title: 'ถามตอบ', content_type: 'qa', workflow_status: 'published', access_level: 'internal' },
+    { id: 'judgment', content_id: 'JUDGMENT', title: 'คำพิพากษา', content_type: 'judgment', workflow_status: 'published', access_level: 'internal' },
+    { id: 'lesson', content_id: 'LESSON', title: 'บทเรียน', content_type: 'lesson', workflow_status: 'published', access_level: 'internal' },
+    { id: 'draft', content_id: 'DRAFT', title: 'ฉบับร่าง', content_type: 'knowledge', workflow_status: 'draft', access_level: 'internal' },
+    { id: 'restricted', content_id: 'PRIVATE', title: 'จำกัดสิทธิ', content_type: 'law', workflow_status: 'published', access_level: 'restricted' }
+  ];
+  const { getCuratedPackageItems } = createCuratedPackagePathEngine(pool);
+  const collection = { sections: {
+    laws: ['LAW-B', 'LAW-A', 'LAW-B', 'DRAFT', 'PRIVATE', 'MISSING'],
+    guides: ['GUIDE'], checklists: ['KNOWLEDGE'], qa: ['QA'], cases: ['JUDGMENT', 'LESSON']
+  } };
+  const path = getCuratedPackageItems(collection, pool, { role: 'viewer' }, 'reviewer@landkm.test');
+  assert.deepEqual(path.map(entry => entry.item.content_id), ['LAW-B', 'LAW-A', 'GUIDE', 'KNOWLEDGE', 'QA', 'JUDGMENT', 'LESSON']);
+  assert.deepEqual(path.map(entry => entry.item.content_type), ['law', 'law', 'guide', 'knowledge', 'qa', 'judgment', 'lesson']);
+  assert.equal(path.some(entry => ['DRAFT', 'PRIVATE', 'MISSING'].includes(entry.item.content_id)), false);
+});
+
+test('collection members follow existing role access and stale, unpublished, or duplicate references are omitted safely', () => {
+  const restricted = { id: 'owned', content_id: 'OWNED', workflow_status: 'published', access_level: 'restricted', created_by: 'editor@landkm.test' };
+  const pool = [restricted, { ...restricted, id: 'owned-duplicate' }];
+  const { getCuratedPackageItems, packageMemberIsAccessible } = createCuratedPackagePathEngine(pool);
+  const collection = { sections: { laws: ['OWNED'], cases: ['OWNED', 'MISSING'] } };
+  assert.equal(getCuratedPackageItems(collection, pool, { role: 'viewer' }, 'viewer@landkm.test').length, 0);
+  assert.equal(getCuratedPackageItems(collection, pool, { role: 'editor' }, 'editor@landkm.test').length, 1);
+  assert.equal(getCuratedPackageItems(collection, pool, { role: 'reviewer' }, 'reviewer@landkm.test').length, 1);
+  assert.equal(packageMemberIsAccessible({ ...restricted, workflow_status: 'review' }, { role: 'admin' }, 'admin@landkm.test'), false);
+});
+
+test('collection overview and curation controls are accessible and use stored package order without per-item reads', () => {
+  assert.match(productionHtml, /<h1 id="packagesHeading">ชุดองค์ความรู้<\/h1>/);
+  assert.match(productionHtml, /<h2 id="packagePathHeading" class="section-title">เส้นทางการเรียนรู้<\/h2>/);
+  assert.match(productionHtml, /<ol class="package-path" id="packageDetailSections"/);
+  assert.match(productionHtml, /function readPackageSections\(\)[\s\S]*packageSectionOrderState\[section\.key\]/);
+  assert.match(productionHtml, /function renderPackageSectionOrder[\s\S]*เลื่อนขึ้น[\s\S]*เลื่อนลง/);
+  assert.match(productionHtml, /item\.sections\?\.\[section\.key\]/);
+  const selectionStart = productionHtml.indexOf('function getCuratedPackageItems');
+  const selectionEnd = productionHtml.indexOf('\n  function isActiveCollectionPathItem', selectionStart);
+  assert.doesNotMatch(productionHtml.slice(selectionStart, selectionEnd), /getDocs\(|getDoc\(|collection\(db/);
+  assert.match(productionHtml, /getDocs\(query\(collection\(db, 'knowledgePackages'\), orderBy\(documentId\(\)\), limit\(APP_LIMITS\.knowledgePackages\)\)\)/);
+  assert.doesNotMatch(productionHtml, /collection\(db, '(knowledgeCollections|learningPaths|guidedPaths|collectionItems|packageContents)'\)/);
+  assert.doesNotMatch(productionHtml, /feature6-review@landkm\.test|F6-INHERITANCE|feature6-review-google-user/);
+});
+
+test('collection Detail navigation follows the curated path, composes with Related history, and preserves shared readers', () => {
+  const backStart = productionHtml.indexOf('function installRelatedDetailBackBehavior()');
+  const backEnd = productionHtml.indexOf('\n  function safeDocumentUrl', backStart);
+  const backSource = productionHtml.slice(backStart, backEnd);
+  const pathStart = productionHtml.indexOf('function renderCollectionDetailNavigation');
+  const pathEnd = productionHtml.indexOf('\n  function renderPackageCards', pathStart);
+  const pathSource = productionHtml.slice(pathStart, pathEnd);
+  assert.ok(backSource.indexOf('relatedDetailHistory.length') < backSource.indexOf('collectionDetailHistory.length'));
+  assert.match(backSource, /recordOpenUsage: false, restoreCollectionHistory: true/);
+  assert.match(backSource, /returnToCollectionOverview\(\)/);
+  assert.match(pathSource, /context\.position <= 0/);
+  assert.match(pathSource, /context\.position >= context\.items\.length - 1/);
+  assert.match(pathSource, /openCollectionPathItem\(context\.packageId, context\.position [+-] 1, \{ navigation: true \}\)/);
+  assert.match(productionHtml, /collectionDetailHistory\.push\(\{ item: activeDetailItem, position: activeCollectionPathContext\.position \}\)/);
+  assert.match(productionHtml, /void openContentFromFirestore\(next\.item,[\s\S]*?fromCollectionNavigation: options\.navigation === true/);
+  assert.match(productionHtml, /function returnToCollectionOverview\(\)[\s\S]*?showPreviousView\?\.\('packagesView'/);
+  assert.match(productionHtml, /link\.onclick = event => \{ event\.preventDefault\(\); void openContentFromFirestore\(content, \{ fromRelated: true \}\); \}/);
+  assert.match(productionHtml, /recordOpenUsage: false, restoreRelatedHistory: true/);
+  assert.match(productionHtml, /openContentFromFirestore\(content, \{ fromRelated: true \}\)/);
+  assert.match(productionHtml, /openLessonPlayer\(content\.content_id \|\| content\.id, \{ returnToDetail: true \}\)/);
+  assert.match(productionHtml, /lessonPlayerReturnToDetail[\s\S]*?showPreviousView\?\.\('detailView'/);
+  assert.match(productionHtml, /link\.hash = `content=\$\{encodeURIComponent\(currentContentId\)\}`/);
+  assert.match(productionHtml, /function resetKnowledgeWorkspace/);
+  assert.match(productionHtml, /activeCollectionPathContext = null;[\s\S]*collectionDetailHistory\.length = 0;[\s\S]*relatedDetailHistory\.length = 0;[\s\S]*resetKnowledgeWorkspace/);
+});
+
 test('detail deep links and reading controls remain compatible with analytics and existing features', () => {
   assert.match(productionHtml, /link\.hash = `content=\$\{encodeURIComponent\(currentContentId\)\}`/);
   assert.match(productionHtml, /window\.addEventListener\('hashchange'/);
@@ -544,7 +626,7 @@ test('stable content links resolve document IDs and content_id fallback before r
   assert.match(readerSource, /options\.onActivated\?\.\(\)/);
   assert.match(productionHtml, /await openSharedContentFromHash\(\)/);
   assert.match(productionHtml, /window\.addEventListener\('hashchange', \(\) => \{\s*void openSharedContentFromHash\(\)/);
-  assert.match(productionHtml, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+  assert.match(productionHtml, /sourceButton\.onclick = \(\) => \{[\s\S]*?showPreviousView\(\)/);
   assert.match(productionHtml, /previous\?\.id === 'searchView'/);
 });
 
@@ -623,10 +705,10 @@ test('workspace account changes clear private state and detail return preserves 
   assert.match(reset, /savedItemsData = \[\]/);
   assert.match(reset, /workspaceRecentData = \[\]/);
   assert.match(reset, /workspaceLearningProgressData = \[\]/);
-  assert.match(auth, /workspaceOwnerUid !== \(user\?\.uid \|\| null\)\) resetKnowledgeWorkspace/);
+  assert.match(auth, /workspaceOwnerUid !== \(user\?\.uid \|\| null\)\) \{[\s\S]*?resetKnowledgeWorkspace\(user\?\.uid \|\| null\)/);
   assert.match(productionHtml, /viewHistory\.push\(\{id:current\.id/);
   assert.match(productionHtml, /function showPreviousView\(/);
-  assert.match(productionHtml, /sourceButton\.onclick = \(\) => showPreviousView\(\)/);
+  assert.match(productionHtml, /sourceButton\.onclick = \(\) => \{[\s\S]*?showPreviousView\(\)/);
 });
 
 test('shared-link outcomes belong only to the current request and retry gets a fresh owner', () => {

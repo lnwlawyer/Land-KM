@@ -80,9 +80,9 @@
     .pdf-viewer{background:#e8edf2;padding:14px}.pdf-toolbar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.pdf-toolbar .btn{background:var(--white)}.pdf-page-label{min-width:110px;text-align:center;color:#24364d;font-weight:700}.pdf-canvas-wrap{display:flex;justify-content:center;overflow:auto}.pdf-canvas-wrap canvas{display:block;max-width:100%;height:auto;background:#fff;box-shadow:0 4px 18px rgba(16,36,62,.18)}
     .lesson-media-note{padding:12px 16px;background:var(--soft);color:var(--muted);font-size:13px;line-height:1.6}
     @media(max-width:700px){.lesson-media iframe,.lesson-media video{min-height:0}.lesson-media{border-radius:10px}.pdf-viewer{padding:8px}.pdf-toolbar{gap:6px}.pdf-toolbar .btn{padding:7px 9px}}
-    .package-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.package-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 4px 14px rgba(16,36,62,.05);display:flex;flex-direction:column;gap:10px}.package-card h3{margin:0;font-size:18px}.package-card p{margin:0;color:var(--muted);line-height:1.6;flex:1}.package-progress{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.package-progress i{height:6px;border-radius:6px;background:var(--line)}.package-progress i.filled{background:var(--brand)}.package-sections{display:grid;gap:14px}.package-section{border:1px solid var(--line);border-radius:12px;background:var(--white);overflow:hidden}.package-section-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--soft)}.package-section-head h3{margin:0;font-size:16px}.package-items{display:grid}.package-item{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line)}.package-item:first-child{border-top:0}.package-item-icon{width:38px;height:38px;border-radius:9px;background:var(--soft);display:grid;place-items:center;color:var(--brand);font-weight:800}.package-empty{padding:14px 16px;color:var(--muted)}.package-select{min-height:150px}.package-summary{display:grid;grid-template-columns:repeat(7,minmax(90px,1fr));gap:8px;margin:16px 0}.package-summary div{padding:12px 8px;border:1px solid var(--line);border-radius:9px;text-align:center;background:var(--white)}.package-summary b{display:block;font-size:20px;color:var(--brand)}
-    @media(max-width:900px){.package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.package-summary{grid-template-columns:repeat(4,1fr)}}
-    @media(max-width:700px){.package-grid{grid-template-columns:1fr}.package-summary{grid-template-columns:repeat(2,1fr)}.package-item{grid-template-columns:38px 1fr}.package-item .btn{grid-column:1/-1;width:100%}}
+    .package-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.package-card{background:var(--white);border:1px solid var(--line);border-radius:12px;padding:18px;box-shadow:0 4px 14px rgba(16,36,62,.05);display:flex;flex-direction:column;gap:10px}.package-card h3{margin:0;font-size:18px;overflow-wrap:anywhere}.package-card p{margin:0;color:var(--muted);line-height:1.6;flex:1;overflow-wrap:anywhere}.package-sections{display:grid;gap:14px}.package-section{border:1px solid var(--line);border-radius:12px;background:var(--white);overflow:hidden}.package-section-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--soft)}.package-section-head h3{margin:0;font-size:16px}.package-items{display:grid}.package-item{display:grid;grid-template-columns:42px minmax(0,1fr) auto;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line)}.package-item:first-child{border-top:0}.package-item-icon{width:38px;height:38px;border-radius:9px;background:var(--soft);display:grid;place-items:center;color:var(--brand);font-weight:800}.package-empty{padding:14px 16px;color:var(--muted)}.package-select{min-height:150px}.package-order-list{display:grid;gap:6px;margin-top:9px}.package-order-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff}.package-order-title{min-width:0;overflow-wrap:anywhere}.package-order-actions{display:flex;gap:5px}.package-order-actions .btn{min-width:42px;padding:6px}.package-summary{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.package-summary span{padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--white);color:var(--muted);font-size:13px}.package-path{display:grid;gap:9px;margin:12px 0 0;padding:0;list-style:none;counter-reset:package-step}.package-path-step{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:11px;padding:12px;border:1px solid var(--line);border-radius:11px;background:var(--white);counter-increment:package-step;min-width:0}.package-path-step::before{content:counter(package-step);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--soft);color:var(--brand);font-weight:800}.package-path-main{grid-column:2;grid-row:1;min-width:0}.package-path-main h3{margin:3px 0;font-size:15px;line-height:1.5;overflow-wrap:anywhere}.package-path-type,.package-path-summary,.package-path-position{font-size:12px;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}.package-path-step > .package-path-position{grid-column:3;grid-row:1;justify-self:end;text-align:right}.package-path-step > .package-path-open{grid-column:2;grid-row:2;width:fit-content;max-width:100%;padding:9px 16px;white-space:nowrap;justify-self:start;box-sizing:border-box}.package-path-step[aria-current="step"]{border-color:#75bdb3;background:#f7fcfb}.package-path-empty{padding:15px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);background:var(--white)}.detail-collection-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:18px 0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#f8fbfa}.detail-collection-nav a{min-width:0;overflow-wrap:anywhere}.detail-collection-nav .btn:disabled{opacity:.5;cursor:not-allowed}
+    @media(max-width:900px){.package-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:700px){.package-grid{grid-template-columns:1fr}.package-item{grid-template-columns:38px minmax(0,1fr)}.package-item .btn{grid-column:1/-1;width:100%}.package-path-step{grid-template-columns:32px minmax(0,1fr)}.package-path-step::before{width:30px;height:30px}.package-path-step > .package-path-position{grid-column:2;grid-row:2;justify-self:start;text-align:left}.package-path-step > .package-path-open{grid-column:2;grid-row:3;width:fit-content;max-width:100%;min-width:0;min-height:42px}.detail-collection-nav{flex-wrap:wrap}.detail-collection-nav .btn{flex:1;min-width:0;min-height:42px}.package-order-actions .btn{min-height:40px}}
     .category-icon-wrap{display:grid!important;place-items:center;width:38px!important;height:38px!important;min-width:38px;border-radius:50%!important;background:#eef9f6!important;overflow:hidden;color:var(--brand);font-size:18px!important}.category-icon-image{display:block;width:100%;height:100%;object-fit:cover;background:#fff}.category-admin-icon{float:left;margin-right:9px}.category-icon-preview{display:flex;align-items:center;gap:10px;margin-top:8px;color:var(--muted);font-size:12px}.category-icon-preview .category-icon-wrap{width:46px!important;height:46px!important;min-width:46px}
     .law-category-card{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr) 18px;grid-template-rows:auto auto;column-gap:10px;align-items:center;justify-self:start;width:100%;max-width:220px;min-height:66px!important;padding:9px 12px!important;border-radius:12px!important}.law-category-card .category-icon-wrap{grid-column:1;grid-row:1/3;width:42px!important;height:42px!important;min-width:42px}.law-category-card b{grid-column:2;grid-row:1;margin:0!important;align-self:end;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.law-category-card small{grid-column:2;grid-row:2;align-self:start;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.law-category-card::after{content:'›';grid-column:3;grid-row:1/3;color:#91a4b7;font-size:25px;line-height:1;text-align:right}.law-category-card.active{border-color:var(--brand);background:#edf9f6;box-shadow:0 0 0 1px var(--brand)}
     .group-category-filter{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 11px;border:1px solid var(--line);border-radius:10px;background:var(--white)}.group-category-filter label{font-size:12px;font-weight:800;white-space:nowrap;color:var(--ink)}.group-category-filter .select{flex:1;min-width:0;font-size:13px}
@@ -260,9 +260,9 @@
         <div id="knowledgeList"></div>
       </section>
 
-      <section class="view" id="packagesView"><div class="page-head"><div><h1>Land Registration Knowledge Package</h1><p>ชุดองค์ความรู้แบบครบวงจรสำหรับงานทะเบียนที่ดินแต่ละเรื่อง</p></div><span class="tag" id="publishedPackageCount">0 ชุด</span></div><div class="guide-toolbar"><label>ค้นหาชุดองค์ความรู้</label><div class="search" style="flex:1;border:1px solid var(--line);box-shadow:none"><input id="packageSearch" placeholder="ค้นหาชื่อเรื่อง หมวด หรือคำสำคัญ…"><button type="button" id="packageSearchButton">ค้นหา</button></div></div><div class="package-grid" id="packageGrid"></div></section>
+      <section class="view" id="packagesView" aria-labelledby="packagesHeading"><div class="page-head"><div><h1 id="packagesHeading">ชุดองค์ความรู้</h1><p>เส้นทางการศึกษาเนื้อหาที่ผู้เชี่ยวชาญจัดลำดับไว้</p></div><span class="tag" id="publishedPackageCount">0 ชุด</span></div><div class="guide-toolbar"><label for="packageSearch">ค้นหาชุดองค์ความรู้</label><div class="search" style="flex:1;border:1px solid var(--line);box-shadow:none"><input id="packageSearch" placeholder="ค้นหาชื่อเรื่อง หมวด หรือคำสำคัญ…"><button type="button" id="packageSearchButton">ค้นหา</button></div></div><div class="package-grid" id="packageGrid"></div></section>
 
-      <section class="view" id="packageDetailView"><div class="page-head"><div><button class="btn" id="packageDetailBack">← กลับหน้าก่อน</button><h1 id="packageDetailTitle" style="margin-top:16px">ชุดองค์ความรู้</h1><p id="packageDetailSummary"></p></div><span class="tag" id="packageDetailCategory"></span></div><div class="package-summary" id="packageDetailSummaryCounts"></div><div class="package-sections" id="packageDetailSections"></div></section>
+      <section class="view" id="packageDetailView" aria-labelledby="packageDetailTitle"><div class="page-head"><div><button class="btn" id="packageDetailBack">← กลับหน้าก่อน</button><h1 id="packageDetailTitle" style="margin-top:16px">ชุดองค์ความรู้</h1><p id="packageDetailSummary"></p></div><div class="package-summary" id="packageDetailSummaryCounts" aria-label="ข้อมูลชุดองค์ความรู้"></div></div><section aria-labelledby="packagePathHeading"><h2 id="packagePathHeading" class="section-title">เส้นทางการเรียนรู้</h2><ol class="package-path" id="packageDetailSections" aria-label="ลำดับเนื้อหาในชุด"></ol></section></section>
 
       <section class="view" id="searchView">
         <div class="search-header"><h1>ค้นหาความรู้</h1><p>ค้นหาองค์ความรู้ กฎหมาย คำพิพากษา แนววินิจฉัย คู่มือ บทเรียน และคำถาม–คำตอบ</p><form class="search" id="resultSearch"><label class="sr-only" for="resultInput">คำค้นหา</label><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่เอกสาร หมวด หรือคำสำคัญ…"><button class="btn primary" type="submit">ค้นหา</button><button class="btn" id="clearSearch" type="button" hidden>ล้างคำค้น</button></form></div>
@@ -455,6 +455,10 @@
   let currentUserProfile = null;
   let knowledgePackagesData = [];
   let editingPackageId = null;
+  let packageSectionOrderState = {};
+  let activeCollectionPathContext = null;
+  const collectionDetailHistory = [];
+  let lessonPlayerReturnToDetail = false;
   let activeVersionContentId = '';
   let activeContentVersions = [];
   let retryAction = null;
@@ -2842,7 +2846,14 @@
       const sourceButton = document.createElement('button');
       sourceButton.type = 'button';
       sourceButton.textContent = sourceLabel;
-      sourceButton.onclick = () => showPreviousView();
+      sourceButton.onclick = () => {
+        if (activeCollectionPathContext) {
+          activeCollectionPathContext = null;
+          collectionDetailHistory.length = 0;
+          relatedDetailHistory.length = 0;
+        }
+        showPreviousView();
+      };
       sourceItem.appendChild(sourceButton);
     } else {
       const source = document.createElement('span');
@@ -3107,6 +3118,18 @@
         void openContentFromFirestore(previousItem, { recordOpenUsage: false, restoreRelatedHistory: true });
         return;
       }
+      if (collectionDetailHistory.length) {
+        event.preventDefault();
+        const previous = collectionDetailHistory.pop();
+        if (activeCollectionPathContext) activeCollectionPathContext.position = previous.position;
+        void openContentFromFirestore(previous.item, { recordOpenUsage: false, restoreCollectionHistory: true });
+        return;
+      }
+      if (activeCollectionPathContext && isActiveCollectionPathItem(activeDetailItem)) {
+        event.preventDefault();
+        returnToCollectionOverview();
+        return;
+      }
       fallback?.call(backButton, event);
     };
     backButton.dataset.relatedHistoryBack = 'true';
@@ -3190,6 +3213,10 @@
   async function openContentFromFirestore(item, options = {}) {
     if (options.isCurrentRequest && !options.isCurrentRequest()) return;
     const detailView = document.getElementById('detailView');
+    if (activeCollectionPathContext && !options.fromCollection && !options.fromCollectionNavigation && !options.restoreCollectionHistory && !options.fromRelated && !options.restoreRelatedHistory) {
+      activeCollectionPathContext = null;
+      collectionDetailHistory.length = 0;
+    }
     if (!options.restoreRelatedHistory) {
       if (options.fromRelated && activeDetailItem && detailView.classList.contains('active')) {
         relatedDetailHistory.push(activeDetailItem);
@@ -3256,6 +3283,7 @@
       appendDetailSection(body, 'ตัวอย่าง', item.example);
     }
     if (!body.children.length) appendDetailSection(body, 'รายละเอียด', 'ไม่มีรายละเอียดเพิ่มเติมในรายการนี้');
+    renderCollectionDetailNavigation(body, item);
 
     let linkedFiles = [];
     try {
@@ -4070,7 +4098,8 @@
     document.getElementById('lessonPlayerProgressText').textContent = `เรียนแล้ว ${completedLessonUnitIds.size} จาก ${activeLessonUnits.length} หน่วย (${percent}%)`;
   }
 
-  async function openLessonPlayer(contentId) {
+  async function openLessonPlayer(contentId, options = {}) {
+    lessonPlayerReturnToDetail = options.returnToDetail === true;
     const lesson = lessonsData.find(item => (item.content_id || item.id) === contentId) || {};
     const content = contentItems.find(item => item.content_id === contentId || item.id === contentId) || {};
     activeLessonUnits = lessonUnitsData
@@ -4135,7 +4164,12 @@
     }
   }
 
-  document.getElementById('lessonPlayerBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+  document.getElementById('lessonPlayerBack').onclick = () => {
+    if (lessonPlayerReturnToDetail) {
+      lessonPlayerReturnToDetail = false;
+      window.showPreviousView?.('detailView', 'รายละเอียดองค์ความรู้');
+    } else window.show('learningView', 'บทเรียนออนไลน์');
+  };
   document.getElementById('previousLessonUnit').onclick = () => { if (activeLessonUnitIndex > 0) { activeLessonUnitIndex--; renderLessonPlayerUnit(); } };
   document.getElementById('nextLessonUnit').onclick = () => {
     if (activeLessonUnitIndex < activeLessonUnits.length - 1) { activeLessonUnitIndex++; renderLessonPlayerUnit(); }
@@ -4143,7 +4177,12 @@
   };
   document.getElementById('completeLessonUnit').onclick = markCurrentLessonUnitComplete;
   document.getElementById('lessonCompletionReview').onclick = () => { activeLessonUnitIndex = 0; renderLessonPlayerUnit(); };
-  document.getElementById('lessonCompletionBack').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+  document.getElementById('lessonCompletionBack').onclick = () => {
+    if (lessonPlayerReturnToDetail) {
+      lessonPlayerReturnToDetail = false;
+      window.showPreviousView?.('detailView', 'รายละเอียดองค์ความรู้');
+    } else window.show('learningView', 'บทเรียนออนไลน์');
+  };
 
   function resetLessonUnitForm() {
     editingLessonUnitId = null;
@@ -5753,6 +5792,93 @@
     return packageSectionDefs.reduce((sum, section) => sum + (Array.isArray(item.sections?.[section.key]) ? item.sections[section.key].length : 0), 0);
   }
 
+  function packageMemberIsAccessible(content, profile = currentUserProfile, email = auth.currentUser?.email) {
+    if (!content || content.workflow_status !== 'published') return false;
+    const role = profile?.role;
+    if (role === 'admin' || role === 'reviewer') return true;
+    if (role === 'editor' && String(content.created_by || '').toLowerCase() === String(email || '').toLowerCase()) return true;
+    return ['public', 'internal'].includes(content.access_level);
+  }
+
+  function getCuratedPackageItems(item, candidates = contentItems, profile = currentUserProfile, email = auth.currentUser?.email) {
+    const byIdentity = new Map();
+    candidates.forEach(content => {
+      const identity = content.content_id || content.id;
+      if (identity && !byIdentity.has(identity)) byIdentity.set(identity, content);
+      if (content.id && !byIdentity.has(content.id)) byIdentity.set(content.id, content);
+    });
+    const seen = new Set();
+    const ordered = [];
+    packageSectionDefs.forEach(section => {
+      const ids = Array.isArray(item.sections?.[section.key]) ? item.sections[section.key] : [];
+      ids.forEach(reference => {
+        const content = byIdentity.get(reference);
+        if (!packageMemberIsAccessible(content, profile, email)) return;
+        const identity = content.content_id || content.id;
+        if (!identity || seen.has(identity)) return;
+        seen.add(identity);
+        ordered.push({ item: content, section });
+      });
+    });
+    return ordered;
+  }
+
+  function isActiveCollectionPathItem(content) {
+    const expected = activeCollectionPathContext?.items?.[activeCollectionPathContext.position]?.item;
+    return Boolean(expected && content && (expected.content_id || expected.id) === (content.content_id || content.id));
+  }
+
+  function returnToCollectionOverview() {
+    activeCollectionPathContext = null;
+    collectionDetailHistory.length = 0;
+    relatedDetailHistory.length = 0;
+    window.showPreviousView?.('packagesView', 'ชุดองค์ความรู้');
+  }
+
+  function renderCollectionDetailNavigation(container, content) {
+    const context = activeCollectionPathContext;
+    if (!context || !isActiveCollectionPathItem(content)) return;
+    const nav = document.createElement('nav');
+    nav.className = 'detail-collection-nav';
+    nav.setAttribute('aria-label', `เส้นทางการเรียนรู้ ${context.title}`);
+    const collectionName = document.createElement('span');
+    collectionName.className = 'package-path-position';
+    collectionName.textContent = `ชุดองค์ความรู้: ${context.title}`;
+    const previous = document.createElement('button');
+    previous.type = 'button';
+    previous.className = 'btn';
+    previous.textContent = '← ก่อนหน้า';
+    previous.disabled = context.position <= 0;
+    previous.setAttribute('aria-label', 'เปิดเนื้อหาก่อนหน้าในชุดองค์ความรู้');
+    previous.onclick = () => openCollectionPathItem(context.packageId, context.position - 1, { navigation: true });
+    const position = document.createElement('span');
+    position.className = 'package-path-position';
+    position.textContent = `${context.position + 1} จาก ${context.items.length}`;
+    position.setAttribute('aria-current', 'step');
+    const next = document.createElement('button');
+    next.type = 'button';
+    next.className = 'btn primary';
+    next.textContent = 'ถัดไป →';
+    next.disabled = context.position >= context.items.length - 1;
+    next.setAttribute('aria-label', 'เปิดเนื้อหาถัดไปในชุดองค์ความรู้');
+    next.onclick = () => openCollectionPathItem(context.packageId, context.position + 1, { navigation: true });
+    const overview = document.createElement('button');
+    overview.type = 'button';
+    overview.className = 'btn';
+    overview.textContent = 'กลับไปชุดองค์ความรู้';
+    overview.onclick = returnToCollectionOverview;
+    nav.append(collectionName, previous, position, next, overview);
+    if (content.content_type === 'lesson') {
+      const startLesson = document.createElement('button');
+      startLesson.type = 'button';
+      startLesson.className = 'btn';
+      startLesson.textContent = 'เริ่มบทเรียน';
+      startLesson.onclick = () => { void openLessonPlayer(content.content_id || content.id, { returnToDetail: true }); };
+      nav.appendChild(startLesson);
+    }
+    container.appendChild(nav);
+  }
+
   function renderPackageCards(searchText = '') {
     const grid = document.getElementById('packageGrid');
     const term = searchText.trim().toLocaleLowerCase('th');
@@ -5766,19 +5892,21 @@
     packages.forEach(item => {
       const card = document.createElement('article');
       card.className = 'package-card';
-      card.innerHTML = '<span class="tag"></span><h3></h3><p></p><div class="package-progress"></div><div class="doc-meta"></div><button class="btn primary">เปิดชุดองค์ความรู้</button>';
-      card.querySelector('.tag').textContent = getCategoryDisplay(item.category_id).text;
+      card.innerHTML = '<span class="tag" hidden></span><h3></h3><p hidden></p><div class="doc-meta"></div><button class="btn primary">เปิดชุดองค์ความรู้</button>';
+      const category = getCategoryDisplay(item.category_id);
+      const tag = card.querySelector('.tag');
+      if (category.name && category.name !== 'ไม่ระบุหมวด') {
+        tag.textContent = category.text;
+        tag.hidden = false;
+      }
       card.querySelector('h3').textContent = item.title || '(ไม่มีชื่อชุด)';
-      card.querySelector('p').textContent = item.description || 'รวบรวมองค์ความรู้ที่เกี่ยวข้องไว้ในชุดเดียว';
-      const progress = card.querySelector('.package-progress');
-      packageSectionDefs.forEach(section => {
-        const bar = document.createElement('i');
-        bar.title = section.label;
-        bar.classList.toggle('filled', (item.sections?.[section.key] || []).length > 0);
-        progress.appendChild(bar);
-      });
-      const filled = packageSectionDefs.filter(section => (item.sections?.[section.key] || []).length > 0).length;
-      card.querySelector('.doc-meta').textContent = `${filled} จาก 7 ส่วน • ${packageItemCount(item)} รายการ`;
+      const description = card.querySelector('p');
+      if (item.description) {
+        description.textContent = item.description;
+        description.hidden = false;
+      }
+      const path = getCuratedPackageItems(item);
+      card.querySelector('.doc-meta').textContent = `${path.length} รายการในเส้นทาง`;
       card.querySelector('button').onclick = () => openKnowledgePackage(item.id);
       grid.appendChild(card);
     });
@@ -5787,42 +5915,88 @@
 
   function openKnowledgePackage(packageId) {
     const item = knowledgePackagesData.find(entry => entry.id === packageId);
-    if (!item) return;
+    if (!item || item.workflow_status !== 'published') return;
+    activeCollectionPathContext = null;
+    collectionDetailHistory.length = 0;
+    relatedDetailHistory.length = 0;
     document.getElementById('packageDetailTitle').textContent = item.title || 'ชุดองค์ความรู้';
-    document.getElementById('packageDetailSummary').textContent = item.description || '';
-    document.getElementById('packageDetailCategory').textContent = getCategoryDisplay(item.category_id).text;
+    const summary = document.getElementById('packageDetailSummary');
+    summary.textContent = item.description || '';
+    summary.hidden = !item.description;
     const counts = document.getElementById('packageDetailSummaryCounts');
     const sections = document.getElementById('packageDetailSections');
-    counts.innerHTML = '';
-    sections.innerHTML = '';
-    packageSectionDefs.forEach(section => {
-      const ids = Array.isArray(item.sections?.[section.key]) ? item.sections[section.key] : [];
-      const validItems = ids.map(packageContentById).filter(content => content && content.workflow_status === 'published');
-      const count = document.createElement('div');
-      count.innerHTML = '<b></b><span></span>';
-      count.querySelector('b').textContent = validItems.length;
-      count.querySelector('span').textContent = section.label;
-      counts.appendChild(count);
-      const block = document.createElement('section');
-      block.className = 'package-section';
-      block.innerHTML = '<div class="package-section-head"><h3></h3><span class="tag"></span></div><div class="package-items"></div>';
-      block.querySelector('h3').textContent = `${section.icon} ${section.label}`;
-      block.querySelector('.tag').textContent = `${validItems.length} รายการ`;
-      const list = block.querySelector('.package-items');
-      validItems.forEach(content => {
-        const row = document.createElement('div');
-        row.className = 'package-item';
-        row.innerHTML = '<span class="package-item-icon"></span><div><b></b><div class="doc-meta"></div></div><button class="btn">เปิดอ่าน</button>';
-        row.querySelector('.package-item-icon').textContent = section.icon;
-        row.querySelector('b').textContent = content.title || '(ไม่มีชื่อเรื่อง)';
-        row.querySelector('.doc-meta').textContent = getCategoryDisplay(content.category_id).text;
-        row.querySelector('button').onclick = () => openContentFromFirestore(content);
-        list.appendChild(row);
-      });
-      if (!validItems.length) list.innerHTML = '<div class="package-empty">ยังไม่มีเนื้อหาในส่วนนี้</div>';
-      sections.appendChild(block);
+    counts.replaceChildren();
+    const category = getCategoryDisplay(item.category_id);
+    if (category.name && category.name !== 'ไม่ระบุหมวด') {
+      const categoryMeta = document.createElement('span');
+      categoryMeta.textContent = `หมวด: ${category.text}`;
+      counts.appendChild(categoryMeta);
+    }
+    const path = getCuratedPackageItems(item);
+    const itemCount = document.createElement('span');
+    itemCount.textContent = `${path.length} ขั้นในเส้นทาง`;
+    counts.appendChild(itemCount);
+    sections.replaceChildren();
+    if (!path.length) {
+      const empty = document.createElement('li');
+      empty.className = 'package-path-empty';
+      empty.textContent = 'ยังไม่มีเนื้อหาที่เปิดอ่านได้ในชุดนี้';
+      sections.appendChild(empty);
+    }
+    path.forEach((entry, index) => {
+      const content = entry.item;
+      const step = document.createElement('li');
+      step.className = 'package-path-step';
+      step.dataset.contentId = content.content_id || content.id;
+      const main = document.createElement('div');
+      main.className = 'package-path-main';
+      const type = document.createElement('div');
+      type.className = 'package-path-type';
+      type.textContent = detailTypeLabels[content.content_type] || content.content_type || 'องค์ความรู้';
+      const title = document.createElement('h3');
+      title.textContent = content.title || '(ไม่มีชื่อเรื่อง)';
+      main.append(type, title);
+      if (content.summary) {
+        const summary = document.createElement('div');
+        summary.className = 'package-path-summary';
+        summary.textContent = content.summary;
+        main.appendChild(summary);
+      }
+      const position = document.createElement('span');
+      position.className = 'package-path-position';
+      position.textContent = `${index + 1} จาก ${path.length}`;
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'btn package-path-open';
+      open.textContent = 'เปิดอ่าน';
+      open.setAttribute('aria-label', `เปิดขั้นที่ ${index + 1}: ${content.title || 'เนื้อหา'}`);
+      open.onclick = () => openCollectionPathItem(item.id, index);
+      step.append(main, position, open);
+      sections.appendChild(step);
     });
     window.show('packageDetailView', 'ชุดองค์ความรู้');
+  }
+
+  function openCollectionPathItem(packageId, position, options = {}) {
+    const collection = knowledgePackagesData.find(item => item.id === packageId && item.workflow_status === 'published');
+    if (!collection) return;
+    const items = activeCollectionPathContext?.packageId === packageId
+      ? activeCollectionPathContext.items
+      : getCuratedPackageItems(collection);
+    const next = items[position];
+    if (!next) return;
+    const detailView = document.getElementById('detailView');
+    if (options.navigation && activeCollectionPathContext?.packageId === packageId
+      && isActiveCollectionPathItem(activeDetailItem) && detailView.classList.contains('active')) {
+      collectionDetailHistory.push({ item: activeDetailItem, position: activeCollectionPathContext.position });
+      if (collectionDetailHistory.length > 30) collectionDetailHistory.shift();
+    } else if (!options.restore) collectionDetailHistory.length = 0;
+    activeCollectionPathContext = { packageId, title: collection.title || 'ชุดองค์ความรู้', items, position };
+    void openContentFromFirestore(next.item, {
+      fromCollection: !options.navigation && !options.restore,
+      fromCollectionNavigation: options.navigation === true,
+      restoreCollectionHistory: options.restore === true
+    });
   }
 
   function renderPackageSelectors(selectedSections = {}) {
@@ -5839,32 +6013,93 @@
     const host = document.getElementById('packageSectionSelectors');
     host.innerHTML = '';
     const published = contentItems.filter(item => item.workflow_status === 'published');
+    packageSectionOrderState = Object.fromEntries(packageSectionDefs.map(section => [section.key, [...new Set(Array.isArray(selectedSections[section.key]) ? selectedSections[section.key].filter(Boolean) : [])]]));
     packageSectionDefs.forEach(section => {
       const field = document.createElement('div');
       field.className = 'field';
       const label = document.createElement('label');
-      label.textContent = `${section.icon} ${section.label}`;
+      label.textContent = `${section.icon} ${section.label} — เลือกและจัดลำดับ`;
       const select = document.createElement('select');
       select.id = `packageSection-${section.key}`;
+      label.htmlFor = select.id;
       select.className = 'package-select';
       select.multiple = true;
-      const selected = new Set(selectedSections[section.key] || []);
+      select.setAttribute('aria-label', `เลือกเนื้อหาส่วน ${section.label}`);
+      const selected = new Set(packageSectionOrderState[section.key]);
       published.forEach(content => {
         const option = document.createElement('option');
         option.value = content.content_id || content.id;
-        option.textContent = `${content.title || '(ไม่มีชื่อเรื่อง)'} — ${getCategoryDisplay(content.category_id).text}`;
+        option.textContent = `${detailTypeLabels[content.content_type] || content.content_type || 'องค์ความรู้'} — ${content.title || '(ไม่มีชื่อเรื่อง)'}`;
         option.selected = selected.has(option.value);
         select.appendChild(option);
       });
       const hint = document.createElement('small');
-      hint.textContent = 'กด Ctrl หรือ Command เพื่อเลือกหลายรายการ';
-      field.append(label, select, hint);
+      hint.id = `packageSectionHint-${section.key}`;
+      hint.textContent = 'เลือกหลายรายการได้ จากนั้นใช้ปุ่มเลื่อนเพื่อกำหนดลำดับ';
+      select.setAttribute('aria-describedby', hint.id);
+      const order = document.createElement('div');
+      order.className = 'package-order-list';
+      order.setAttribute('aria-label', `ลำดับเนื้อหาในส่วน ${section.label}`);
+      select.onchange = () => {
+        const chosen = [...select.selectedOptions].map(option => option.value);
+        const chosenSet = new Set(chosen);
+        const previous = packageSectionOrderState[section.key] || [];
+        packageSectionOrderState[section.key] = previous.filter(id => chosenSet.has(id))
+          .concat(chosen.filter(id => !previous.includes(id)));
+        renderPackageSectionOrder(section, published, order);
+      };
+      field.append(label, select, hint, order);
+      renderPackageSectionOrder(section, published, order);
       host.appendChild(field);
     });
   }
 
+  function renderPackageSectionOrder(section, published, host) {
+    host.replaceChildren();
+    const itemsById = new Map(published.map(item => [item.content_id || item.id, item]));
+    const order = packageSectionOrderState[section.key] || [];
+    const visibleOrder = order.filter(id => itemsById.has(id));
+    if (!visibleOrder.length) {
+      const empty = document.createElement('span');
+      empty.className = 'doc-meta';
+      empty.textContent = 'ยังไม่ได้เลือกเนื้อหา';
+      host.appendChild(empty);
+      return;
+    }
+    visibleOrder.forEach((id, index) => {
+      const content = itemsById.get(id);
+      const row = document.createElement('div');
+      row.className = 'package-order-row';
+      const title = document.createElement('span');
+      title.className = 'package-order-title';
+      title.textContent = `${index + 1}. ${detailTypeLabels[content.content_type] || content.content_type || 'องค์ความรู้'} — ${content.title || '(ไม่มีชื่อเรื่อง)'}`;
+      const actions = document.createElement('div');
+      actions.className = 'package-order-actions';
+      for (const [label, offset] of [['เลื่อนขึ้น', -1], ['เลื่อนลง', 1]]) {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn';
+        button.textContent = label;
+        button.disabled = index + offset < 0 || index + offset >= visibleOrder.length;
+        button.setAttribute('aria-label', `${label}: ${content.title || 'เนื้อหา'}`);
+        button.onclick = () => {
+          const current = packageSectionOrderState[section.key] || [];
+          const from = current.indexOf(id);
+          const targetId = visibleOrder[index + offset];
+          const to = current.indexOf(targetId);
+          if (from < 0 || to < 0) return;
+          [current[from], current[to]] = [current[to], current[from]];
+          renderPackageSectionOrder(section, published, host);
+        };
+        actions.appendChild(button);
+      }
+      row.append(title, actions);
+      host.appendChild(row);
+    });
+  }
+
   function readPackageSections() {
-    return Object.fromEntries(packageSectionDefs.map(section => [section.key, [...document.getElementById(`packageSection-${section.key}`).selectedOptions].map(option => option.value)]));
+    return Object.fromEntries(packageSectionDefs.map(section => [section.key, [...(packageSectionOrderState[section.key] || [])]]));
   }
 
   function resetPackageForm() {
@@ -6002,7 +6237,14 @@
     void openSharedContentFromHash();
   });
   onAuthStateChanged(auth, async user => {
-    if (workspaceOwnerUid !== (user?.uid || null)) resetKnowledgeWorkspace(user?.uid || null);
+    if (workspaceOwnerUid !== (user?.uid || null)) {
+      activeCollectionPathContext = null;
+      collectionDetailHistory.length = 0;
+      relatedDetailHistory.length = 0;
+      activeDetailItem = null;
+      lessonPlayerReturnToDetail = false;
+      resetKnowledgeWorkspace(user?.uid || null);
+    }
     if (!user) { currentUserProfile = null; return showLogin(); }
     setLoading(true, 'กำลังตรวจสอบสิทธิและโหลดข้อมูล…');
     if (user.emailVerified === false) {
