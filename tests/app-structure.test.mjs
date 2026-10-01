@@ -395,14 +395,97 @@ test('detail reading body, resource links, and related knowledge use safe bounde
   assert.match(resourceSource, /link\.target = '_blank'/);
   assert.match(resourceSource, /link\.rel = 'noopener noreferrer'/);
   assert.match(openSource, /where\('content_id', '==', currentContentId\), limit\(APP_LIMITS\.detailFiles\)/);
-  assert.match(relatedSource, /candidate\.workflow_status === 'published'/);
-  assert.match(relatedSource, /\(candidate\.content_id \|\| candidate\.id\) !== currentId/);
-  assert.match(relatedSource, /contentItems\.filter/);
-  assert.match(relatedSource, /\.slice\(0, 4\)/);
+  const discoveryStart = productionHtml.indexOf('const RELATED_KNOWLEDGE_LIMIT');
+  const discoveryEnd = productionHtml.indexOf('\n  function renderRelatedKnowledge', discoveryStart);
+  const discoverySource = productionHtml.slice(discoveryStart, discoveryEnd);
+  assert.match(relatedSource, /selectRelatedKnowledge\(item, contentItems\)/);
+  assert.match(discoverySource, /candidate\.workflow_status !== 'published'/);
+  assert.match(discoverySource, /!\['public', 'internal'\]\.includes\(candidate\.access_level\)/);
+  assert.match(discoverySource, /id === currentId/);
+  assert.match(discoverySource, /RELATED_KNOWLEDGE_LIMIT = 5/);
+  assert.match(discoverySource, /RELATED_KNOWLEDGE_MIN_SCORE = 4/);
+  assert.match(discoverySource, /\.sort\(/);
+  assert.match(relatedSource, /result\.reasons\.join/);
+  assert.match(relatedSource, /openContentFromFirestore\(content, \{ fromRelated: true \}\)/);
+  assert.doesNotMatch(relatedSource, /replaceCurrent/);
   assert.match(relatedSource, /section\.append\(heading, list\)/);
-  assert.doesNotMatch(relatedSource, /getDocs\(|getDoc\(/);
+  assert.match(relatedSource, /catch \(error\) \{ console\.warn/);
+  assert.doesNotMatch(`${relatedSource}${discoverySource}`, /getDocs\(|getDoc\(/);
   assert.match(productionHtml, /#detailView #dynamicDetailBody\{max-width:72ch/);
   assert.match(productionHtml, /@media\(max-width:700px\)\{#detailView/);
+});
+
+function createRelatedKnowledgeEngine() {
+  const start = productionHtml.indexOf('const RELATED_KNOWLEDGE_LIMIT');
+  const end = productionHtml.indexOf('\n  function renderRelatedKnowledge', start);
+  const source = productionHtml.slice(start, end);
+  const normalize = value => String(value || '').toLocaleLowerCase('th-TH').normalize('NFC').replace(/[\s\-_/.,:;()]+/g, ' ').trim();
+  return new Function('normalizeSearchText', `${source}; return { scoreRelatedKnowledge, selectRelatedKnowledge };`)(normalize);
+}
+
+test('related knowledge scoring uses explicit, explainable content signals and rejects type-only matches', () => {
+  const { scoreRelatedKnowledge, selectRelatedKnowledge } = createRelatedKnowledgeEngine();
+  const current = { id: 'inheritance', content_id: 'inheritance', category_id: 'inheritance', title: 'การรับมรดกที่ดิน', content_type: 'knowledge', workflow_status: 'published', access_level: 'internal', keywords: ['มรดก', 'ทายาท'], summary: 'การโอนมรดกแก่ทายาทโดยชอบ' };
+  const sameCategory = { id: 'same-category', category_id: 'inheritance', title: 'รายการในหมวดเดียวกัน', content_type: 'knowledge', workflow_status: 'published', access_level: 'internal' };
+  const keywordTitle = { id: 'shared-terms', category_id: 'other', title: 'ขั้นตอนรับมรดกที่ดิน', content_type: 'guide', workflow_status: 'published', access_level: 'public', keywords: ['ทายาท'] };
+  const law = { id: 'inheritance-law', category_id: 'law', title: 'กฎหมายการรับมรดก', content_type: 'law', workflow_status: 'published', access_level: 'public', summary: 'หลักการรับมรดกและสิทธิทายาท' };
+  const qa = { id: 'inheritance-qa', category_id: 'questions', title: 'ถามเรื่องแบ่งมรดกแก่ทายาท', content_type: 'qa', workflow_status: 'published', access_level: 'internal', keywords: ['มรดก'] };
+  const unrelated = { id: 'mortgage', category_id: 'mortgage', title: 'การไถ่ถอนจำนองที่ดิน', content_type: 'law', workflow_status: 'published', access_level: 'public' };
+  const typeOnly = { id: 'other-law', category_id: 'other', title: 'การรังวัดแปลงที่ดิน', content_type: 'law', workflow_status: 'published', access_level: 'public' };
+  assert.ok(scoreRelatedKnowledge(current, sameCategory).score > 0);
+  assert.ok(scoreRelatedKnowledge(current, keywordTitle).score > 0);
+  assert.ok(scoreRelatedKnowledge(current, law).score >= 4);
+  assert.ok(scoreRelatedKnowledge(current, qa).score >= 4);
+  assert.equal(scoreRelatedKnowledge(current, unrelated).hasSubstantiveEvidence, false);
+  assert.equal(scoreRelatedKnowledge(current, typeOnly).hasSubstantiveEvidence, false);
+  const selected = selectRelatedKnowledge(current, [sameCategory, keywordTitle, law, qa, unrelated, typeOnly]);
+  assert.ok(selected.some(item => item.item.id === 'inheritance-law'));
+  assert.ok(selected.some(item => item.item.id === 'inheritance-qa'));
+  assert.ok(!selected.some(item => item.item.id === 'mortgage' || item.item.id === 'other-law'));
+  assert.ok(selected.every(item => item.reasons.length > 0 && item.reasons.length <= 2));
+  assert.ok(selected.some(item => item.reasons.includes('กฎหมายที่เกี่ยวข้อง')));
+});
+
+test('related knowledge removes current/duplicate/restricted records, ranks deterministically, caps and diversifies qualified results', () => {
+  const { selectRelatedKnowledge } = createRelatedKnowledgeEngine();
+  const current = { id: 'base', content_id: 'base', category_id: 'inheritance', title: 'มรดกและทายาท', content_type: 'knowledge', workflow_status: 'published', access_level: 'internal', keywords: ['มรดก'] };
+  const make = (id, type = 'law', overrides = {}) => ({ id, content_id: id, category_id: 'inheritance', title: `กฎหมายมรดก ${id}`, content_type: type, workflow_status: 'published', access_level: 'internal', keywords: ['มรดก'], ...overrides });
+  const candidates = [
+    current,
+    make('duplicate'), make('duplicate', 'guide'), make('unpublished', 'guide', { workflow_status: 'draft' }),
+    make('restricted', 'guide', { access_level: 'confidential' }),
+    ...Array.from({ length: 7 }, (_, index) => make(`law-${index}`)),
+    make('guide', 'guide'), make('qa', 'qa'), make('lesson', 'lesson')
+  ];
+  const first = selectRelatedKnowledge(current, candidates);
+  const second = selectRelatedKnowledge(current, [...candidates].reverse());
+  assert.deepEqual(first.map(result => result.item.id), second.map(result => result.item.id));
+  assert.ok(first.length <= 5);
+  assert.equal(first.filter(result => result.item.content_type === 'law').length, 2);
+  assert.ok(first.some(result => result.item.content_type !== 'law'));
+  assert.ok(!first.some(result => ['base', 'unpublished', 'restricted'].includes(result.item.id)));
+  assert.equal(first.filter(result => result.item.id === 'duplicate').length, 1);
+});
+
+test('related knowledge uses shared detail navigation and leaves search, deep links, workspace, analytics and backend boundaries intact', () => {
+  const start = productionHtml.indexOf('function renderRelatedKnowledge(container, item)');
+  const end = productionHtml.indexOf('\n  async function openContentFromFirestore', start);
+  const renderer = productionHtml.slice(start, end);
+  assert.match(renderer, /openContentFromFirestore\(content, \{ fromRelated: true \}\)/);
+  assert.doesNotMatch(renderer, /replaceCurrent/);
+  assert.match(renderer, /type\.textContent = detailTypeLabels\[content\.content_type\]/);
+  assert.match(renderer, /link\.append\(type, title, reason\)/);
+  assert.match(productionHtml, /heading\.textContent = 'ความรู้ที่เกี่ยวข้อง'/);
+  assert.doesNotMatch(renderer, /%|Relevance:/);
+  assert.match(renderer, /fromRelated: true/);
+  assert.match(productionHtml, /relatedDetailHistory\.push\(activeDetailItem\)/);
+  assert.match(productionHtml, /relatedDetailHistory\.pop\(\)/);
+  assert.match(productionHtml, /recordOpenUsage: false, restoreRelatedHistory: true/);
+  assert.match(productionHtml, /link\.hash = `content=\$\{encodeURIComponent\(currentContentId\)\}`/);
+  assert.match(productionHtml, /function resetKnowledgeWorkspace/);
+  assert.match(productionHtml, /recordSharedUsage\('open', 'content', currentContentId\)/);
+  assert.doesNotMatch(renderer, /recordSharedUsage|searchHistory|workspaceRecentData|workspaceSavedData/);
+  assert.doesNotMatch(productionHtml, /collection\(db, '(recommendations|relatedContent|knowledgeGraph|contentRelations|semanticIndex|embeddings|vectors)'\)/);
 });
 
 test('detail deep links and reading controls remain compatible with analytics and existing features', () => {

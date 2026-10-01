@@ -889,6 +889,8 @@
   let workspaceSavedState = 'loading';
   let workspaceLearningState = 'loading';
   let workspaceRecentLoadedUid = null;
+  let activeDetailItem = null;
+  const relatedDetailHistory = [];
   let editingContentId = null;
   let questionsData = [];
   let answersData = [];
@@ -2947,41 +2949,167 @@
     container.appendChild(section);
   }
 
+  const RELATED_KNOWLEDGE_LIMIT = 5;
+  const RELATED_KNOWLEDGE_MIN_SCORE = 4;
+  const relatedKnowledgeStopTerms = new Set(['ความรู้', 'เรื่อง', 'เนื้อหา', 'ที่', 'และ', 'ของ', 'ใน', 'ตาม', 'เกี่ยวกับ', 'ทั่วไป', 'คู่มือ', 'แนวทาง', 'กฎหมาย', 'ที่ดิน', 'การ']);
+  const relatedKnowledgeSegmenter = typeof Intl.Segmenter === 'function' ? new Intl.Segmenter('th', { granularity: 'word' }) : null;
+
+  function relatedKnowledgeTerms(value) {
+    const normalized = normalizeSearchText(value);
+    const terms = new Set();
+    for (const part of normalized.split(' ')) {
+      if (relatedKnowledgeSegmenter) {
+        for (const segment of relatedKnowledgeSegmenter.segment(part)) {
+          const term = segment.segment.trim();
+          if (segment.isWordLike && [...term].length >= 2 && !relatedKnowledgeStopTerms.has(term)) terms.add(term);
+        }
+        continue;
+      }
+      if (!/[\u0E00-\u0E7F]/.test(part)) {
+        if (part.length >= 2 && !relatedKnowledgeStopTerms.has(part)) terms.add(part);
+        continue;
+      }
+      const chars = [...part];
+      if (chars.length >= 4 && /[\u0E00-\u0E7F]/.test(part)) {
+        for (let size = 5; size <= Math.min(chars.length, 12); size++) {
+          for (let index = 0; index <= chars.length - size; index++) {
+            const term = chars.slice(index, index + size).join('');
+            if (!relatedKnowledgeStopTerms.has(term)) terms.add(term);
+          }
+        }
+      }
+    }
+    return terms;
+  }
+
+  function relatedKnowledgeText(item, fields) {
+    return fields.flatMap(field => {
+      const value = item?.[field];
+      return Array.isArray(value) ? value : [value];
+    }).filter(value => typeof value === 'string' || typeof value === 'number').join(' ');
+  }
+
+  function scoreRelatedKnowledge(currentItem, candidateItem) {
+    const reasons = [];
+    let score = 0;
+    const sameCategory = Boolean(currentItem.category_id && candidateItem.category_id === currentItem.category_id);
+    if (sameCategory) { score += 8; reasons.push('หมวดเดียวกัน'); }
+
+    const currentKeywords = relatedKnowledgeTerms(relatedKnowledgeText(currentItem, ['keywords']).slice(0, 300));
+    const candidateKeywords = relatedKnowledgeTerms(relatedKnowledgeText(candidateItem, ['keywords']).slice(0, 300));
+    const keywordMatches = [...currentKeywords].filter(term => candidateKeywords.has(term));
+    if (keywordMatches.length) {
+      score += Math.min(keywordMatches.length, 2) * 6;
+      reasons.push('มีคำสำคัญร่วมกัน');
+    }
+
+    const currentTitle = relatedKnowledgeTerms(String(currentItem.title || '').slice(0, 240));
+    const candidateTitle = relatedKnowledgeTerms(String(candidateItem.title || '').slice(0, 240));
+    const titleMatches = [...currentTitle].filter(term => candidateTitle.has(term));
+    if (titleMatches.length) {
+      score += Math.min(titleMatches.length, 3) * 4;
+      reasons.push('หัวข้อใกล้เคียง');
+    }
+
+    const currentSummary = relatedKnowledgeTerms(relatedKnowledgeText(currentItem, ['summary', 'description']).slice(0, 400));
+    const candidateSummary = relatedKnowledgeTerms(relatedKnowledgeText(candidateItem, ['summary', 'description']).slice(0, 400));
+    const summaryMatches = [...currentSummary].filter(term => candidateSummary.has(term));
+    if (summaryMatches.length) {
+      score += Math.min(summaryMatches.length, 2) * 2;
+      if (!reasons.includes('คำอธิบายใกล้เคียง')) reasons.push('คำอธิบายใกล้เคียง');
+    }
+
+    const hasSubstantiveEvidence = sameCategory || keywordMatches.length > 0 || titleMatches.length > 0 || summaryMatches.length > 0;
+    let relationshipTypeReason = '';
+    if (hasSubstantiveEvidence && currentItem.content_type !== candidateItem.content_type) {
+      score += 1;
+      relationshipTypeReason = {
+        law: 'กฎหมายที่เกี่ยวข้อง', guide: 'คู่มือที่เกี่ยวข้อง', qa: 'ถาม–ตอบที่เกี่ยวข้อง',
+        lesson: 'บทเรียนที่เกี่ยวข้อง', judgment: 'คำพิพากษาที่เกี่ยวข้อง',
+        committeeDecision: 'คำวินิจฉัยที่เกี่ยวข้อง'
+      }[candidateItem.content_type];
+    } else if (hasSubstantiveEvidence) score += 1;
+
+    const displayReasons = relationshipTypeReason ? [reasons[0], relationshipTypeReason] : reasons.slice(0, 2);
+    return { score, reasons: displayReasons.filter(Boolean), hasSubstantiveEvidence };
+  }
+
+  function selectRelatedKnowledge(currentItem, candidates) {
+    const currentId = currentItem.content_id || currentItem.id;
+    const rankedById = new Map();
+    candidates.forEach(candidate => {
+      const id = candidate.content_id || candidate.id;
+      if (!id || id === currentId || candidate.workflow_status !== 'published' || !['public', 'internal'].includes(candidate.access_level)) return;
+      const result = { item: candidate, ...scoreRelatedKnowledge(currentItem, candidate) };
+      if (!result.hasSubstantiveEvidence || result.score < RELATED_KNOWLEDGE_MIN_SCORE || !result.reasons.length) return;
+      const previous = rankedById.get(id);
+      const tieBreak = previous
+        ? String(candidate.content_type || '').localeCompare(String(previous.item.content_type || ''))
+          || String(candidate.title || '').localeCompare(String(previous.item.title || ''), 'th')
+          || String(candidate.id || '').localeCompare(String(previous.item.id || ''))
+        : -1;
+      if (!previous || result.score > previous.score || (result.score === previous.score && tieBreak < 0)) rankedById.set(id, result);
+    });
+    const ranked = [...rankedById.values()]
+      .sort((a, b) => b.score - a.score || String(a.item.title || '').localeCompare(String(b.item.title || ''), 'th') || String(a.item.content_id || a.item.id).localeCompare(String(b.item.content_id || b.item.id)) || String(a.item.id || '').localeCompare(String(b.item.id || '')));
+    const selected = [];
+    const typeCounts = new Map();
+    ranked.forEach(result => {
+      if (selected.length >= RELATED_KNOWLEDGE_LIMIT) return;
+      const type = result.item.content_type || 'unknown';
+      if ((typeCounts.get(type) || 0) >= 2) return;
+      selected.push(result);
+      typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
+    });
+    return selected;
+  }
+
   function renderRelatedKnowledge(container, item) {
-    const currentId = item.content_id || item.id;
-    const related = contentItems.filter(candidate =>
-      candidate.workflow_status === 'published'
-      && (candidate.content_id || candidate.id) !== currentId
-      && ((item.category_id && candidate.category_id === item.category_id) || candidate.content_type === item.content_type)
-    ).sort((a, b) => {
-      const aCategory = item.category_id && a.category_id === item.category_id ? 1 : 0;
-      const bCategory = item.category_id && b.category_id === item.category_id ? 1 : 0;
-      const aType = a.content_type === item.content_type ? 1 : 0;
-      const bType = b.content_type === item.content_type ? 1 : 0;
-      return bCategory - aCategory || bType - aType || (b.updated_at?.seconds || 0) - (a.updated_at?.seconds || 0);
-    }).slice(0, 4);
+    let related;
+    try { related = selectRelatedKnowledge(item, contentItems); }
+    catch (error) { console.warn('Related knowledge unavailable:', error); return; }
     if (!related.length) return;
     const section = document.createElement('section');
     section.className = 'detail-reading-section';
     const heading = document.createElement('h2');
-    heading.textContent = 'เนื้อหาที่เกี่ยวข้อง';
+    heading.textContent = 'ความรู้ที่เกี่ยวข้อง';
     const list = document.createElement('div');
     list.className = 'detail-related-list';
-    related.forEach(content => {
+    related.forEach(result => {
+      const content = result.item;
       const link = document.createElement('a');
       link.href = '#';
       link.className = 'detail-related-link';
       link.setAttribute('aria-label', `เปิดอ่านเนื้อหาที่เกี่ยวข้อง: ${content.title || 'เนื้อหา'}`);
+      const type = document.createElement('span');
+      type.className = 'detail-related-type';
+      type.textContent = detailTypeLabels[content.content_type] || content.content_type || 'องค์ความรู้';
       const title = document.createElement('b');
       title.textContent = content.title || 'เนื้อหาไม่มีชื่อเรื่อง';
       const reason = document.createElement('span');
-      reason.textContent = item.category_id && content.category_id === item.category_id ? 'หมวดหมู่เดียวกัน' : (detailTypeLabels[content.content_type] || 'ประเภทเนื้อหาเดียวกัน');
-      link.append(title, reason);
-      link.onclick = event => { event.preventDefault(); void openContentFromFirestore(content, { replaceCurrent: true }); };
+      reason.textContent = result.reasons.join(' • ');
+      link.append(type, title, reason);
+      link.onclick = event => { event.preventDefault(); void openContentFromFirestore(content, { fromRelated: true }); };
       list.appendChild(link);
     });
     section.append(heading, list);
     container.appendChild(section);
+  }
+
+  function installRelatedDetailBackBehavior() {
+    const backButton = document.getElementById('back');
+    if (!backButton || backButton.dataset.relatedHistoryBack === 'true') return;
+    const fallback = backButton.onclick;
+    backButton.onclick = event => {
+      if (relatedDetailHistory.length) {
+        event.preventDefault();
+        const previousItem = relatedDetailHistory.pop();
+        void openContentFromFirestore(previousItem, { recordOpenUsage: false, restoreRelatedHistory: true });
+        return;
+      }
+      fallback?.call(backButton, event);
+    };
+    backButton.dataset.relatedHistoryBack = 'true';
   }
 
   function safeDocumentUrl(rawUrl) {
@@ -3061,12 +3189,18 @@
 
   async function openContentFromFirestore(item, options = {}) {
     if (options.isCurrentRequest && !options.isCurrentRequest()) return;
+    const detailView = document.getElementById('detailView');
+    if (!options.restoreRelatedHistory) {
+      if (options.fromRelated && activeDetailItem && detailView.classList.contains('active')) {
+        relatedDetailHistory.push(activeDetailItem);
+        if (relatedDetailHistory.length > 30) relatedDetailHistory.shift();
+      } else relatedDetailHistory.length = 0;
+    }
     currentContentId = item.content_id || item.id;
     if (options.recordOpenUsage !== false) {
       recordCategoryUsage(item.category_id, 'open');
       void recordSharedUsage('open', 'content', currentContentId);
     }
-    const detailView = document.getElementById('detailView');
     let detail = item._detail || {};
     const detailCollections = { law: 'laws', guide: 'guides', lesson: 'lessons', qa: 'questions' };
     const detailCollection = detailCollections[item.content_type];
@@ -3153,6 +3287,8 @@
     updateDetailSaveButton();
     saveButton.onclick = () => toggleSavedContent(item, saveButton);
     window.show('detailView', 'รายละเอียดองค์ความรู้', { replaceCurrent: options.replaceCurrent === true });
+    activeDetailItem = item;
+    installRelatedDetailBackBehavior();
     options.onActivated?.();
     renderDetailBreadcrumb(item);
   }
