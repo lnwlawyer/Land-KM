@@ -1,0 +1,14 @@
+* text=auto
+
+# Web and application source
+*.html text eol=lf
+*.mjs text eol=lf
+
+# Firebase and structured configuration
+*.json text eol=lf
+*.rules text eol=lf
+.firebaserc text eol=lf
+
+# Documentation
+*.md text eol=lf
+.gitattributes text eol=lf
