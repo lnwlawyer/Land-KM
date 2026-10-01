@@ -734,3 +734,68 @@ test('shared-link outcomes belong only to the current request and retry gets a f
   assert.match(source, /attempt\.openUsageRecorded = true/);
   assert.match(openSource, /window\.show\('detailView'[\s\S]*?options\.onActivated\?\.\(\)/);
 });
+
+test('Feature 7 Dashboard composes existing production views and loaded state', () => {
+  const start = productionHtml.indexOf('function dashboardReadablePublishedContents(');
+  const end = productionHtml.indexOf('\n  function renderPublishedContents(', start);
+  assert.notEqual(start, -1);
+  assert.notEqual(end, -1);
+  const source = productionHtml.slice(start, end);
+  for (const id of ['dashboardLearningSection', 'dashboardCollectionsSection', 'dashboardLatestSection', 'dashboardCategoriesSection', 'dashboardOverviewSection']) assert.match(productionHtml, new RegExp(`id="${id}"`));
+  for (const state of ['contentItems', 'categoriesData', 'knowledgePackagesData', 'lessonsData', 'workspaceLearningProgressData']) assert.match(source, new RegExp(state));
+  assert.doesNotMatch(source, /getDoc\(|getDocs\(|collection\(db/);
+});
+
+test('Feature 7 search and category controls hand off to existing Search behavior', () => {
+  assert.match(productionHtml, /<form class="search" id="heroSearch" role="search">[\s\S]*?<label[^>]+for="heroInput"/);
+  assert.match(productionHtml, /searchPublishedContents\(document\.getElementById\('heroInput'\)\.value\)/);
+  assert.match(productionHtml, /button\.onclick = \(\) => showCategoryResults\(\{ id, name: button\.textContent \}\)/);
+  assert.match(productionHtml, /function searchPublishedContents\(rawQuery\)/);
+  assert.match(productionHtml, /function showCategoryResults\(category\)/);
+});
+
+test('Feature 7 Continue Learning follows existing completed unit semantics and player', () => {
+  const start = productionHtml.indexOf('function renderDashboardLearning()');
+  const end = productionHtml.indexOf('\n  function renderDashboardCollections()', start);
+  const source = productionHtml.slice(start, end);
+  assert.match(source, /progress\.completed === true/);
+  assert.match(source, /item\.completed > 0 && item\.completed < item\.units\.length/);
+  assert.match(source, /item\.units\.length > 0/);
+  assert.match(source, /slice\(0, 3\)/);
+  assert.match(source, /openLessonPlayer\(item\.id\)/);
+  assert.match(source, /section\.hidden = true/);
+});
+
+test('Feature 7 collection, latest, and overview sections use readable published records', () => {
+  const readableStart = productionHtml.indexOf('function dashboardReadablePublishedContents(');
+  const readableEnd = productionHtml.indexOf('\n  function renderDashboardLearning()', readableStart);
+  const collectionsStart = productionHtml.indexOf('function renderDashboardCollections()');
+  const latestStart = productionHtml.indexOf('function renderDashboardLatest(');
+  const categoriesStart = productionHtml.indexOf('function renderDashboardCategories(');
+  const overviewStart = productionHtml.indexOf('function renderDashboardOverview(');
+  const dashboardEnd = productionHtml.indexOf('\n  function renderHomeDashboard(', overviewStart);
+  const readable = productionHtml.slice(readableStart, readableEnd);
+  const collections = productionHtml.slice(collectionsStart, latestStart);
+  const latest = productionHtml.slice(latestStart, categoriesStart);
+  const overview = productionHtml.slice(overviewStart, dashboardEnd);
+  assert.match(readable, /items\.filter\(item => packageMemberIsAccessible\(item\)\)/);
+  assert.match(collections, /workflow_status === 'published'/);
+  assert.match(collections, /getCuratedPackageItems\(item\)/);
+  assert.match(collections, /openKnowledgePackage\(item\.id\)/);
+  assert.match(latest, /published_at/);
+  assert.doesNotMatch(latest, /updated_at|created_at/);
+  assert.match(latest, /openContentFromFirestore\(item\)/);
+  assert.match(overview, /readable\.filter\(item => item\.content_type === type\)/);
+});
+
+test('Feature 7 integrates view history, local section failures, and existing related/path flows', () => {
+  assert.match(productionHtml, /function show\(id,name,options=\{\}\)[\s\S]*?viewHistory\.push\(\{id:current\.id,name:pageName\.textContent\|\|'หน้าแรก',scrollY:window\.scrollY/);
+  assert.match(productionHtml, /function showPreviousView\([\s\S]*?restoreScroll:previous\?\.scrollY/);
+  assert.ok(productionHtml.includes("document.getElementById('searchBack').onclick = () => window.showPreviousView('home', 'หน้าแรก')"));
+  assert.ok(productionHtml.includes("dashboardCollectionsAction').onclick = () => window.show('packagesView'"));
+  assert.ok(productionHtml.includes("dashboardLessonsAction').onclick = () => window.show('learningView'"));
+  assert.match(productionHtml, /workspaceLearningState = 'error'[\s\S]*?renderHomeDashboard\(contentItems\)/);
+  assert.match(productionHtml, /knowledgePackagesData = \[\][\s\S]*?renderHomeDashboard\(contentItems\)/);
+  assert.match(productionHtml, /relatedDetailHistory\.length = 0/);
+  assert.match(productionHtml, /function returnToCollectionOverview\([\s\S]*?showPreviousView\?\.\('packagesView'/);
+});

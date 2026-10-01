@@ -47,6 +47,7 @@
     @media(max-width:1100px){.app{grid-template-columns:220px 1fr}#home .category-grid{grid-template-columns:repeat(3,1fr)}.page{padding:22px}}
     @media(max-width:900px){.app{grid-template-columns:1fr}.page{padding:18px}.topbar{padding:0 15px}#home .hero{padding:27px 24px}#home .hero h1{font-size:25px}#home .category-grid{grid-template-columns:repeat(2,1fr)}#home .two-col{grid-template-columns:1fr}.top-actions #firebaseStatus,.top-actions .iconbtn{display:none}}
     @media(max-width:560px){.page{padding:14px 12px 28px}.topbar{height:58px}.crumb{display:none}.top-actions{margin-left:auto}.top-actions .btn{padding:7px 9px;font-size:12px}#home .hero{padding:23px 17px;border-radius:12px}#home .hero h1{font-size:22px}#home .hero p{font-size:13px}#home .hero .search{display:grid;grid-template-columns:1fr auto}#home .hero .search input{width:100%;font-size:13px;padding:9px}#home .hero .search button{min-width:auto;padding:9px 14px}#home .category-grid{grid-template-columns:1fr 1fr;gap:8px}#home .category{min-height:102px;padding:12px}#home .section-title{margin-top:19px}}
+    #home .dashboard-hero{padding:26px 30px;margin-bottom:18px}#home .dashboard-hero h1{margin:0 0 6px;font-size:27px}#home .dashboard-hero p{margin:0 0 15px;color:#d8fff6}#home .dashboard-hero .search{margin:0;max-width:760px}.dashboard-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.dashboard-actions .btn{min-height:38px;padding:8px 12px;background:#ffffff18;border-color:#ffffff55;color:#fff}.dashboard-section{margin-top:20px}.dashboard-section .section-title{margin:0 0 10px;align-items:center}.dashboard-section .section-title h2{font-size:19px}.dashboard-description{margin:-4px 0 11px;color:var(--muted);font-size:13px}.dashboard-list{display:grid;gap:8px}.dashboard-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--white);min-width:0}.dashboard-item-main{min-width:0}.dashboard-item h3{font-size:14px;line-height:1.5;margin:3px 0;overflow-wrap:anywhere}.dashboard-item .doc-meta{margin:2px 0;overflow-wrap:anywhere}.dashboard-item .btn{white-space:normal}.dashboard-progress{height:7px;margin-top:7px;accent-color:var(--brand);width:min(300px,100%)}.dashboard-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.dashboard-collection{display:flex;flex-direction:column;gap:8px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:11px;background:var(--white)}.dashboard-collection h3{font-size:15px;line-height:1.5;margin:0;overflow-wrap:anywhere}.dashboard-collection p{font-size:13px;line-height:1.55;color:var(--muted);margin:0;overflow-wrap:anywhere;flex:1}.dashboard-collection .doc-meta{margin:0;overflow-wrap:anywhere}.dashboard-collection .btn{width:100%;white-space:normal}.dashboard-categories{display:flex;flex-wrap:wrap;gap:8px}.dashboard-category{min-height:40px;padding:8px 12px;border:1px solid #b8ddd7;border-radius:9px;background:#f5fffc;color:#07675f;cursor:pointer}.dashboard-category:hover{border-color:var(--brand);background:#eaf8f5}.dashboard-overview{display:flex;flex-wrap:wrap;gap:8px}.dashboard-stat{flex:1 1 145px;min-width:0;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--white)}.dashboard-stat strong{display:block;font-size:21px;color:var(--navy)}.dashboard-stat span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.dashboard-item:focus-within,.dashboard-category:focus-visible{outline:3px solid #f0b64d;outline-offset:2px}#home .dashboard-hero :focus-visible{outline:3px solid #ffd166;outline-offset:2px}@media(max-width:900px){.dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){#home .dashboard-hero{padding:20px 17px;margin-bottom:13px}#home .dashboard-hero h1{font-size:22px}#home .dashboard-hero p{font-size:13px;line-height:1.5;margin-bottom:11px}#home .dashboard-hero .search{display:grid;grid-template-columns:minmax(0,1fr) auto;width:100%;padding:5px;gap:5px}#home .dashboard-hero .search input{min-width:0;width:100%;font-size:14px;padding:9px 8px}#home .dashboard-hero .search button{min-width:70px;padding:9px 10px;white-space:nowrap}.dashboard-actions{gap:6px;margin-top:9px}.dashboard-actions .btn{min-height:40px;padding:7px 10px}.dashboard-section{margin-top:16px}.dashboard-section .section-title{margin-bottom:8px}.dashboard-section .section-title h2{font-size:17px}.dashboard-grid{grid-template-columns:1fr}.dashboard-item{padding:10px;gap:8px}.dashboard-item>.btn{max-width:112px;min-height:42px;padding:8px}.dashboard-categories{gap:6px}.dashboard-category{min-height:42px;padding:8px 10px}.dashboard-stat{flex:1 1 125px;padding:10px}.dashboard-stat strong{font-size:19px}}
     html[data-theme="pastel-blue"]{--brand:#477fa8;--brand2:#78aecd;--navy:#294b68;--hero1:#315f7c;--hero2:#659aba;--hero3:#7b78a8}
     html[data-theme="pastel-purple"]{--brand:#7666a8;--brand2:#a28fc6;--navy:#493f70;--hero1:#514778;--hero2:#8070aa;--hero3:#586b91}
     html[data-theme="pastel-pink"]{--brand:#a65f78;--brand2:#cf8fa6;--navy:#673c55;--hero1:#7b485d;--hero2:#ae6d85;--hero3:#66577e}
@@ -242,18 +243,14 @@
     <header class="topbar"><div><button class="iconbtn mobile-menu">☰</button> <span class="crumb">ระบบจัดการความรู้ › <b id="pageName">หน้าแรก</b></span></div><div class="top-actions"><span class="tag orange" id="firebaseStatus">กำลังเชื่อม Firebase…</span><button class="iconbtn">🔔</button><button class="btn primary" id="propose">＋ เสนอองค์ความรู้</button><button class="btn" id="signOutButton">ออกจากระบบ</button></div></header>
     <div class="system-banner" id="systemBanner" role="status" hidden><span id="systemBannerText"></span><button type="button" id="systemRetryButton" hidden>ลองใหม่</button></div>
     <div class="page">
-      <section class="view active" id="home">
-        <div class="hero"><h1>ค้นคำตอบสำหรับงานทะเบียนที่ดิน</h1><p>ค้นจากกฎหมาย หนังสือเวียน คู่มือ แนววินิจฉัย และประสบการณ์ของผู้เชี่ยวชาญ</p><form class="search" id="heroSearch"><input id="heroInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่หนังสือ มาตรา หรือคำสำคัญ…"><button>ค้นหา</button></form><div class="chips"><button class="chip">มรดก</button><button class="chip">คนต่างด้าว</button><button class="chip">นิติบุคคล</button><button class="chip">ภาระจำยอม</button><button class="chip">ปิดประกาศ 30 วัน</button></div></div>
-        <div class="section-title"><h2>เลือกตามประเภทความรู้</h2></div>
-        <div class="category-grid"><button class="category"><span>⚖️</span><b>กฎหมาย</b><small>128 รายการ</small></button><button class="category"><span>📨</span><b>หนังสือเวียน</b><small>436 รายการ</small></button><button class="category"><span>📘</span><b>คู่มือปฏิบัติงาน</b><small>82 รายการ</small></button><button class="category"><span>💡</span><b>แนววินิจฉัย</b><small>196 รายการ</small></button><button class="category"><span>🗂️</span><b>แบบฟอร์ม</b><small>45 รายการ</small></button></div>
-        <div class="section-title"><h2>เนื้อหาที่ควรรู้</h2><a href="#">ดูทั้งหมด →</a></div>
-        <div class="two-col"><div class="panel"><div class="panel-head"><span>ประกาศและเอกสารล่าสุด</span><small>ปรับปรุงวันนี้</small></div>
-          <div class="doc open-doc"><div class="file">PDF</div><div><span class="tag">แนวทางปฏิบัติ</span><div class="doc-title">แนวทางตรวจสอบการถือครองที่ดินแทนคนต่างด้าว</div><div class="doc-meta">มท 0515.2/ว 19097 • 25 สิงหาคม 2569</div></div><button class="save">☆</button></div>
-          <div class="doc"><div class="file">PDF</div><div><span class="tag orange">หนังสือเวียน</span><div class="doc-title">หลักเกณฑ์การปิดประกาศ 30 วัน</div><div class="doc-meta">ปรับปรุงล่าสุด 8 กันยายน 2569</div></div><button class="save">☆</button></div>
-          <div class="doc"><div class="file">KM</div><div><span class="tag">องค์ความรู้</span><div class="doc-title">การจดทะเบียนโอนตามกฎหมาย</div><div class="doc-meta">ตรวจสอบโดยสำนักมาตรฐานการทะเบียนที่ดิน</div></div><button class="save">☆</button></div>
-        </div><div><div class="panel"><div class="panel-head">ใช้บ่อยในช่วงนี้</div><div class="doc"><div class="file">01</div><div><div class="doc-title">การโอนมรดกที่ดิน</div><div class="doc-meta">เปิดอ่าน 1,284 ครั้ง</div></div></div><div class="doc"><div class="file">02</div><div><div class="doc-title">การสอบสวนตามมาตรา 74</div><div class="doc-meta">เปิดอ่าน 968 ครั้ง</div></div></div><div class="doc"><div class="file">03</div><div><div class="doc-title">Checklist เอกสารนิติบุคคล</div><div class="doc-meta">เปิดอ่าน 741 ครั้ง</div></div></div></div><div class="empty-note" style="margin-top:12px">💡 คำค้นที่ยังไม่พบคำตอบจะถูกส่งให้ผู้ดูแลพิจารณาเพิ่มองค์ความรู้</div></div></div>
+      <section class="view active" id="home" aria-labelledby="dashboardTitle">
+        <div class="hero dashboard-hero"><h1 id="dashboardTitle">คลังความรู้การทะเบียนที่ดิน</h1><p>ค้นหา เรียนรู้ และเข้าถึงองค์ความรู้ด้านการทะเบียนที่ดิน</p><form class="search" id="heroSearch" role="search"><label class="sr-only" for="heroInput">ค้นหาองค์ความรู้ กฎหมาย คู่มือ คำพิพากษา</label><input id="heroInput" type="search" value="" placeholder="ค้นหาองค์ความรู้ กฎหมาย คู่มือ คำพิพากษา..."><button type="submit">ค้นหา</button></form><div class="dashboard-actions" aria-label="ทางลัด"><button type="button" class="btn" id="dashboardSearchAction">ค้นหาความรู้</button><button type="button" class="btn" id="dashboardCollectionsAction">ชุดองค์ความรู้</button><button type="button" class="btn" id="dashboardLessonsAction">บทเรียนออนไลน์</button></div></div>
+        <section class="dashboard-section" id="dashboardLearningSection" aria-labelledby="dashboardLearningHeading" hidden><div class="section-title"><h2 id="dashboardLearningHeading">เรียนต่อ</h2></div><div class="dashboard-list" id="dashboardLearningList"></div></section>
+        <section class="dashboard-section" id="dashboardCollectionsSection" aria-labelledby="dashboardCollectionsHeading" hidden><div class="section-title"><h2 id="dashboardCollectionsHeading">ชุดองค์ความรู้</h2><a href="#" id="dashboardAllCollections">ดูชุดองค์ความรู้ทั้งหมด →</a></div><p class="dashboard-description">เส้นทางความรู้ที่รวบรวมและเรียงลำดับโดยผู้ดูแลเนื้อหา</p><div class="dashboard-grid" id="dashboardCollectionsList"></div></section>
+        <section class="dashboard-section" id="dashboardLatestSection" aria-labelledby="dashboardLatestHeading"><div class="section-title"><h2 id="dashboardLatestHeading">เพิ่มล่าสุด</h2></div><p class="dashboard-description">เรียงตามวันที่เผยแพร่ จากรายการที่โหลดแล้ว</p><div class="dashboard-list" id="dashboardLatestList"></div></section>
+        <section class="dashboard-section" id="dashboardCategoriesSection" aria-labelledby="dashboardCategoriesHeading"><div class="section-title"><h2 id="dashboardCategoriesHeading">สำรวจตามหมวด</h2></div><div class="dashboard-categories" id="dashboardCategoriesList"></div></section>
+        <section class="dashboard-section" id="dashboardOverviewSection" aria-labelledby="dashboardOverviewHeading"><div class="section-title"><h2 id="dashboardOverviewHeading">ภาพรวมคลังความรู้</h2></div><p class="dashboard-description">นับจากรายการที่โหลดแล้วและอ่านได้ตามสิทธิ</p><div class="dashboard-overview" id="dashboardOverviewList"></div></section>
       </section>
-
       <section class="view" id="knowledgeView">
         <div class="page-head"><div><h1>องค์ความรู้</h1><p>บทสรุป แนวทางปฏิบัติ ประสบการณ์ และกรณีศึกษาที่ผ่านการเผยแพร่</p></div><span class="tag" id="knowledgeCount">0 รายการ</span></div>
         <div class="guide-toolbar"><label>ค้นหาองค์ความรู้</label><div class="search" style="flex:1;border:1px solid var(--line);box-shadow:none"><input id="knowledgeSearch" placeholder="ค้นหาชื่อเรื่อง หมวด หรือคำสำคัญ…"><button type="button" id="knowledgeSearchButton">ค้นหา</button></div></div>
@@ -265,7 +262,7 @@
       <section class="view" id="packageDetailView" aria-labelledby="packageDetailTitle"><div class="page-head"><div><button class="btn" id="packageDetailBack">← กลับหน้าก่อน</button><h1 id="packageDetailTitle" style="margin-top:16px">ชุดองค์ความรู้</h1><p id="packageDetailSummary"></p></div><div class="package-summary" id="packageDetailSummaryCounts" aria-label="ข้อมูลชุดองค์ความรู้"></div></div><section aria-labelledby="packagePathHeading"><h2 id="packagePathHeading" class="section-title">เส้นทางการเรียนรู้</h2><ol class="package-path" id="packageDetailSections" aria-label="ลำดับเนื้อหาในชุด"></ol></section></section>
 
       <section class="view" id="searchView">
-        <div class="search-header"><h1>ค้นหาความรู้</h1><p>ค้นหาองค์ความรู้ กฎหมาย คำพิพากษา แนววินิจฉัย คู่มือ บทเรียน และคำถาม–คำตอบ</p><form class="search" id="resultSearch"><label class="sr-only" for="resultInput">คำค้นหา</label><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่เอกสาร หมวด หรือคำสำคัญ…"><button class="btn primary" type="submit">ค้นหา</button><button class="btn" id="clearSearch" type="button" hidden>ล้างคำค้น</button></form></div>
+        <div class="search-header"><button type="button" class="btn" id="searchBack">← กลับหน้าก่อน</button><h1>ค้นหาความรู้</h1><p>ค้นหาองค์ความรู้ กฎหมาย คำพิพากษา แนววินิจฉัย คู่มือ บทเรียน และคำถาม–คำตอบ</p><form class="search" id="resultSearch"><label class="sr-only" for="resultInput">คำค้นหา</label><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่เอกสาร หมวด หรือคำสำคัญ…"><button class="btn primary" type="submit">ค้นหา</button><button class="btn" id="clearSearch" type="button" hidden>ล้างคำค้น</button></form></div>
         <div class="results-layout"><aside class="filters" style="display:block;position:static;height:auto"><h3>ตัวกรอง <span class="filter-count" id="filterCount">0</span></h3><div class="filter" style="padding-top:0;border:0"><b>หมวดเนื้อหา</b><div class="doc-meta" id="categoryFilterSummary">เลือกได้หลายหมวด</div><div class="category-picker"><label class="sr-only" for="categorySearch">ค้นหาหมวดเนื้อหา</label><input class="category-search" id="categorySearch" aria-label="ค้นหาหมวดเนื้อหา" placeholder="⌕ พิมพ์ค้นหาหมวด เช่น จำนอง"><div class="doc-meta" style="margin-bottom:6px">หมวดที่ใช้บ่อย</div><div class="popular-cats" id="popularCats"></div><div class="selected-wrap" id="selectedCats"></div><div class="category-box" id="categoryBox"></div></div></div><div class="filter"><b>ประเภทความรู้</b><div id="realTypeFilters"></div></div><div class="filter"><b>ปีที่ปรับปรุง</b><div id="realYearFilters"></div></div><div class="filter"><b>สถานะ</b><div id="realStatusFilters"></div></div><div class="filter-actions"><button class="btn" id="clearFilters" type="button" style="flex:1">ล้างทั้งหมด</button><button class="btn primary" id="applyFilters" type="button" style="flex:1">แสดงผล</button></div></aside>
           <div><div class="results-head"><b>เรียงตามความเกี่ยวข้อง</b><select class="select" aria-label="เรียงผลการค้นหา"><option>เกี่ยวข้องมากที่สุด</option><option>ใหม่ที่สุด</option><option>เปิดอ่านมากที่สุด</option></select></div>
             <div class="doc-meta" id="resultsSummary" role="status" aria-live="polite"></div><div id="searchResultList" aria-busy="false"></div>
@@ -1161,6 +1158,7 @@
         .sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
       categoriesData = categories;
       renderCategoryAdmin();
+      renderHomeDashboard(contentItems);
       const select = document.querySelector('#contentForm .field select[required]');
       if (select && categories.length) {
         select.innerHTML = '<option value="">เลือกหมวด</option>';
@@ -2519,71 +2517,137 @@
     window.show(targetViews[contentType] || 'searchView', label);
   }
 
-  function renderHomeDashboard(items) {
-    const published = items.filter(item => item.workflow_status === 'published');
-    const types = [
-      ['knowledge', '💡', 'องค์ความรู้'],
-      ['law', '⚖️', 'กฎหมายและหนังสือเวียน'],
-      ['judgment', '▥', 'คำพิพากษา'],
-      ['committeeDecision', '◉', 'คำวินิจฉัยคณะกรรมการ'],
-      ['guide', '📘', 'คู่มือและแนวทาง'],
-      ['lesson', '▷', 'บทเรียนออนไลน์'],
-      ['qa', '◎', 'ถาม–ตอบ']
-    ];
-    const categoryGrid = document.querySelector('#home .category-grid');
-    categoryGrid.innerHTML = '';
-    types.forEach(([type, icon, label]) => {
-      const count = published.filter(item => item.content_type === type).length;
-      const button = document.createElement('button');
-      button.className = 'category';
-      button.innerHTML = '<span></span><b></b><small></small>';
-      button.querySelector('span').textContent = icon;
-      button.querySelector('b').textContent = label;
-      button.querySelector('small').textContent = `${count} รายการ`;
-      button.onclick = () => showPublishedType(type, label);
-      categoryGrid.appendChild(button);
-    });
-
-    const latestPanel = document.querySelector('#home .two-col > .panel');
-    latestPanel.innerHTML = '<div class="panel-head"><span>เนื้อหาที่เผยแพร่ล่าสุด</span><small></small></div>';
-    latestPanel.querySelector('small').textContent = `${published.length} รายการ`;
-    published.slice(0, 5).forEach(item => {
-      const row = document.createElement('div');
-      row.className = 'doc';
-      row.innerHTML = '<div class="file"></div><div><span class="tag"></span><div class="doc-title"></div><div class="doc-meta"></div></div><button class="save"></button>';
-      row.querySelector('.file').textContent = item.content_type === 'law' ? 'LAW' : 'KM';
-      row.querySelector('.tag').textContent = types.find(entry => entry[0] === item.content_type)?.[2] || 'องค์ความรู้';
-      row.querySelector('.doc-title').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
-      row.querySelector('.doc-meta').textContent = `${getCategoryDisplay(item.category_id).text} • ${item.owner_unit || item.created_by || '-'}`;
-      const saveButton = row.querySelector('.save');
-      saveButton.textContent = isContentSaved(item.content_id || item.id) ? '★' : '☆';
-      saveButton.onclick = event => { event.stopPropagation(); toggleSavedContent(item, saveButton); };
-      row.onclick = () => openContentFromFirestore(item);
-      latestPanel.appendChild(row);
-    });
-    if (!published.length) latestPanel.insertAdjacentHTML('beforeend', '<div class="empty-note" style="margin:16px">ยังไม่มีเนื้อหาที่เผยแพร่</div>');
-
-    const summaryPanel = document.querySelector('#home .two-col > div:last-child .panel');
-    summaryPanel.innerHTML = '<div class="panel-head">เปิดอ่านมากที่สุด</div>';
-    const popularContents = [...published]
-      .sort((a, b) => contentViewCount(b.content_id || b.id) - contentViewCount(a.content_id || a.id))
-      .slice(0, 3);
-    popularContents.forEach((item, index) => {
-      const views = contentViewCount(item.content_id || item.id);
-      const row = document.createElement('div');
-      row.className = 'doc';
-      row.innerHTML = '<div class="file"></div><div><div class="doc-title"></div><div class="doc-meta"></div></div>';
-      row.querySelector('.file').textContent = String(index + 1).padStart(2, '0');
-      row.querySelector('.doc-title').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
-      row.querySelector('.doc-meta').textContent = `เปิดอ่าน ${views.toLocaleString('th-TH')} ครั้ง`;
-      row.onclick = () => openContentFromFirestore(item);
-      summaryPanel.appendChild(row);
-    });
-    if (!popularContents.length) summaryPanel.insertAdjacentHTML('beforeend', '<div class="empty-note" style="margin:16px">ยังไม่มีข้อมูลการเปิดอ่าน</div>');
-    const allLink = document.querySelector('#home .section-title a');
-    allLink.onclick = event => { event.preventDefault(); searchPublishedContents(''); };
+  function dashboardDateValue(value) {
+    const date = value?.toDate ? value.toDate() : value?.seconds ? new Date(value.seconds * 1000) : value ? new Date(value) : null;
+    return date && !Number.isNaN(date.getTime()) ? date : null;
   }
 
+  function dashboardReadablePublishedContents(items = contentItems) {
+    return items.filter(item => packageMemberIsAccessible(item));
+  }
+
+  function renderDashboardLearning() {
+    const section = document.getElementById('dashboardLearningSection');
+    const list = document.getElementById('dashboardLearningList');
+    if (!section || !list) return;
+    list.replaceChildren();
+    if (workspaceLearningState !== 'ready') { section.hidden = true; return; }
+    const readable = dashboardReadablePublishedContents();
+    const progressItems = lessonsData.map(lesson => {
+      const id = lesson.content_id || lesson.id;
+      const content = readable.find(item => (item.content_id || item.id) === id);
+      const units = lessonUnitsData.filter(unit => unit.content_id === id)
+        .sort((a, b) => Number(a.unit_order || a.order || a.sequence || 0) - Number(b.unit_order || b.order || b.sequence || 0));
+      const completed = units.filter(unit => workspaceLearningProgressData.some(progress =>
+        progress.completed === true && progress.content_id === id && progress.unit_id === (unit.unit_id || unit.id)
+      )).length;
+      return { id, content, units, completed, percent: units.length ? Math.round(completed / units.length * 100) : 0 };
+    }).filter(item => item.content && item.units.length > 0 && item.completed > 0 && item.completed < item.units.length)
+      .sort((a, b) => b.percent - a.percent || (a.content.title || '').localeCompare(b.content.title || '', 'th'))
+      .slice(0, 3);
+    if (!progressItems.length) { section.hidden = true; return; }
+    progressItems.forEach(item => {
+      const row = document.createElement('article'); row.className = 'dashboard-item';
+      const main = document.createElement('div'); main.className = 'dashboard-item-main';
+      const kind = document.createElement('span'); kind.className = 'tag'; kind.textContent = contentTypeLabels.lesson;
+      const title = document.createElement('h3'); title.textContent = item.content.title || '(ไม่มีชื่อบทเรียน)';
+      const progressText = document.createElement('div'); progressText.className = 'doc-meta';
+      progressText.textContent = `เรียนแล้ว ${item.completed} จาก ${item.units.length} หน่วย • ${item.percent}%`;
+      const progress = document.createElement('progress'); progress.className = 'dashboard-progress'; progress.max = 100; progress.value = item.percent;
+      progress.setAttribute('aria-label', `เรียนแล้ว ${item.completed} จาก ${item.units.length} หน่วย`);
+      main.append(kind, title, progressText, progress);
+      const action = document.createElement('button'); action.type = 'button'; action.className = 'btn primary'; action.textContent = 'เรียนต่อ';
+      action.setAttribute('aria-label', `เรียนต่อ: ${item.content.title || 'บทเรียน'}`); action.onclick = () => openLessonPlayer(item.id);
+      row.append(main, action); list.appendChild(row);
+    });
+    section.hidden = false;
+  }
+
+  function renderDashboardCollections() {
+    const section = document.getElementById('dashboardCollectionsSection');
+    const list = document.getElementById('dashboardCollectionsList');
+    if (!section || !list) return;
+    list.replaceChildren();
+    const packages = knowledgePackagesData.filter(item => item.workflow_status === 'published')
+      .map(item => ({ item, path: getCuratedPackageItems(item) })).filter(entry => entry.path.length > 0).slice(0, 3);
+    packages.forEach(({ item, path }) => {
+      const card = document.createElement('article'); card.className = 'dashboard-collection';
+      const categoryInfo = getCategoryDisplay(item.category_id);
+      if (categoryInfo.name !== 'ไม่ระบุหมวด') { const category = document.createElement('span'); category.className = 'tag'; category.textContent = categoryInfo.text; card.appendChild(category); }
+      const title = document.createElement('h3'); title.textContent = item.title || '(ไม่มีชื่อชุด)'; card.appendChild(title);
+      if (item.description) { const description = document.createElement('p'); description.textContent = item.description; card.appendChild(description); }
+      const types = [...new Set(path.map(entry => contentTypeLabels[entry.item.content_type] || entry.item.content_type).filter(Boolean))];
+      const meta = document.createElement('div'); meta.className = 'doc-meta'; meta.textContent = `${path.length} รายการ${types.length ? ` • ${types.join(' • ')}` : ''}`;
+      const action = document.createElement('button'); action.type = 'button'; action.className = 'btn primary'; action.textContent = 'เริ่มศึกษา';
+      action.setAttribute('aria-label', `เริ่มศึกษา: ${item.title || 'ชุดองค์ความรู้'}`); action.onclick = () => openKnowledgePackage(item.id);
+      card.append(meta, action); list.appendChild(card);
+    });
+    section.hidden = packages.length === 0;
+  }
+
+  function renderDashboardLatest(readable) {
+    const section = document.getElementById('dashboardLatestSection');
+    const list = document.getElementById('dashboardLatestList');
+    if (!section || !list) return;
+    list.replaceChildren();
+    const latest = [...readable].sort((a, b) => {
+      const aDate = dashboardDateValue(a.published_at)?.getTime() || 0;
+      const bDate = dashboardDateValue(b.published_at)?.getTime() || 0;
+      return bDate - aDate || String(a.content_id || a.id).localeCompare(String(b.content_id || b.id), 'en');
+    }).slice(0, 5);
+    latest.forEach(item => {
+      const row = document.createElement('article'); row.className = 'dashboard-item';
+      const main = document.createElement('div'); main.className = 'dashboard-item-main';
+      const type = document.createElement('span'); type.className = 'tag'; type.textContent = contentTypeLabels[item.content_type] || item.content_type || 'องค์ความรู้';
+      const title = document.createElement('h3'); title.textContent = item.title || '(ไม่มีชื่อเรื่อง)';
+      const parts = [getCategoryDisplay(item.category_id).text];
+      const publishedDate = dashboardDateValue(item.published_at);
+      if (publishedDate) parts.push(`เผยแพร่ ${publishedDate.toLocaleDateString('th-TH', { dateStyle: 'medium' })}`);
+      const meta = document.createElement('div'); meta.className = 'doc-meta'; meta.textContent = parts.filter(Boolean).join(' • ');
+      main.append(type, title, meta);
+      const action = document.createElement('button'); action.type = 'button'; action.className = 'btn'; action.textContent = 'เปิดอ่าน';
+      action.setAttribute('aria-label', `เปิดอ่าน: ${item.title || 'เนื้อหา'}`); action.onclick = () => openContentFromFirestore(item);
+      row.append(main, action); list.appendChild(row);
+    });
+    if (!latest.length) { const note = document.createElement('p'); note.className = 'doc-meta'; note.textContent = 'ยังไม่มีองค์ความรู้ที่เผยแพร่'; list.appendChild(note); }
+  }
+
+  function renderDashboardCategories() {
+    const section = document.getElementById('dashboardCategoriesSection');
+    const list = document.getElementById('dashboardCategoriesList');
+    if (!section || !list) return;
+    list.replaceChildren();
+    categoriesData.forEach(category => {
+      const id = category.category_id || category.id;
+      if (!id) return;
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'dashboard-category';
+      button.textContent = category.category_name || id;
+      button.onclick = () => showCategoryResults({ id, name: button.textContent }); list.appendChild(button);
+    });
+    section.hidden = list.children.length === 0;
+  }
+
+  function renderDashboardOverview(readable) {
+    const list = document.getElementById('dashboardOverviewList');
+    if (!list) return;
+    list.replaceChildren();
+    const types = [['knowledge', 'องค์ความรู้'], ['law', 'กฎหมายและหนังสือเวียน'], ['guide', 'คู่มือและแนวทางปฏิบัติ'], ['judgment', 'คำพิพากษา'], ['committeeDecision', 'คำวินิจฉัยคณะกรรมการ'], ['lesson', 'บทเรียนออนไลน์'], ['qa', 'ถาม–ตอบ']];
+    types.forEach(([type, label]) => {
+      const card = document.createElement('div'); card.className = 'dashboard-stat';
+      const count = document.createElement('strong'); count.textContent = readable.filter(item => item.content_type === type).length.toLocaleString('th-TH');
+      const text = document.createElement('span'); text.textContent = label; card.append(count, text); list.appendChild(card);
+    });
+  }
+
+  function renderHomeDashboard(items = contentItems) {
+    const readable = dashboardReadablePublishedContents(items);
+    renderDashboardLearning(); renderDashboardCollections(); renderDashboardLatest(readable); renderDashboardCategories(); renderDashboardOverview(readable);
+  }
+
+  document.getElementById('dashboardSearchAction').onclick = () => { window.show('searchView', 'ค้นหาความรู้'); document.getElementById('resultInput').focus(); };
+  document.getElementById('dashboardCollectionsAction').onclick = () => window.show('packagesView', 'ชุดองค์ความรู้');
+  document.getElementById('dashboardLessonsAction').onclick = () => window.show('learningView', 'บทเรียนออนไลน์');
+  document.getElementById('dashboardAllCollections').onclick = event => { event.preventDefault(); window.show('packagesView', 'ชุดองค์ความรู้'); };
   function renderPublishedContents(items) {
     lastSearchResults = [...items];
     const resultsColumn = document.getElementById('searchResultList');
@@ -2764,6 +2828,7 @@
     event.preventDefault();
     searchPublishedContents(document.getElementById('heroInput').value);
   };
+  document.getElementById('searchBack').onclick = () => window.showPreviousView('home', 'หน้าแรก');
   document.getElementById('resultSearch').onsubmit = event => {
     event.preventDefault();
     searchPublishedContents(document.getElementById('resultInput').value);
@@ -3802,6 +3867,7 @@
       lessonsData = lessons;
       lessonUnitsData = units;
       renderWorkspaceLearningState();
+      renderHomeDashboard(contentItems);
       const grid = document.getElementById('courseGrid');
       if (!grid) return;
       grid.innerHTML = '';
@@ -3899,6 +3965,7 @@
       workspaceLearningProgressData = [];
       workspaceLearningState = 'error';
       renderWorkspaceLearningState();
+      renderHomeDashboard(contentItems);
       window.toast('อ่านบทเรียนจาก Firestore ไม่สำเร็จ');
     }
   }
@@ -6200,9 +6267,11 @@
       knowledgePackagesData = snapshot.docs.map(item => ({ id: item.id, ...item.data() })).sort((a, b) => (b.updated_at?.seconds || 0) - (a.updated_at?.seconds || 0));
       renderPackageCards(document.getElementById('packageSearch')?.value || '');
       renderPackageManagement();
+      renderHomeDashboard(contentItems);
     } catch (error) {
       console.error('Load knowledge packages failed:', error);
-      window.toast('ยังอ่านชุดองค์ความรู้ไม่ได้ กรุณาเผยแพร่ Firestore Rules ฉบับใหม่');
+      knowledgePackagesData = [];
+      renderHomeDashboard(contentItems);
     }
   }
 
