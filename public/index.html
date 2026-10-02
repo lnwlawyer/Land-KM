@@ -138,8 +138,8 @@
     .source-view,.source-detail-view{min-width:0}.source-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px 16px;margin:0 0 16px}.source-toolbar .field{min-width:0}.source-toolbar input,.source-toolbar select{width:100%;max-width:100%}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.source-card{min-width:0;padding:15px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow-wrap:anywhere}.source-card h3{margin:0 0 8px;font-size:16px;line-height:1.5}.source-meta{display:grid;gap:4px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.source-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.source-actions .btn{min-height:42px;white-space:normal}.source-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.source-detail-grid>div{min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere}.source-related-list{display:grid;gap:8px}.source-related-item{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:9px}.source-reference-list{display:grid;gap:8px;margin:10px 0}.source-reference-item{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px;border:1px solid var(--line);border-radius:9px}.source-reference-fields{display:grid;grid-template-columns:minmax(0,1fr) 180px auto;gap:8px;align-items:end}.source-reference-fields>*{min-width:0}.source-reference-list a,.source-meta a{overflow-wrap:anywhere}.source-empty{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}.source-hint{margin:8px 0;color:var(--muted);font-size:13px}
     @media(max-width:900px){.source-grid{grid-template-columns:minmax(0,1fr)}}
     @media(max-width:700px){.source-toolbar{grid-template-columns:minmax(0,1fr);gap:9px;padding:12px}.source-detail-grid{grid-template-columns:minmax(0,1fr)}.source-reference-fields{grid-template-columns:minmax(0,1fr)}.source-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.source-actions .btn{width:100%}}
-    .ingestion-workspace{display:grid;gap:14px}.ingestion-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ingestion-form .field{min-width:0}.ingestion-form textarea{width:100%;min-height:220px;resize:vertical}.ingestion-list,.evidence-list{display:grid;gap:10px}.ingestion-card,.evidence-card,.grounding-preview{min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow-wrap:anywhere}.evidence-card pre,.grounding-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.65;margin:10px 0}.evidence-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.evidence-card:focus-within{outline:2px solid var(--brand);outline-offset:2px}
-    @media(max-width:700px){.ingestion-form{grid-template-columns:minmax(0,1fr)}.ingestion-card,.evidence-card,.grounding-preview{padding:12px}.ingestion-workspace .source-actions{grid-template-columns:minmax(0,1fr)}}
+    .ingestion-workspace{display:grid;gap:14px}.ingestion-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ingestion-form .field{min-width:0}.ingestion-form textarea{width:100%;min-height:220px;resize:vertical}.ingestion-list,.evidence-list{display:grid;gap:10px}.ingestion-card,.evidence-card,.grounding-preview{min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow-wrap:anywhere}.evidence-card pre,.grounding-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit;line-height:1.65;margin:10px 0}.evidence-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.evidence-card:focus-within{outline:2px solid var(--brand);outline-offset:2px}.import-method-tabs{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1}.import-method-tabs [aria-selected=true]{outline:2px solid var(--brand);outline-offset:2px}.import-method-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;grid-column:1/-1}.import-method-panel[hidden]{display:none}.import-preview{display:grid;gap:10px;min-width:0}.import-preview h3{margin:0}.import-preview[hidden]{display:none}.import-preview .source-actions{display:flex;flex-wrap:wrap;gap:8px}.import-preview .source-actions .btn{min-height:44px}.import-preview [role=status]{overflow-wrap:anywhere}
+    @media(max-width:700px){.ingestion-form,.import-method-panel{grid-template-columns:minmax(0,1fr)}.ingestion-card,.evidence-card,.grounding-preview{padding:12px}.ingestion-workspace .source-actions,.import-preview .source-actions{display:grid;grid-template-columns:minmax(0,1fr)}.import-method-tabs{display:grid;grid-template-columns:minmax(0,1fr)}.import-method-tabs .btn{width:100%;min-height:44px}.ingestion-form input[type=file]{max-width:100%}}
   </style>
 </head>
 <body>
@@ -367,7 +367,7 @@
         <div class="page-head"><div><button type="button" class="btn" id="sourceDetailBack">← กลับแหล่งข้อมูล</button><h1 id="sourceDetailHeading" style="margin-top:14px"></h1><p id="sourceDetailType" class="doc-meta"></p></div><div class="source-actions"><a class="btn" id="sourceDetailExternal" target="_blank" rel="noopener noreferrer" hidden>เปิดแหล่งข้อมูล ↗</a><button type="button" class="btn" id="editSourceButton" hidden>แก้ไขแหล่งข้อมูล</button></div></div>
         <section class="panel" aria-labelledby="sourceIdentityHeading"><h2 id="sourceIdentityHeading">ข้อมูลแหล่งข้อมูล</h2><div class="source-detail-grid" id="sourceDetailMetadata"></div><h2 id="sourceCompletenessHeading">ความครบถ้วนข้อมูล</h2><p id="sourceDetailCompleteness" class="source-hint"></p></section>
         <section class="governance-section" aria-labelledby="sourceRelatedHeading"><div class="section-title"><div><h2 id="sourceRelatedHeading">องค์ความรู้ที่เชื่อมโยง</h2><p class="doc-meta" id="sourceRelatedNote"></p></div></div><div class="source-related-list" id="sourceRelatedContents"></div></section>
-        <section class="governance-section ingestion-workspace" id="sourceIngestionSection" aria-labelledby="sourceIngestionHeading"><div class="section-title"><div><h2 id="sourceIngestionHeading">เอกสารนำเข้าและหลักฐาน</h2><p class="doc-meta">ข้อความหลักฐานคงถ้อยคำต้นทางและจำกัดการเข้าถึงตามแหล่งข้อมูล</p></div><button type="button" class="btn primary" id="startTextIngestion">นำเข้าข้อความต้นทาง</button></div><p id="ingestionStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionFormPanel" class="panel" hidden><form id="ingestionForm" class="ingestion-form"><div class="field"><label for="ingestionLabel">ชื่อเอกสาร/ฉบับ *</label><input id="ingestionLabel" maxlength="200" required></div><div class="field"><label for="ingestionOriginalUrl">URL ทางการ (บันทึกอ้างอิงเท่านั้น)</label><input id="ingestionOriginalUrl" type="url" maxlength="2048" placeholder="https://..."></div><div class="field full"><label for="ingestionText">วางข้อความต้นฉบับ *</label><textarea id="ingestionText" maxlength="200000" required aria-describedby="ingestionTextHelp"></textarea><small id="ingestionTextHelp">สูงสุด 200,000 ตัวอักษร · ระบบไม่ดึงข้อมูลจาก URL และไม่แก้ไขถ้อยคำ</small></div><p id="ingestionFeedback" class="source-hint full" role="status" aria-live="polite"></p><div class="source-actions full"><button type="button" class="btn" id="cancelIngestion">ยกเลิก</button><button type="submit" class="btn primary" id="saveIngestion">บันทึกและแยกหลักฐาน</button></div></form></div><div id="ingestionHistory" class="ingestion-list"></div><div id="evidencePanel" hidden><h3 id="evidenceHeading">หลักฐานในฉบับนำเข้า</h3><p id="evidenceStatus" class="source-hint" role="status" aria-live="polite"></p><div id="evidenceList" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn primary" id="buildGroundingContext">สร้างบริบทอ้างอิง</button></div><section id="groundingPreview" class="grounding-preview" aria-labelledby="groundingPreviewHeading" hidden><h3 id="groundingPreviewHeading">บริบทอ้างอิงสำหรับ AI</h3><p id="groundingCount" role="status"></p><div id="groundingItems"></div></section></div></section>
+        <section class="governance-section ingestion-workspace" id="sourceIngestionSection" aria-labelledby="sourceIngestionHeading"><div class="section-title"><div><h2 id="sourceIngestionHeading">เอกสารนำเข้าและหลักฐาน</h2><p class="doc-meta">ข้อความหลักฐานคงถ้อยคำต้นทางและจำกัดการเข้าถึงตามแหล่งข้อมูล</p></div><button type="button" class="btn primary" id="startTextIngestion">นำเข้าเอกสาร</button></div><p id="ingestionStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionFormPanel" class="panel" hidden><form id="ingestionForm" class="ingestion-form" novalidate><div class="field full"><label for="ingestionLabel">ชื่อเอกสาร/ฉบับ *</label><input id="ingestionLabel" maxlength="200" required></div><div class="import-method-tabs" role="tablist" aria-label="วิธีนำเข้าเอกสาร"><button type="button" class="btn active" role="tab" aria-selected="true" aria-controls="importTextPanel" data-import-method="text">วางข้อความ</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importFilePanel" data-import-method="local_file">อัปโหลดไฟล์จากอุปกรณ์</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importUrlPanel" data-import-method="remote_url">นำเข้าจาก URL</button></div><div id="importTextPanel" class="import-method-panel"><div class="field"><label for="ingestionOriginalUrl">URL ทางการ (บันทึกอ้างอิงเท่านั้น)</label><input id="ingestionOriginalUrl" type="url" maxlength="2048" placeholder="https://..."></div><div class="field full"><label for="ingestionText">วางข้อความต้นฉบับ *</label><textarea id="ingestionText" maxlength="200000" aria-describedby="ingestionTextHelp"></textarea><small id="ingestionTextHelp">สูงสุด 200,000 ตัวอักษร · แสดงตัวอย่างก่อนบันทึกหลักฐาน</small></div><div class="field full"><button type="button" class="btn primary" id="prepareTextIngestion">แสดงตัวอย่างการนำเข้า</button></div></div><div id="importFilePanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionFile">เลือกไฟล์ TXT, Markdown, PDF หรือ DOCX</label><input id="ingestionFile" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="ingestionFileHelp"><small id="ingestionFileHelp">TXT/MD สูงสุด 5 MB · DOCX สูงสุด 10 MB · PDF สูงสุด 20 MB และ 300 หน้า · ไฟล์จะถูกอ่านในอุปกรณ์นี้และไม่ถูกอัปโหลด</small></div><p id="ingestionFileInfo" class="doc-meta full" role="status" aria-live="polite">ยังไม่ได้เลือกไฟล์</p><div class="field full"><button type="button" class="btn primary" id="prepareFileIngestion">อ่านไฟล์และแสดงตัวอย่าง</button></div></div><div id="importUrlPanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionRemoteUrl">URL เอกสาร (HTTP/HTTPS)</label><input id="ingestionRemoteUrl" type="url" maxlength="2048" placeholder="https://example.org/document.pdf" autocomplete="url"></div><p class="doc-meta full">เบราว์เซอร์จะลองอ่านลิงก์โดยไม่ส่งข้อมูลเข้าสู่ระบบ หากเว็บไซต์ไม่อนุญาต CORS จะไม่สามารถดึงเอกสารได้</p><div class="field full"><button type="button" class="btn primary" id="prepareUrlIngestion">ตรวจสอบและแสดงตัวอย่าง</button></div></div><section id="ingestionPreview" class="import-preview full" aria-labelledby="ingestionPreviewHeading" hidden><h3 id="ingestionPreviewHeading">ตรวจข้อความและหลักฐานก่อนบันทึก</h3><p id="ingestionPreviewStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionPreviewWarnings"></div><div id="ingestionPreviewEvidence" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn" id="reviseIngestion">กลับไปแก้ไข</button><button type="button" class="btn primary" id="confirmIngestion">ยืนยันและบันทึกหลักฐาน</button></div></section><p id="ingestionFeedback" class="source-hint full" tabindex="-1" role="status" aria-live="polite"></p><div class="source-actions full"><button type="button" class="btn" id="cancelIngestion">ยกเลิก</button></div></form></div><div id="ingestionHistory" class="ingestion-list"></div><div id="evidencePanel" hidden><h3 id="evidenceHeading">หลักฐานในฉบับนำเข้า</h3><p id="evidenceStatus" class="source-hint" role="status" aria-live="polite"></p><div id="evidenceList" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn primary" id="buildGroundingContext">สร้างบริบทอ้างอิง</button></div><section id="groundingPreview" class="grounding-preview" aria-labelledby="groundingPreviewHeading" hidden><h3 id="groundingPreviewHeading">บริบทอ้างอิงสำหรับ AI</h3><p id="groundingCount" role="status"></p><div id="groundingItems"></div></section></div></section>
       </section>
       <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
 
@@ -540,9 +540,14 @@
   let activeEvidence = [];
   let selectedGroundingEvidence = new Set();
   let activeIngestionId = '';
-  const INGESTION_LIMITS = Object.freeze({ history: 20, evidence: 100, evidenceText: 8000, selected: 20, contextChars: 30000, input: 200000 });
+  const INGESTION_LIMITS = Object.freeze({ history: 20, evidence: 100, evidenceText: 8000, selected: 20, contextChars: 30000, input: 200000, txtBytes: 5 * 1024 * 1024, docxBytes: 10 * 1024 * 1024, pdfBytes: 20 * 1024 * 1024, pdfPages: 300 });
   const INGESTION_NORMALIZER_VERSION = 'text-normalizer-v1';
   const INGESTION_SEGMENTER_VERSION = 'paragraph-segmenter-v1';
+  const PDFJS_VERSION = '4.10.38';
+  const MAMMOTH_VERSION = '1.9.1';
+  let activeImportMethod = 'text';
+  let preparedIngestion = null;
+  let mammothLoadPromise = null;
   const MAX_SOURCE_REFERENCES = 5;
   const SOURCE_TYPE_LABELS = Object.freeze({ law: 'กฎหมาย', regulation: 'กฎ/ระเบียบ', circular: 'หนังสือเวียน', order: 'คำสั่ง', officialLetter: 'หนังสือราชการ', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัย/ความเห็นคณะกรรมการ', guide: 'คู่มือ/แนวทางปฏิบัติ', other: 'เอกสารอ้างอิงอื่น' });
   let governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
@@ -5330,6 +5335,170 @@
     return result;
   }
 
+  function classifyImportFile(file) {
+    const extension = String(file?.name || '').split('.').pop().toLowerCase();
+    const types = {
+      txt: { format: 'txt', mediaType: 'text/plain', extractor: 'browser-text', extractorVersion: 'text-decoder-v1', maxBytes: INGESTION_LIMITS.txtBytes },
+      md: { format: 'md', mediaType: 'text/markdown', extractor: 'browser-text', extractorVersion: 'text-decoder-v1', maxBytes: INGESTION_LIMITS.txtBytes },
+      pdf: { format: 'pdf', mediaType: 'application/pdf', extractor: 'pdfjs', extractorVersion: PDFJS_VERSION, maxBytes: INGESTION_LIMITS.pdfBytes },
+      docx: { format: 'docx', mediaType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', extractor: 'mammoth', extractorVersion: MAMMOTH_VERSION, maxBytes: INGESTION_LIMITS.docxBytes }
+    };
+    const kind = types[extension];
+    if (!kind) throw new Error('รองรับเฉพาะไฟล์ TXT, Markdown, PDF และ DOCX');
+    if (!Number.isFinite(file.size) || file.size <= 0) throw new Error('ไฟล์ว่างหรืออ่านขนาดไฟล์ไม่ได้');
+    if (file.size > kind.maxBytes) throw new Error(`ไฟล์ ${extension.toUpperCase()} มีขนาดเกิน ${Math.round(kind.maxBytes / 1024 / 1024)} MB`);
+    return { ...kind, originalFilename: String(file.name).split(/[\\/]/).pop().slice(0, 255) };
+  }
+
+  function decodeUtf8Bytes(bytes) {
+    try {
+      const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      if (text.includes('\u0000')) throw new Error('เนื้อหามีอักขระไบนารีที่ไม่ใช่ไฟล์ข้อความ UTF-8');
+      return text;
+    }
+    catch (_) { throw new Error('อ่านไฟล์ข้อความไม่ได้: ไฟล์ต้องเข้ารหัส UTF-8'); }
+  }
+
+  function validateDocxArchiveBytes(bytes) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const start = Math.max(0, bytes.byteLength - 65557);
+    let endRecord = -1;
+    for (let offset = bytes.byteLength - 22; offset >= start; offset -= 1) {
+      if (view.getUint32(offset, true) === 0x06054b50) { endRecord = offset; break; }
+    }
+    if (endRecord < 0) throw new Error('ไฟล์ DOCX เสียหายหรือไม่ใช่เอกสาร DOCX');
+    const entryCount = view.getUint16(endRecord + 10, true);
+    const directorySize = view.getUint32(endRecord + 12, true);
+    const directoryOffset = view.getUint32(endRecord + 16, true);
+    if (!entryCount || entryCount > 2000 || entryCount === 0xffff || directorySize === 0xffffffff || directoryOffset === 0xffffffff || directoryOffset + directorySize > endRecord) throw new Error('โครงสร้างไฟล์ DOCX ไม่ถูกต้องหรือมีขนาดขยายเกินขอบเขต');
+    let cursor = directoryOffset;
+    let uncompressedTotal = 0;
+    for (let index = 0; index < entryCount; index += 1) {
+      if (cursor + 46 > endRecord || view.getUint32(cursor, true) !== 0x02014b50) throw new Error('โครงสร้างไฟล์ DOCX ไม่ถูกต้อง');
+      const compressedSize = view.getUint32(cursor + 20, true);
+      const uncompressedSize = view.getUint32(cursor + 24, true);
+      const nameLength = view.getUint16(cursor + 28, true);
+      const extraLength = view.getUint16(cursor + 30, true);
+      const commentLength = view.getUint16(cursor + 32, true);
+      if (uncompressedSize === 0xffffffff || compressedSize === 0xffffffff || cursor + 46 + nameLength + extraLength + commentLength > endRecord || uncompressedSize > 25 * 1024 * 1024) throw new Error('ไฟล์ DOCX มีรายการหรือขนาดขยายเกินขอบเขต');
+      uncompressedTotal += uncompressedSize;
+      if (uncompressedTotal > 50 * 1024 * 1024) throw new Error('ไฟล์ DOCX มีขนาดขยายรวมเกิน 50 MB');
+      cursor += 46 + nameLength + extraLength + commentLength;
+    }
+    if (cursor > directoryOffset + directorySize) throw new Error('โครงสร้างไฟล์ DOCX ไม่ถูกต้อง');
+    return true;
+  }
+
+  function segmentPdfPages(pages) {
+    const result = [];
+    pages.forEach(({ pageNumber, text }) => {
+      const normalizedPage = normalizeSourceText(text);
+      if (!normalizedPage) return;
+      const parts = segmentSourceEvidence(normalizedPage);
+      for (const part of parts) {
+        result.push({ ...part, sequence: result.length, locator: part.locator ? `หน้า ${pageNumber} · ${part.locator}` : `หน้า ${pageNumber}` });
+      }
+    });
+    if (!result.length) throw new Error('OCR_REQUIRED: ไม่พบข้อความที่สามารถอ่านได้จากไฟล์ PDF นี้ เอกสารอาจเป็นไฟล์สแกนและต้องใช้ OCR');
+    if (result.length > INGESTION_LIMITS.evidence) throw new Error('LIMIT_EXCEEDED: เอกสารนี้มีหลักฐานเกิน 100 ส่วน ระบบไม่ได้นำเข้าแบบตัดทอน');
+    return result;
+  }
+
+  function validateRemoteDocumentUrl(value) {
+    let url;
+    try { url = new URL(String(value || '').trim()); }
+    catch (_) { throw new Error('กรุณาระบุ URL เอกสารที่ถูกต้อง'); }
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('URL ต้องเป็น HTTP หรือ HTTPS และไม่มีข้อมูลเข้าสู่ระบบ');
+    const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '');
+    if (host === 'localhost' || host.endsWith('.localhost') || host === '::1' || host.startsWith('::ffff:') || /^f[cd][0-9a-f]{2}:/i.test(host) || /^fe[89ab][0-9a-f]:/i.test(host) || host === 'metadata.google.internal' || host === 'metadata.google' || /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) || /^100\.(6[4-9]|[78]\d|9[01])\./.test(host)) throw new Error('ไม่อนุญาตให้ดึง URL จากเครื่องหรือเครือข่ายภายใน');
+    return url;
+  }
+
+  function getDocumentBytesFromResponse(response, maxBytes) {
+    if (!response.ok) throw new Error(`เว็บไซต์ตอบกลับ HTTP ${response.status}`);
+    const declared = Number(response.headers.get('content-length') || 0);
+    if (declared > maxBytes) throw new Error('เอกสารจาก URL มีขนาดเกินขีดจำกัด');
+    if (!response.body?.getReader) return response.arrayBuffer().then(buffer => {
+      if (buffer.byteLength > maxBytes) throw new Error('เอกสารจาก URL มีขนาดเกินขีดจำกัด');
+      return new Uint8Array(buffer);
+    });
+    return (async () => {
+      const reader = response.body.getReader();
+      const chunks = [];
+      let size = 0;
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > maxBytes) { await reader.cancel(); throw new Error('เอกสารจาก URL มีขนาดเกินขีดจำกัด'); }
+        chunks.push(value);
+      }
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      chunks.forEach(chunk => { bytes.set(chunk, offset); offset += chunk.byteLength; });
+      return bytes;
+    })();
+  }
+
+  function loadMammothBrowser() {
+    if (window.mammoth) return Promise.resolve(window.mammoth);
+    if (mammothLoadPromise) return mammothLoadPromise;
+    mammothLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `https://cdn.jsdelivr.net/npm/mammoth@${MAMMOTH_VERSION}/mammoth.browser.min.js`;
+      script.async = true;
+      script.onload = () => window.mammoth ? resolve(window.mammoth) : reject(new Error('โหลดตัวอ่าน DOCX ไม่สำเร็จ'));
+      script.onerror = () => reject(new Error('โหลดตัวอ่าน DOCX ไม่สำเร็จ กรุณาตรวจเครือข่ายแล้วลองอีกครั้ง'));
+      document.head.appendChild(script);
+    }).catch(error => { mammothLoadPromise = null; throw error; });
+    return mammothLoadPromise;
+  }
+
+  async function extractDocumentBytes(bytes, descriptor) {
+    if (descriptor.format === 'txt' || descriptor.format === 'md') {
+      const text = decodeUtf8Bytes(bytes);
+      if (!text.trim()) throw new Error('ไม่พบข้อความในไฟล์');
+      return { text, parts: segmentSourceEvidence(normalizeSourceText(text)), warnings: [] };
+    }
+    if (descriptor.format === 'pdf') {
+      if (new TextDecoder().decode(bytes.slice(0, 5)) !== '%PDF-') throw new Error('ไฟล์นี้ไม่ใช่ PDF ที่อ่านได้หรือไฟล์เสียหาย');
+      const pdfjs = await import(`https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.mjs`);
+      pdfjs.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.mjs`;
+      const pdf = await pdfjs.getDocument({ data: bytes }).promise;
+      if (pdf.numPages > INGESTION_LIMITS.pdfPages) { await pdf.destroy(); throw new Error(`PDF มี ${pdf.numPages} หน้า เกินขีดจำกัด ${INGESTION_LIMITS.pdfPages} หน้า`); }
+      const pages = [];
+      try {
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+          const page = await pdf.getPage(pageNumber);
+          const content = await page.getTextContent();
+          const lines = [];
+          let line = '';
+          for (const item of content.items) {
+            if (typeof item.str !== 'string') continue;
+            line += item.str;
+            if (item.hasEOL) { lines.push(line); line = ''; }
+            else line += ' ';
+          }
+          if (line) lines.push(line);
+          pages.push({ pageNumber, text: lines.join('\n') });
+          page.cleanup();
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      } finally { await pdf.destroy(); }
+      const parts = segmentPdfPages(pages);
+      return { text: pages.map(page => page.text).join('\n\n'), parts, warnings: ['ข้อความถูกแยกจาก text layer ของ PDF โปรดตรวจถ้อยคำและเลขหน้ากับต้นฉบับก่อนยืนยัน'] };
+    }
+    if (descriptor.format === 'docx') {
+      validateDocxArchiveBytes(bytes);
+      const mammoth = await loadMammothBrowser();
+      const result = await mammoth.extractRawText({ arrayBuffer: bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) });
+      const text = result.value || '';
+      if (!text.trim()) throw new Error('ไม่พบข้อความในไฟล์ DOCX');
+      return { text, parts: segmentSourceEvidence(normalizeSourceText(text)), warnings: [...(result.messages || []).map(item => item.message).filter(Boolean), 'DOCX แสดงเฉพาะข้อความที่ตัวอ่านแยกได้ ไม่เก็บรูปแบบหน้าหรือตารางซับซ้อน'] };
+    }
+    throw new Error('ไม่รองรับรูปแบบเอกสารนี้');
+  }
+
   async function sha256Text(value) {
     const bytes = new TextEncoder().encode(value);
     const digest = await crypto.subtle.digest('SHA-256', bytes);
@@ -5365,7 +5534,8 @@
       activeIngestions.forEach(ingestion => {
         const card = document.createElement('article'); card.className = 'ingestion-card';
         const title = document.createElement('h3'); title.textContent = ingestion.document_label || 'เอกสารนำเข้า';
-        const meta = document.createElement('p'); meta.className = 'doc-meta'; meta.textContent = `${ingestion.ingestion_id} · ${ingestion.extraction_status === 'completed' ? 'ระบบแยกข้อความแล้ว' : 'แยกข้อความไม่สำเร็จ'} · ${ingestion.created_by || 'ไม่ระบุ'}`;
+        const methodLabel = ingestion.ingestion_method === 'local_file' ? `ไฟล์ ${ingestion.original_filename || ''} · ${ingestion.media_type || ''} · ${ingestion.extractor || ''} ${ingestion.extractor_version || ''}` : ingestion.ingestion_method === 'remote_url' ? `URL · ${ingestion.original_url || ''}` : 'วางข้อความ';
+        const meta = document.createElement('p'); meta.className = 'doc-meta'; meta.textContent = `${ingestion.ingestion_id} · ${methodLabel} · ${ingestion.extraction_status === 'completed' ? 'ระบบแยกข้อความแล้ว' : 'แยกข้อความไม่สำเร็จ'} · ${ingestion.created_by || 'ไม่ระบุ'}`;
         const duplicate = document.createElement('p'); duplicate.className = 'source-hint'; duplicate.textContent = activeIngestions.some(other => other.id !== ingestion.id && other.content_hash === ingestion.content_hash) ? 'พบข้อความนำเข้าที่มี hash เดียวกัน · เป็นคำเตือน ไม่มีการรวมรายการ' : '';
         const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = 'ดูหลักฐาน'; open.onclick = () => void loadSourceEvidence(source, ingestion);
         card.append(title, meta); if (duplicate.textContent) card.appendChild(duplicate); card.appendChild(open); history.appendChild(card);
@@ -5426,37 +5596,176 @@
     } catch (_) { button.disabled = false; document.getElementById('evidenceStatus').textContent = 'บันทึกสถานะตรวจสอบไม่ได้'; }
   }
 
-  async function saveTextIngestion(event) {
-    event.preventDefault();
-    const source = sourceDetailCurrent;
-    if (!source || !canIngestCurrentSource(source)) return;
+  function clearPreparedImport() {
+    preparedIngestion = null;
+    document.getElementById('ingestionPreview').hidden = true;
+    document.getElementById('ingestionPreviewEvidence').replaceChildren();
+    document.getElementById('ingestionPreviewWarnings').replaceChildren();
+    document.getElementById('confirmIngestion').disabled = true;
+  }
+
+  function setImportMethod(method) {
+    if (!['text', 'local_file', 'remote_url'].includes(method)) return;
+    activeImportMethod = method;
+    clearPreparedImport();
+    document.querySelectorAll('[data-import-method]').forEach(button => {
+      const selected = button.dataset.importMethod === method;
+      button.classList.toggle('active', selected);
+      button.setAttribute('aria-selected', String(selected));
+      button.tabIndex = selected ? 0 : -1;
+    });
+    document.getElementById('importTextPanel').hidden = method !== 'text';
+    document.getElementById('importFilePanel').hidden = method !== 'local_file';
+    document.getElementById('importUrlPanel').hidden = method !== 'remote_url';
+    document.getElementById('ingestionFeedback').textContent = '';
+  }
+
+  function showImportFailure(message) {
+    clearPreparedImport();
     const feedback = document.getElementById('ingestionFeedback');
+    feedback.textContent = message;
+    feedback.classList.add('error');
+    feedback.focus?.();
+  }
+
+  function renderPreparedImport(prepared) {
+    const preview = document.getElementById('ingestionPreview');
+    const host = document.getElementById('ingestionPreviewEvidence');
+    const warnings = document.getElementById('ingestionPreviewWarnings');
+    host.replaceChildren(); warnings.replaceChildren();
+    prepared.parts.forEach(part => {
+      const card = document.createElement('article'); card.className = 'evidence-card';
+      const locator = document.createElement('p'); locator.className = 'doc-meta'; locator.textContent = `หลักฐาน ${part.sequence + 1}${part.locator ? ` · ${part.locator}` : ' · ไม่ระบุตำแหน่งต้นฉบับ'}`;
+      const text = document.createElement('pre'); text.textContent = part.text;
+      card.append(locator);
+      if (part.heading) { const heading = document.createElement('h4'); heading.textContent = part.heading; card.appendChild(heading); }
+      card.appendChild(text); host.appendChild(card);
+    });
+    const duplicate = activeIngestions.some(item => item.content_hash === prepared.contentHash);
+    const messages = [...(prepared.warnings || [])];
+    if (duplicate) messages.push('คำเตือน: พบ ingestion ในประวัติ 20 รายการล่าสุดที่มี hash ข้อความตรงกัน · ยังสามารถนำเข้าแยกได้');
+    messages.forEach(message => { const note = document.createElement('p'); note.className = 'source-hint'; note.textContent = message; warnings.appendChild(note); });
+    document.getElementById('ingestionPreviewStatus').textContent = `${prepared.parts.length} ส่วน · ${prepared.normalizedText.length.toLocaleString()} ตัวอักษร · ตรวจข้อความและตำแหน่งก่อนยืนยัน`;
+    document.getElementById('confirmIngestion').disabled = false;
+    preview.hidden = false;
+    preview.scrollIntoView({ block: 'nearest' });
+  }
+
+  async function prepareTextImport() {
     const label = document.getElementById('ingestionLabel').value.trim();
     const rawText = document.getElementById('ingestionText').value;
     const originalUrl = document.getElementById('ingestionOriginalUrl').value.trim();
-    const submit = document.getElementById('saveIngestion'); submit.disabled = true;
     try {
-      if (!label || !rawText.trim() || rawText.length > INGESTION_LIMITS.input) throw new Error('กรุณาระบุชื่อและข้อความต้นฉบับไม่เกิน 200,000 ตัวอักษร');
-      if (originalUrl && !safeSourceUrl(originalUrl)) throw new Error('URL ต้องเป็น HTTP หรือ HTTPS');
-      const normalized = normalizeSourceText(rawText);
-      const evidenceParts = segmentSourceEvidence(normalized);
-      const contentHash = await sha256Text(normalized);
+      if (!label || !rawText.trim() || rawText.length > INGESTION_LIMITS.input) throw new Error('กรุณาระบุชื่อเอกสารและข้อความไม่เกิน 200,000 ตัวอักษร');
+      if (originalUrl && !safeSourceUrl(originalUrl)) throw new Error('URL ทางการต้องเป็น HTTP หรือ HTTPS');
+      const normalizedText = normalizeSourceText(rawText);
+      const parts = segmentSourceEvidence(normalizedText);
+      preparedIngestion = { method: 'text', documentLabel: label, originalUrl, normalizedText, parts, contentHash: await sha256Text(normalizedText), warnings: [] };
+      renderPreparedImport(preparedIngestion);
+    } catch (error) { showImportFailure(error.message || 'เตรียมตัวอย่างข้อความไม่ได้'); }
+  }
+
+  async function prepareLocalFileImport() {
+    const file = document.getElementById('ingestionFile').files?.[0];
+    const button = document.getElementById('prepareFileIngestion');
+    const status = document.getElementById('ingestionFileInfo');
+    if (!file) { showImportFailure('กรุณาเลือกไฟล์ก่อน'); return; }
+    button.disabled = true; status.textContent = 'กำลังอ่านและแยกข้อความในอุปกรณ์นี้…';
+    try {
+      const descriptor = classifyImportFile(file);
+      document.getElementById('ingestionLabel').value = document.getElementById('ingestionLabel').value.trim() || file.name.slice(0, 200);
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      if (descriptor.format === 'pdf' && new TextDecoder().decode(bytes.slice(0, 5)) !== '%PDF-') throw new Error('ไฟล์นี้ไม่ใช่ PDF ที่อ่านได้หรือไฟล์เสียหาย');
+      if (descriptor.format === 'docx') validateDocxArchiveBytes(bytes);
+      const result = await extractDocumentBytes(bytes, descriptor);
+      const normalizedText = normalizeSourceText(result.text);
+      const label = document.getElementById('ingestionLabel').value.trim();
+      if (!label) throw new Error('กรุณาระบุชื่อเอกสาร/ฉบับ');
+      preparedIngestion = { method: 'local_file', documentLabel: label, originalFilename: descriptor.originalFilename, mediaType: descriptor.mediaType, extractor: descriptor.extractor, extractorVersion: descriptor.extractorVersion, normalizedText, parts: result.parts, contentHash: await sha256Text(normalizedText), warnings: result.warnings || [] };
+      status.textContent = `อ่านในอุปกรณ์แล้ว · ${file.name} · ${(file.size / 1024 / 1024).toFixed(2)} MB · ยังไม่ได้บันทึก`;
+      renderPreparedImport(preparedIngestion);
+    } catch (error) {
+      status.textContent = error.message?.startsWith('OCR_REQUIRED:') ? error.message.replace('OCR_REQUIRED: ', '') : error.message || 'อ่านเอกสารไม่ได้';
+      showImportFailure(status.textContent);
+    } finally { button.disabled = false; }
+  }
+
+  async function prepareRemoteUrlImport() {
+    const input = document.getElementById('ingestionRemoteUrl').value.trim();
+    const button = document.getElementById('prepareUrlIngestion');
+    button.disabled = true;
+    const feedback = document.getElementById('ingestionFeedback');
+    feedback.classList.remove('error'); feedback.textContent = 'กำลังลองอ่านเอกสารจาก URL ด้วยสิทธิ์การเชื่อมต่อปกติของเบราว์เซอร์…';
+    const fallback = 'ไม่สามารถอ่านเอกสารจากลิงก์นี้โดยตรงได้ กรุณาดาวน์โหลดเอกสารจากเว็บไซต์ต้นทาง แล้วนำไฟล์เข้าสู่ระบบ';
+    let timeout;
+    try {
+      const url = validateRemoteDocumentUrl(input);
+      const controller = new AbortController();
+      timeout = setTimeout(() => controller.abort(), 20000);
+      const response = await fetch(url.href, { mode: 'cors', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: controller.signal });
+      validateRemoteDocumentUrl(response.url || url.href);
+      const pathname = new URL(response.url || url.href).pathname;
+      const filename = decodeURIComponent(pathname.split('/').pop() || 'document.txt').slice(0, 255);
+      const contentType = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+      const extension = filename.split('.').pop().toLowerCase();
+      const expected = { txt: 'text/plain', md: 'text/markdown', pdf: 'application/pdf', docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' };
+      const format = { txt: 'txt', md: 'md', pdf: 'pdf', docx: 'docx' }[extension];
+      if (!format || (contentType && contentType !== expected[extension] && !(extension === 'md' && contentType === 'text/plain') && !(contentType === 'application/octet-stream' && format !== 'txt' && format !== 'md'))) throw new Error('URL ต้องส่งไฟล์ TXT, Markdown, PDF หรือ DOCX ที่มีชนิดเนื้อหาตรงกับไฟล์');
+      const descriptor = { ...classifyImportFile({ name: filename, size: Number(response.headers.get('content-length') || 1) }), format, mediaType: expected[extension] };
+      const bytes = await getDocumentBytesFromResponse(response, descriptor.maxBytes);
+      const result = await extractDocumentBytes(bytes, descriptor);
+      const normalizedText = normalizeSourceText(result.text);
+      const label = (document.getElementById('ingestionLabel').value.trim() || filename).slice(0, 200);
+      document.getElementById('ingestionLabel').value = label;
+      preparedIngestion = { method: 'remote_url', documentLabel: label, originalUrl: url.href, mediaType: descriptor.mediaType, extractor: descriptor.extractor, extractorVersion: descriptor.extractorVersion, normalizedText, parts: result.parts, contentHash: await sha256Text(normalizedText), warnings: [...(result.warnings || []), 'ดึงข้อมูลโดยตรงจาก URL ที่ผู้ใช้ระบุ · ไม่ส่ง cookies หรือข้อมูลเข้าสู่ระบบ'] };
+      renderPreparedImport(preparedIngestion);
+    } catch (error) { showImportFailure(error.name === 'AbortError' ? `${fallback} (หมดเวลารอ)` : error instanceof TypeError ? fallback : error.message || fallback); }
+    finally { if (timeout) clearTimeout(timeout); button.disabled = false; }
+  }
+
+  async function confirmPreparedIngestion() {
+    const source = sourceDetailCurrent;
+    const prepared = preparedIngestion;
+    const button = document.getElementById('confirmIngestion');
+    const feedback = document.getElementById('ingestionFeedback');
+    if (!source || !canIngestCurrentSource(source) || !prepared) return;
+    if (!prepared.parts.length || prepared.parts.length > INGESTION_LIMITS.evidence || prepared.parts.some(part => !part.text || part.text.length > INGESTION_LIMITS.evidenceText)) {
+      showImportFailure('ตัวอย่างหลักฐานไม่ผ่านขอบเขตที่กำหนด จึงยังไม่ได้บันทึก'); return;
+    }
+    button.disabled = true; feedback.classList.remove('error'); feedback.textContent = 'กำลังบันทึก ingestion และหลักฐานเป็นชุดเดียว…';
+    try {
       const ingestionRef = doc(collection(db, 'sources', source.source_id, 'ingestions'));
       const batch = writeBatch(db);
       const sourceSnapshot = Object.fromEntries(['source_type', 'title', 'reference_no', 'document_date', 'issuing_authority', 'official_url'].filter(key => source[key] !== undefined && source[key] !== '').map(key => [key, source[key]]));
-      const ingestionPayload = { ingestion_id: ingestionRef.id, source_id: source.source_id, ingestion_method: 'text', document_label: label, ...(originalUrl ? { original_url: originalUrl } : {}), content_hash: contentHash, normalizer_version: INGESTION_NORMALIZER_VERSION, segmenter_version: INGESTION_SEGMENTER_VERSION, extraction_status: 'completed', source_snapshot: sourceSnapshot, created_by: auth.currentUser.email, created_at: serverTimestamp(), updated_at: serverTimestamp() };
-      batch.set(ingestionRef, ingestionPayload);
-      for (const part of evidenceParts) {
+      const provenance = prepared.method === 'local_file'
+        ? { original_filename: prepared.originalFilename, media_type: prepared.mediaType, extractor: prepared.extractor, extractor_version: prepared.extractorVersion }
+        : prepared.method === 'remote_url'
+          ? { original_url: prepared.originalUrl, media_type: prepared.mediaType, extractor: prepared.extractor, extractor_version: prepared.extractorVersion }
+          : (prepared.originalUrl ? { original_url: prepared.originalUrl } : {});
+      batch.set(ingestionRef, {
+        ingestion_id: ingestionRef.id, source_id: source.source_id, ingestion_method: prepared.method,
+        document_label: prepared.documentLabel, ...provenance, content_hash: prepared.contentHash,
+        normalizer_version: INGESTION_NORMALIZER_VERSION, segmenter_version: INGESTION_SEGMENTER_VERSION,
+        extraction_status: 'completed', source_snapshot: sourceSnapshot,
+        created_by: auth.currentUser.email, created_at: serverTimestamp(), updated_at: serverTimestamp()
+      });
+      for (const part of prepared.parts) {
         const evidenceRef = doc(collection(ingestionRef, 'evidence'));
         batch.set(evidenceRef, { evidence_id: evidenceRef.id, source_id: source.source_id, ingestion_id: ingestionRef.id, sequence: part.sequence, ...(part.heading ? { heading: part.heading } : {}), ...(part.locator ? { locator: part.locator } : {}), text: part.text, text_hash: await sha256Text(part.text), review_status: 'extracted', created_at: serverTimestamp() });
       }
       await batch.commit();
-      document.getElementById('ingestionForm').reset(); document.getElementById('ingestionFormPanel').hidden = true;
-      await loadSourceIngestions(source);
-      const created = activeIngestions.find(item => item.id === ingestionRef.id);
+      feedback.classList.remove('error'); feedback.textContent = 'นำเข้าและบันทึกหลักฐานครบถ้วนแล้ว · หลักฐานยังรอเจ้าหน้าที่ตรวจสอบ';
+      clearPreparedImport();
+      document.getElementById('ingestionForm').reset();
+      document.getElementById('ingestionFormPanel').hidden = true;
+      const history = await loadSourceIngestions(source);
+      const created = history.find(item => item.id === ingestionRef.id);
       if (created) await loadSourceEvidence(source, created);
-    } catch (error) { feedback.textContent = error.message || 'บันทึกการนำเข้าไม่ได้'; }
-    finally { submit.disabled = false; }
+    } catch (_) {
+      feedback.classList.add('error');
+      feedback.textContent = 'บันทึกไม่สำเร็จ · Firestore batch เป็น atomic จึงไม่มี ingestion/evidence บางส่วน · ตัวอย่างยังอยู่ในอุปกรณ์นี้ กรุณาลองยืนยันอีกครั้ง';
+      button.disabled = false;
+    }
   }
 
   function buildGroundingContext() {
@@ -5570,7 +5879,39 @@
     document.getElementById('sourceFormCard').hidden = true;
     window.show(sourceFormReturnView, sourceFormReturnView === 'formView' ? 'เพิ่มเนื้อหา' : 'แหล่งข้อมูลและเอกสารอ้างอิง');
   });
-  document.getElementById('ingestionForm')?.addEventListener('submit', event => { void saveTextIngestion(event); });
+  document.querySelectorAll('[data-import-method]').forEach(button => button.addEventListener('click', () => setImportMethod(button.dataset.importMethod)));
+  document.getElementById('startTextIngestion')?.addEventListener('click', () => { clearPreparedImport(); setImportMethod('text'); });
+  document.getElementById('cancelIngestion')?.addEventListener('click', clearPreparedImport);
+  document.getElementById('ingestionForm')?.addEventListener('submit', event => {
+    event.preventDefault();
+    if (activeImportMethod === 'local_file') void prepareLocalFileImport();
+    else if (activeImportMethod === 'remote_url') void prepareRemoteUrlImport();
+    else void prepareTextImport();
+  });
+  document.getElementById('prepareTextIngestion')?.addEventListener('click', () => { void prepareTextImport(); });
+  document.getElementById('prepareFileIngestion')?.addEventListener('click', () => { void prepareLocalFileImport(); });
+  document.getElementById('prepareUrlIngestion')?.addEventListener('click', () => { void prepareRemoteUrlImport(); });
+  document.getElementById('confirmIngestion')?.addEventListener('click', () => { void confirmPreparedIngestion(); });
+  document.getElementById('reviseIngestion')?.addEventListener('click', () => { clearPreparedImport(); (activeImportMethod === 'local_file' ? document.getElementById('ingestionFile') : activeImportMethod === 'remote_url' ? document.getElementById('ingestionRemoteUrl') : document.getElementById('ingestionText')).focus(); });
+  document.getElementById('ingestionFile')?.addEventListener('change', event => {
+    clearPreparedImport();
+    const file = event.target.files?.[0];
+    const status = document.getElementById('ingestionFileInfo');
+    if (!file) { status.textContent = 'ยังไม่ได้เลือกไฟล์'; return; }
+    try {
+      const descriptor = classifyImportFile(file);
+      status.textContent = `${file.name} · ${descriptor.format.toUpperCase()} · ${(file.size / 1024 / 1024).toFixed(2)} MB · พร้อมอ่านในอุปกรณ์นี้`;
+    } catch (error) { status.textContent = error.message; }
+  });
+  ['ingestionLabel', 'ingestionText', 'ingestionOriginalUrl', 'ingestionRemoteUrl'].forEach(id => document.getElementById(id)?.addEventListener('input', clearPreparedImport));
+  document.querySelector('.import-method-tabs')?.addEventListener('keydown', event => {
+    if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+    const tabs = [...document.querySelectorAll('[data-import-method]')];
+    const current = tabs.indexOf(document.activeElement);
+    const next = (current + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+    event.preventDefault(); tabs[next].focus(); tabs[next].click();
+  });
+  setImportMethod('text');
   document.getElementById('buildGroundingContext')?.addEventListener('click', buildGroundingContext);
   document.getElementById('sourceQuery')?.addEventListener('input', event => { sourceCenterState.query = event.target.value; renderSourceInventory(); });
   document.getElementById('sourceTypeFilter')?.addEventListener('change', event => { sourceCenterState.type = event.target.value; renderSourceInventory(); });

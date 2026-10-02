@@ -1306,3 +1306,85 @@ test('Feature 11 module owns source and grounding event wiring, with mobile-safe
   assert.match(module, /document\.getElementById\('sourceForm'\)\?\.addEventListener\('submit', saveSource\)/);
   assert.match(productionHtml, /\.evidence-card pre,\.grounding-preview pre\{white-space:pre-wrap;overflow-wrap:anywhere/);
 });
+
+function createDocumentImportHelpers() {
+  const start = productionHtml.indexOf('function normalizeSourceText(');
+  const end = productionHtml.indexOf('\n  async function sha256Text(', start);
+  assert.ok(start >= 0 && end > start);
+  const source = `let mammothLoadPromise = null; ${productionHtml.slice(start, end)}; return { classifyImportFile, decodeUtf8Bytes, segmentPdfPages, validateDocxArchiveBytes, validateRemoteDocumentUrl };`;
+  return new Function('INGESTION_LIMITS', 'PDFJS_VERSION', 'MAMMOTH_VERSION', 'window', 'document', source)(
+    { evidenceText: 8000, evidence: 100, txtBytes: 5 * 1024 * 1024, docxBytes: 10 * 1024 * 1024, pdfBytes: 20 * 1024 * 1024, pdfPages: 300 },
+    '4.10.38', '1.9.1', {}, { createElement: () => ({}) }
+  );
+}
+
+test('Feature 12A local importer exposes accessible tabs, bounded formats, and preview before confirmation', () => {
+  for (const id of ['ingestionFile', 'ingestionRemoteUrl', 'ingestionPreview', 'ingestionPreviewEvidence', 'confirmIngestion']) assert.match(productionHtml, new RegExp(`id="${id}"`));
+  for (const method of ['text', 'local_file', 'remote_url']) assert.match(productionHtml, new RegExp(`data-import-method="${method}"`));
+  assert.match(productionHtml, /Select|selected/);
+  assert.match(productionHtml, /aria-live="polite"/);
+  assert.match(productionHtml, /TXT\/MD สูงสุด 5 MB · DOCX สูงสุด 10 MB · PDF สูงสุด 20 MB และ 300 หน้า/);
+  const prepare = productionHtml.slice(productionHtml.indexOf('async function prepareTextImport()'), productionHtml.indexOf('async function confirmPreparedIngestion()', productionHtml.indexOf('async function prepareTextImport()')));
+  assert.doesNotMatch(prepare, /writeBatch|batch\.set|batch\.commit|setDoc\(/);
+  const persist = productionHtml.slice(productionHtml.indexOf('async function confirmPreparedIngestion()'), productionHtml.indexOf('function buildGroundingContext()'));
+  assert.match(persist, /writeBatch\(db\)/);
+  assert.match(persist, /await batch\.commit\(\)/);
+  assert.match(persist, /ingestion_method: prepared\.method/);
+  assert.match(persist, /review_status: 'extracted'/);
+  assert.match(productionHtml, /mammoth\.extractRawText/);
+  assert.match(productionHtml, /getDocument\(\{ data: bytes \}\)/);
+  assert.match(productionHtml, /OCR_REQUIRED/);
+  assert.match(productionHtml, /credentials: 'omit'/);
+  assert.match(productionHtml, /mode: 'cors'/);
+  assert.match(productionHtml, /download.*website|ดาวน์โหลดเอกสารจากเว็บไซต์ต้นทาง/i);
+  assert.doesNotMatch(productionHtml, /uploadBytes|uploadBytesResumable|connectStorageEmulator|httpsCallable|openai\.com|generativelanguage\.googleapis/);
+  assert.match(productionHtml, /@media\(max-width:700px\).*import-method-tabs/);
+});
+
+test('Feature 12A recognizes only supported extensions and enforces per-format byte limits', () => {
+  const { classifyImportFile, decodeUtf8Bytes, validateDocxArchiveBytes } = createDocumentImportHelpers();
+  assert.equal(classifyImportFile({ name: 'law.TXT', size: 3, type: 'application/octet-stream' }).mediaType, 'text/plain');
+  assert.equal(classifyImportFile({ name: 'law.md', size: 3, type: 'application/pdf' }).mediaType, 'text/markdown');
+  assert.equal(classifyImportFile({ name: 'law.pdf', size: 3 }).extractor, 'pdfjs');
+  assert.equal(classifyImportFile({ name: 'law.docx', size: 3 }).extractor, 'mammoth');
+  assert.throws(() => classifyImportFile({ name: 'law.exe', size: 3 }), /รองรับเฉพาะ/);
+  assert.throws(() => classifyImportFile({ name: 'law.pdf', size: 20 * 1024 * 1024 + 1 }), /เกิน/);
+  assert.throws(() => classifyImportFile({ name: 'empty.txt', size: 0 }), /ไฟล์ว่าง/);
+  assert.equal(decodeUtf8Bytes(new TextEncoder().encode('มาตรา 74\nข้อความเดิม')), 'มาตรา 74\nข้อความเดิม');
+  assert.throws(() => decodeUtf8Bytes(Uint8Array.from([0xc3, 0x28])), /UTF-8/);
+  assert.throws(() => validateDocxArchiveBytes(Uint8Array.from([0x50, 0x4b, 0x03, 0x04])), /DOCX/);
+});
+
+test('Feature 12A PDF evidence preserves actual page provenance and enforces bounds without OCR claims', () => {
+  const { segmentPdfPages } = createDocumentImportHelpers();
+  const parts = segmentPdfPages([{ pageNumber: 12, text: 'มาตรา 74\nข้อความจาก PDF' }, { pageNumber: 13, text: 'ข้อ 3\nอีกข้อความ' }]);
+  assert.deepEqual(parts.map(item => item.sequence), [0, 1]);
+  assert.equal(parts[0].locator, 'หน้า 12 · มาตรา 74');
+  assert.equal(parts[1].locator, 'หน้า 13 · ข้อ 3');
+  assert.throws(() => segmentPdfPages([{ pageNumber: 1, text: '' }]), /OCR_REQUIRED/);
+  assert.throws(() => segmentPdfPages(Array.from({ length: 101 }, (_, index) => ({ pageNumber: index + 1, text: `ย่อหน้า ${index + 1}` }))), /เกิน 100/);
+});
+
+test('Feature 12A URL validation permits credential-free HTTP(S) only and shows the CORS fallback', () => {
+  const { validateRemoteDocumentUrl } = createDocumentImportHelpers();
+  assert.equal(validateRemoteDocumentUrl('https://example.test/law.pdf').protocol, 'https:');
+  assert.equal(validateRemoteDocumentUrl('http://example.test/law.txt').protocol, 'http:');
+  for (const url of ['javascript:alert(1)', 'file:///etc/passwd', 'data:text/plain,hello', 'blob:https://example.test/id', 'ftp://example.test/file', 'http://127.0.0.1/file', 'http://[fd00::1]/file', 'http://user:password@example.test/file']) assert.throws(() => validateRemoteDocumentUrl(url));
+  assert.match(productionHtml, /ไม่สามารถอ่านเอกสารจากลิงก์นี้โดยตรงได้ กรุณาดาวน์โหลดเอกสารจากเว็บไซต์ต้นทาง แล้วนำไฟล์เข้าสู่ระบบ/);
+});
+
+test('Feature 12A imported records use Feature 11 evidence, duplicate checks, no raw-file persistence, and existing review/grounding', () => {
+  assert.match(productionHtml, /sources', source\.source_id, 'ingestions'/);
+  assert.match(productionHtml, /original_filename: prepared\.originalFilename/);
+  assert.match(productionHtml, /media_type: prepared\.mediaType/);
+  assert.match(productionHtml, /extractor_version: prepared\.extractorVersion/);
+  assert.match(productionHtml, /activeIngestions\.some\(item => item\.content_hash === prepared\.contentHash\)/);
+  assert.match(productionHtml, /selectedGroundingEvidence/);
+  assert.match(productionHtml, /review_status === 'reviewed'/);
+  assert.doesNotMatch(productionHtml, /localStorage\.setItem\([^\n]*(?:rawText|normalizedText|fileBytes)/i);
+  assert.doesNotMatch(productionHtml, /console\.(?:log|error)\([^\n]*(?:file\.name|bytes|normalizedText|evidence\.text)/i);
+});
+
+test('Feature 12A remote URL import rejects redirects to avoid fetching an unchecked destination', () => {
+  assert.match(productionHtml, /redirect:\s*'error'/);
+});

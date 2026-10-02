@@ -154,15 +154,44 @@ service cloud.firestore {
           'content_hash', 'normalizer_version', 'segmenter_version', 'extraction_status',
           'source_snapshot', 'created_by', 'created_at', 'updated_at'])
         && data.keys().hasOnly(['ingestion_id', 'source_id', 'ingestion_method', 'document_label',
-          'original_url', 'content_hash', 'normalizer_version', 'segmenter_version', 'extraction_status',
+          'original_url', 'original_filename', 'media_type', 'extractor', 'extractor_version',
+          'content_hash', 'normalizer_version', 'segmenter_version', 'extraction_status',
           'source_snapshot', 'created_by', 'created_at', 'updated_at'])
         && data.ingestion_id == ingestionId
         && ingestionId.size() >= 8 && ingestionId.size() <= 100
         && data.source_id == sourceId
-        && data.ingestion_method == 'text'
+        && data.ingestion_method in ['text', 'local_file', 'remote_url']
         && data.document_label is string && data.document_label.size() > 0 && data.document_label.size() <= 200
         && (!('original_url' in data) || (data.original_url is string && data.original_url.size() <= 2048
           && data.original_url.matches('^https?://[^\\s]+$')))
+        && (
+          (data.ingestion_method == 'text'
+            && !('original_filename' in data) && !('media_type' in data)
+            && !('extractor' in data) && !('extractor_version' in data))
+          || (data.ingestion_method == 'local_file'
+            && !('original_url' in data)
+            && data.keys().hasAll(['original_filename', 'media_type', 'extractor', 'extractor_version'])
+            && data.original_filename is string && data.original_filename.size() > 0
+            && data.original_filename.size() <= 255
+            && !data.original_filename.matches('.*[/\\\\].*')
+            && data.media_type in ['text/plain', 'text/markdown', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            && data.extractor in ['browser-text', 'pdfjs', 'mammoth']
+            && data.extractor_version is string && data.extractor_version.size() > 0
+            && data.extractor_version.size() <= 40
+            && ((data.media_type in ['text/plain', 'text/markdown'] && data.extractor == 'browser-text')
+              || (data.media_type == 'application/pdf' && data.extractor == 'pdfjs')
+              || (data.media_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && data.extractor == 'mammoth')))
+          || (data.ingestion_method == 'remote_url'
+            && !('original_filename' in data)
+            && data.keys().hasAll(['original_url', 'media_type', 'extractor', 'extractor_version'])
+            && data.media_type in ['text/plain', 'text/markdown', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+            && data.extractor in ['browser-text', 'pdfjs', 'mammoth']
+            && data.extractor_version is string && data.extractor_version.size() > 0
+            && data.extractor_version.size() <= 40
+            && ((data.media_type in ['text/plain', 'text/markdown'] && data.extractor == 'browser-text')
+              || (data.media_type == 'application/pdf' && data.extractor == 'pdfjs')
+              || (data.media_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && data.extractor == 'mammoth')))
+        )
         && data.content_hash is string && data.content_hash.matches('^[a-f0-9]{64}$')
         && data.normalizer_version is string && data.normalizer_version.size() <= 40
         && data.segmenter_version is string && data.segmenter_version.size() <= 40
@@ -204,9 +233,11 @@ service cloud.firestore {
 
     function mayIngestSource(sourceId) {
       let sourcePath = /databases/$(database)/documents/sources/$(sourceId);
-      return canReadSource(sourceId) && (isAdmin() || isEditor())
-        && (isAdmin() || get(sourcePath).data.access_level in ['public', 'internal']
-          || get(sourcePath).data.created_by == request.auth.token.email);
+      return isActive()
+        && exists(sourcePath)
+        && (isAdmin() || (isEditor()
+          && (get(sourcePath).data.access_level in ['public', 'internal']
+            || get(sourcePath).data.created_by == request.auth.token.email)));
     }
 
     match /sources/{sourceId} {

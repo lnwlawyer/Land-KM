@@ -794,3 +794,61 @@ test('Feature 11 Rules reject malformed provenance, path linkage, and oversized 
   await assertSucceeds(setDoc(doc(editorDb, 'sources', sourceId, 'ingestions', 'INGESTION-FAILED'), ingestionPayload(sourceId, 'INGESTION-FAILED', { extraction_status: 'failed' })));
   await assertFails(setDoc(doc(editorDb, 'sources', sourceId, 'ingestions', 'INGESTION-FAILED', 'evidence', 'EVIDENCE-FAILED'), evidencePayload(sourceId, 'INGESTION-FAILED', 'EVIDENCE-FAILED')));
 });
+
+test('Feature 12A keeps legacy text ingestion valid and permits bounded local-file provenance', async () => {
+  const sourceId = 'SRC-F12A-SCHEMA';
+  await seedIngestionTree(sourceId);
+  const editorDb = dbAs('editor');
+  const root = ['sources', sourceId, 'ingestions'];
+  await assertSucceeds(setDoc(doc(editorDb, ...root, 'ING-F12A-LEGACY'), ingestionPayload(sourceId, 'ING-F12A-LEGACY')));
+  await assertSucceeds(setDoc(doc(editorDb, ...root, 'ING-F12A-TXT'), ingestionPayload(sourceId, 'ING-F12A-TXT', {
+    ingestion_method: 'local_file', original_filename: 'land-law.txt', media_type: 'text/plain', extractor: 'browser-text', extractor_version: 'text-decoder-v1'
+  })));
+  await assertSucceeds(setDoc(doc(editorDb, ...root, 'ING-F12A-PDF'), ingestionPayload(sourceId, 'ING-F12A-PDF', {
+    ingestion_method: 'local_file', original_filename: 'law.pdf', media_type: 'application/pdf', extractor: 'pdfjs', extractor_version: '4.10.38'
+  })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-NOPROV'), ingestionPayload(sourceId, 'ING-F12A-NOPROV', { ingestion_method: 'local_file' })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-BADMETHOD'), ingestionPayload(sourceId, 'ING-F12A-BADMETHOD', { ingestion_method: 'upload' })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-EXTRA'), ingestionPayload(sourceId, 'ING-F12A-EXTRA', { storage_path: 'source-ingestions/file.pdf' })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-BADMIME'), ingestionPayload(sourceId, 'ING-F12A-BADMIME', {
+    ingestion_method: 'local_file', original_filename: 'law.pdf', media_type: 'application/octet-stream', extractor: 'pdfjs', extractor_version: '4.10.38'
+  })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-BADPAIR'), ingestionPayload(sourceId, 'ING-F12A-BADPAIR', {
+    ingestion_method: 'local_file', original_filename: 'law.pdf', media_type: 'application/pdf', extractor: 'mammoth', extractor_version: '1.9.1'
+  })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-LONGNAME'), ingestionPayload(sourceId, 'ING-F12A-LONGNAME', {
+    ingestion_method: 'local_file', original_filename: 'x'.repeat(256), media_type: 'text/plain', extractor: 'browser-text', extractor_version: 'text-decoder-v1'
+  })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-LONGVERSION'), ingestionPayload(sourceId, 'ING-F12A-LONGVERSION', {
+    ingestion_method: 'local_file', original_filename: 'law.txt', media_type: 'text/plain', extractor: 'browser-text', extractor_version: 'x'.repeat(41)
+  })));
+});
+
+test('Feature 12A remote URL provenance is HTTP(S)-only and cannot carry local-file identity', async () => {
+  const sourceId = 'SRC-F12A-URL';
+  await seedIngestionTree(sourceId);
+  const root = ['sources', sourceId, 'ingestions'];
+  const editorDb = dbAs('editor');
+  const provenance = { ingestion_method: 'remote_url', original_url: 'https://example.test/land-law.txt', media_type: 'text/plain', extractor: 'browser-text', extractor_version: 'text-decoder-v1' };
+  await assertSucceeds(setDoc(doc(editorDb, ...root, 'ING-F12A-URL'), ingestionPayload(sourceId, 'ING-F12A-URL', provenance)));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-BADURL'), ingestionPayload(sourceId, 'ING-F12A-BADURL', { ...provenance, original_url: 'file:///private/law.txt' })));
+  await assertFails(setDoc(doc(editorDb, ...root, 'ING-F12A-CONFLICT'), ingestionPayload(sourceId, 'ING-F12A-CONFLICT', { ...provenance, original_filename: 'law.txt' })));
+});
+
+test('Feature 12A ingestion provenance is immutable and role boundaries remain unchanged', async () => {
+  const sourceId = 'SRC-F12A-IMMUTABLE';
+  await seedIngestionTree(sourceId);
+  const root = ['sources', sourceId, 'ingestions', 'ING-F12A-IMMUTABLE'];
+  const editorDb = dbAs('editor');
+  await assertSucceeds(setDoc(doc(editorDb, ...root), ingestionPayload(sourceId, 'ING-F12A-IMMUTABLE', {
+    ingestion_method: 'local_file', original_filename: 'law.pdf', media_type: 'application/pdf', extractor: 'pdfjs', extractor_version: '4.10.38'
+  })));
+  await assertFails(updateDoc(doc(editorDb, ...root), { original_filename: 'changed.pdf' }));
+  await assertFails(setDoc(doc(dbAs('reviewer'), 'sources', sourceId, 'ingestions', 'ING-F12A-REVIEWER'), ingestionPayload(sourceId, 'ING-F12A-REVIEWER')));
+  await assertFails(setDoc(doc(dbAs('user'), 'sources', sourceId, 'ingestions', 'ING-F12A-USER'), ingestionPayload(sourceId, 'ING-F12A-USER')));
+  await assertFails(setDoc(doc(dbAs('inactive'), 'sources', sourceId, 'ingestions', 'ING-F12A-INACTIVE'), ingestionPayload(sourceId, 'ING-F12A-INACTIVE')));
+  await assertFails(setDoc(doc(env.unauthenticatedContext().firestore(), 'sources', sourceId, 'ingestions', 'ING-F12A-ANON'), ingestionPayload(sourceId, 'ING-F12A-ANON')));
+  await assertSucceeds(setDoc(doc(dbAs('admin'), 'sources', sourceId, 'ingestions', 'ING-F12A-ADMIN'), ingestionPayload(sourceId, 'ING-F12A-ADMIN', {
+    created_by: accounts.admin.email, ingestion_method: 'local_file', original_filename: 'law.docx', media_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', extractor: 'mammoth', extractor_version: '1.9.1'
+  })));
+});
