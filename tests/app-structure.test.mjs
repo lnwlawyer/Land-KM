@@ -841,7 +841,7 @@ test('Feature 8 readiness checks reuse deterministic shared rules and keep optio
   const rules = productionHtml.slice(rulesStart, rulesEnd);
   const model = productionHtml.slice(modelStart, modelEnd);
   for (const id of ['contentTitle', 'contentCategory', 'contentOwnerUnit', 'knowledgeSummary', 'knowledgeGuidance', 'lawDocumentNo', 'lawDocumentDate', 'lawOfficialTitle', 'guideObjective', 'guideSteps', 'lessonLearningOutcomes', 'qaQuestionText', 'qaDetails', 'judgmentIssue', 'judgmentPrinciple', 'committeeDecisionIssue', 'committeeDecisionPrinciple']) assert.ok(rules.includes(id) || model.includes(id), id);
-  assert.match(checks, /evaluateContentReadiness\(model\.item, model\.detail\)\.blocking/);
+  assert.match(checks, /evaluateContentReadiness\(model\.item, model\.detail, \{ sources: sourcesData \}\)\.blocking/);
   assert.match(rules, /function evaluateContentReadiness[\s\S]*?status: missing\.length \? 'incomplete' : warnings\.length \? 'improve' : 'ready'/);
   assert.match(warnings, /warning\.key/);
   assert.match(render, /missing\.length/);
@@ -903,7 +903,7 @@ test('Feature 8 dirty state preserves in-memory edits and protects internal and 
   const showStart = productionHtml.indexOf('function show(id,name,options={})');
   const previousStart = productionHtml.indexOf('function showPreviousView(', showStart);
   const showSource = productionHtml.slice(showStart, productionHtml.indexOf('\n  navs.forEach', previousStart));
-  assert.match(dirtySource, /JSON\.stringify\(\[activeAuthoringType\(\), fields\]\)/);
+  assert.match(dirtySource, /JSON\.stringify\(\[activeAuthoringType\(\), fields, canonicalSourceReferences\(selectedSourceReferences\)\]\)/);
   assert.match(productionHtml, /authoringForm\.addEventListener\('input', updateAuthoringDirtyState\)/);
   assert.match(productionHtml, /authoringForm\.addEventListener\('change', updateAuthoringDirtyState\)/);
   const dirtyStateStart = productionHtml.indexOf('function updateAuthoringDirtyState()', dirtyStart);
@@ -922,7 +922,7 @@ test('Feature 8 role-aware workflow and transition locks match current Firestore
   const contentsStart = firestoreRules.indexOf('match /contents/{documentId}');
   const detailsStart = firestoreRules.indexOf('match /{collectionName}/{documentId}', contentsStart);
   const contentRules = firestoreRules.slice(contentsStart, detailsStart);
-  assert.match(contentRules, /allow create: if isAdmin\(\)[\s\S]*?isEditor\(\)[\s\S]*?created_by[\s\S]*?workflow_status[\s\S]*?\['draft', 'review'\]/);
+  assert.match(contentRules, /allow create: if validSourceRelationships\(request\.resource\.data\)[\s\S]*?isAdmin\(\)[\s\S]*?isEditor\(\)[\s\S]*?created_by[\s\S]*?workflow_status[\s\S]*?\['draft', 'review'\]/);
   assert.match(contentRules, /resource\.data\.created_by[\s\S]*?resource\.data\.workflow_status[\s\s\S]*?\['draft', 'review'\]/);
   assert.match(contentRules, /isReviewer\(\)[\s\S]*?resource\.data\.workflow_status == 'review'[\s\S]*?request\.resource\.data\.workflow_status == 'approved'/);
   assert.match(contentRules, /'workflow_status',[\s\S]*?'approved_by',[\s\S]*?'approved_at',[\s\S]*?'updated_at'/);
@@ -1071,7 +1071,8 @@ test('Feature 9 governance filters reuse search normalization and do not record 
 test('Feature 9 Governance Center uses loaded pools and has no per-record Firestore reads', () => {
   const start = productionHtml.indexOf('function governanceTimestampSeconds(');
   const end = productionHtml.indexOf('\n  async function previewSavedContent(', start);
-  const governanceSource = productionHtml.slice(start, end);
+  const governanceSource = productionHtml.slice(start, end)
+    .replace(productionHtml.slice(productionHtml.indexOf('function canonicalSourceReferences('), productionHtml.indexOf('\n  function governanceRecordVisibleForRole(', start)), '');
   assert.match(governanceSource, /contentItems\.filter\(governanceRecordVisibleForRole\)/);
   assert.match(governanceSource, /categories: allCategoriesData/);
   assert.match(governanceSource, /knowledgePackagesData\.filter/);
@@ -1081,6 +1082,44 @@ test('Feature 9 Governance Center uses loaded pools and has no per-record Firest
   assert.match(productionHtml, /editContent\(item\.id\)/);
   assert.match(productionHtml, /approveContent\(workflowItem\.id, approve\)/);
   assert.match(productionHtml, /publishContent\(workflowItem\.id, publish\)/);
+});
+
+test('Feature 10 sources reuse a bounded canonical registry and query reverse links only on inspection', () => {
+  assert.match(productionHtml, /MAX_SOURCE_REFERENCES = 5/);
+  assert.match(productionHtml, /function canonicalSourceReferences\([\s\S]*?relation_type[\s\S]*?seen\.has\(sourceId\)[\s\S]*?\.sort\(/);
+  assert.match(productionHtml, /function sourceIdsFromReferences\(references\)[\s\S]*?canonicalSourceReferences\(references\)\.map/);
+  assert.match(productionHtml, /function readCommonContentFields\([\s\S]*?source_references: canonicalSourceReferences\(selectedSourceReferences\)[\s\S]*?source_ids: sourceIdsFromReferences\(selectedSourceReferences\)/);
+  assert.match(productionHtml, /function renderAuthoringSources\([\s\S]*?selectedSourceReferences/);
+  assert.match(productionHtml, /id="attachAuthoringSource"/);
+  assert.match(productionHtml, /function renderStructuredSourceSection\([\s\S]*?source_references[\s\S]*?sourceMetadataNodes/);
+  const inventory = productionHtml.slice(productionHtml.indexOf('function renderSourceInventory('), productionHtml.indexOf('\n  function renderSourceCenter(', productionHtml.indexOf('function renderSourceInventory(')));
+  assert.doesNotMatch(inventory, /getDocs\(|getDoc\(/);
+  const inspect = productionHtml.slice(productionHtml.indexOf('async function openSourceDetail('), productionHtml.indexOf('\n  function showSourceForm(', productionHtml.indexOf('async function openSourceDetail(')));
+  assert.match(inspect, /where\('source_ids', 'array-contains', sourceId\)/);
+  const load = productionHtml.slice(productionHtml.indexOf('async function loadSources('), productionHtml.indexOf('\n  function renderSourceInventory(', productionHtml.indexOf('async function loadSources(')));
+  assert.match(load, /where\('access_level', 'in', \['public', 'internal'\]\)/);
+  assert.match(load, /where\('created_by', '==', auth\.currentUser\.email\)/);
+  assert.match(load, /new Map\(/);
+  assert.match(productionHtml, /sourceCenterState = \{ query: '', type: 'all', use: 'all' \}/);
+  assert.match(productionHtml, /a\.rel = 'noopener noreferrer'/);
+  assert.match(firestoreRules, /data\.source_references\.size\(\) == data\.source_ids\.size\(\)/);
+  assert.match(firestoreRules, /data\.source_references\[index\]\.source_id == data\.source_ids\[index\]/);
+  assert.match(firestoreRules, /source_ids\.toSet\(\)\.size\(\) == data\.source_ids\.size\(\)/);
+  assert.match(productionHtml, /function renderStructuredSourceSection/);
+  assert.match(productionHtml, /function sourceDuplicate\([\s\S]*?official_url/);
+  assert.match(productionHtml, /อาจเป็นเอกสารอ้างอิงเดียวกัน/);
+  assert.doesNotMatch(firestoreRules, /sourceVersions|sources_version/);
+
+  const canonicalStart = productionHtml.indexOf('function canonicalSourceReferences(');
+  const canonicalEnd = productionHtml.indexOf('\n  function sourceTypeLabel(', canonicalStart);
+  const canonicalEngine = new Function('MAX_SOURCE_REFERENCES', `${productionHtml.slice(canonicalStart, canonicalEnd)}; return { canonicalSourceReferences, sourceIdsFromReferences };`)(5);
+  const relations = [
+    { source_id: 'SRC-source00002', relation_type: 'supporting' },
+    { source_id: 'SRC-source00001', relation_type: 'primary' }
+  ];
+  assert.deepEqual(canonicalEngine.sourceIdsFromReferences(relations), ['SRC-source00001', 'SRC-source00002']);
+  assert.throws(() => canonicalEngine.canonicalSourceReferences([relations[0], relations[0]]), /ซ้ำ/);
+  assert.throws(() => canonicalEngine.canonicalSourceReferences(Array.from({ length: 6 }, (_, index) => ({ source_id: `SRC-source0000${index}`, relation_type: 'supporting' }))), /ไม่เกิน 5/);
 });
 
 test('Feature 9 package health reports aggregate loaded-pool conditions without member disclosure or path mutation', () => {

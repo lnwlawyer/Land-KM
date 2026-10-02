@@ -9,6 +9,7 @@ import {
 import {
   doc,
   collection,
+  deleteDoc,
   getDocs,
   getDoc,
   increment,
@@ -54,6 +55,32 @@ function content(overrides = {}) {
     created_by: accounts.editor.email,
     updated_at: new Date('2026-09-18T00:00:00Z'),
     ...overrides
+  };
+}
+
+function source(sourceId, createdBy, overrides = {}) {
+  return {
+    source_id: sourceId,
+    source_type: 'law',
+    title: 'กฎหมายทดสอบ',
+    reference_no: 'ทดสอบ 1/2569',
+    document_date: '2026-09-01',
+    issuing_authority: 'หน่วยงานทดสอบ',
+    official_url: 'https://example.test/source',
+    description: '',
+    access_level: 'restricted',
+    created_by: createdBy,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+    ...overrides
+  };
+}
+
+function sourceRelationships(references) {
+  const orderedReferences = [...references].sort((a, b) => a.source_id.localeCompare(b.source_id));
+  return {
+    source_references: orderedReferences,
+    source_ids: orderedReferences.map(reference => reference.source_id)
   };
 }
 
@@ -536,4 +563,141 @@ test('search events remain owner-scoped in usageStats for reviewer reporting', a
   await assertSucceeds(getDoc(ownStat));
   await assertFails(getDoc(doc(dbAs('other'), 'usageStats', ownStat.id)));
   await assertSucceeds(getDoc(doc(dbAs('reviewer'), 'usageStats', ownStat.id)));
+});
+
+test('sources restrict reads by access level and writes by staff role', async () => {
+  const ids = ['SRC-public01', 'SRC-internal01', 'SRC-restricted01'];
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    for (const [id, accessLevel] of ids.map((id, index) => [id, ['public', 'internal', 'restricted'][index]])) {
+      await setDoc(doc(db, 'sources', id), source(id, accounts.admin.email, { access_level: accessLevel }));
+    }
+  });
+  const userDb = dbAs('user');
+  await assertSucceeds(getDoc(doc(userDb, 'sources', ids[0])));
+  await assertSucceeds(getDoc(doc(userDb, 'sources', ids[1])));
+  await assertFails(getDoc(doc(userDb, 'sources', ids[2])));
+  await assertSucceeds(getDocs(query(collection(userDb, 'sources'), where('access_level', 'in', ['public', 'internal']))));
+  await assertFails(getDocs(collection(userDb, 'sources')));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'sources', ids[0])));
+  await assertFails(getDoc(doc(dbAs('inactive'), 'sources', ids[0])));
+
+  const editorDb = dbAs('editor');
+  const editorSource = doc(editorDb, 'sources', 'SRC-editor01');
+  await assertSucceeds(setDoc(editorSource, source(editorSource.id, accounts.editor.email)));
+  await assertSucceeds(getDoc(editorSource));
+  await assertFails(updateDoc(editorSource, { title: 'แก้ไขเอง' }));
+  await assertFails(getDoc(doc(editorDb, 'sources', ids[2])));
+  await assertSucceeds(getDocs(query(collection(editorDb, 'sources'), where('access_level', 'in', ['public', 'internal']), limit(10))));
+  await assertSucceeds(getDocs(query(collection(editorDb, 'sources'), where('created_by', '==', accounts.editor.email), limit(10))));
+  await assertFails(getDocs(collection(editorDb, 'sources')));
+  await assertFails(setDoc(doc(editorDb, 'sources', 'SRC-editor-public'), source('SRC-editor-public', accounts.editor.email, { access_level: 'public' })));
+  await assertFails(setDoc(doc(dbAs('reviewer'), 'sources', 'SRC-reviewer01'), source('SRC-reviewer01', accounts.reviewer.email)));
+  await assertSucceeds(getDoc(doc(dbAs('reviewer'), 'sources', ids[2])));
+  const adminDb = dbAs('admin');
+  const adminSource = doc(adminDb, 'sources', 'SRC-admin00001');
+  await assertSucceeds(setDoc(adminSource, source(adminSource.id, accounts.admin.email, { access_level: 'public' })));
+  await assertSucceeds(updateDoc(adminSource, { title: 'ปรับข้อมูลโดยผู้ดูแล', updated_at: serverTimestamp() }));
+  await assertFails(deleteDoc(adminSource));
+});
+
+test('source schema rejects unsupported types, missing identity/title, malformed URLs and unexpected fields', async () => {
+  const db = dbAs('admin');
+  const invalidType = source('SRC-invalidType', accounts.admin.email, { source_type: 'constitution' });
+  await assertFails(setDoc(doc(db, 'sources', 'SRC-invalidType'), invalidType));
+  await assertFails(setDoc(doc(db, 'sources', 'SRC-short'), source('SRC-short', accounts.admin.email)));
+  const missingTitle = source('SRC-missingTitle', accounts.admin.email);
+  delete missingTitle.title;
+  await assertFails(setDoc(doc(db, 'sources', 'SRC-missingTitle'), missingTitle));
+  await assertFails(setDoc(doc(db, 'sources', 'SRC-badUrl'), source('SRC-badUrl', accounts.admin.email, { official_url: 'javascript:alert(1)' })));
+  await assertFails(setDoc(doc(db, 'sources', 'SRC-extra'), source('SRC-extra', accounts.admin.email, { ai_summary: 'not supported' })));
+  await assertFails(setDoc(doc(db, 'sources', 'wrong-path-id'), source('SRC-other', accounts.admin.email)));
+});
+
+test('content source relationship Rules enforce exact shapes, bounded unique IDs, and correspondence', async () => {
+  const db = dbAs('editor');
+  const one = { source_id: 'SRC-one00001', relation_type: 'primary' };
+  const two = { source_id: 'SRC-two00002', relation_type: 'supporting' };
+  const valid = doc(db, 'contents', 'CNT-SOURCE-VALID');
+  await assertSucceeds(setDoc(valid, content({
+    content_id: valid.id,
+    workflow_status: 'draft',
+    created_by: accounts.editor.email,
+    ...sourceRelationships([one, two])
+  })));
+  const five = Array.from({ length: 5 }, (_, index) => ({ source_id: `SRC-bound000${index}`, relation_type: index ? 'supporting' : 'primary' }));
+  await assertSucceeds(setDoc(doc(db, 'contents', 'CNT-SOURCE-AT-BOUND'), content({
+    content_id: 'CNT-SOURCE-AT-BOUND', workflow_status: 'draft', created_by: accounts.editor.email,
+    ...sourceRelationships(five)
+  })));
+  await assertSucceeds(setDoc(doc(db, 'contents', 'CNT-LEGACY-NO-SOURCES'), content({
+    content_id: 'CNT-LEGACY-NO-SOURCES', workflow_status: 'draft', created_by: accounts.editor.email
+  })));
+
+  const mismatch = doc(db, 'contents', 'CNT-SOURCE-MISMATCH');
+  await assertFails(setDoc(mismatch, content({
+    content_id: mismatch.id, workflow_status: 'draft', created_by: accounts.editor.email,
+    source_references: [one], source_ids: ['SRC-another01']
+  })));
+  const invalidRelation = doc(db, 'contents', 'CNT-SOURCE-RELATION');
+  await assertFails(setDoc(invalidRelation, content({
+    content_id: invalidRelation.id, workflow_status: 'draft', created_by: accounts.editor.email,
+    ...sourceRelationships([{ ...one, relation_type: 'supersedes' }])
+  })));
+  const duplicate = doc(db, 'contents', 'CNT-SOURCE-DUPLICATE');
+  await assertFails(setDoc(duplicate, content({
+    content_id: duplicate.id, workflow_status: 'draft', created_by: accounts.editor.email,
+    ...sourceRelationships([one, { ...one, relation_type: 'supporting' }])
+  })));
+  const unexpectedMapKey = doc(db, 'contents', 'CNT-SOURCE-EXTRA');
+  await assertFails(setDoc(unexpectedMapKey, content({
+    content_id: unexpectedMapKey.id, workflow_status: 'draft', created_by: accounts.editor.email,
+    ...sourceRelationships([{ ...one, title: 'duplicated metadata' }])
+  })));
+  const tooMany = Array.from({ length: 6 }, (_, index) => ({
+    source_id: `SRC-${String(index).padStart(8, '0')}`,
+    relation_type: index === 0 ? 'primary' : 'supporting'
+  }));
+  const tooManyRef = doc(db, 'contents', 'CNT-SOURCE-TOO-MANY');
+  await assertFails(setDoc(tooManyRef, content({
+    content_id: tooManyRef.id, workflow_status: 'draft', created_by: accounts.editor.email,
+    ...sourceRelationships(tooMany)
+  })));
+});
+
+test('source_ids array-contains supports reverse traceability within content read Rules', async () => {
+  const sourceId = 'SRC-reverse00001';
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'contents', 'CNT-REVERSE-PUBLISHED'), content({
+      content_id: 'CNT-REVERSE-PUBLISHED', source_references: [{ source_id: sourceId, relation_type: 'primary' }], source_ids: [sourceId]
+    }));
+    await setDoc(doc(db, 'contents', 'CNT-REVERSE-PRIVATE'), content({
+      content_id: 'CNT-REVERSE-PRIVATE', workflow_status: 'draft', created_by: accounts.other.email,
+      source_references: [{ source_id: sourceId, relation_type: 'primary' }], source_ids: [sourceId]
+    }));
+  });
+  const adminResults = await assertSucceeds(getDocs(query(collection(dbAs('admin'), 'contents'), where('source_ids', 'array-contains', sourceId))));
+  assert.equal(adminResults.size, 2);
+  await assertFails(getDocs(query(collection(dbAs('user'), 'contents'), where('source_ids', 'array-contains', sourceId))));
+  await assertFails(getDocs(query(collection(dbAs('editor'), 'contents'), where('source_ids', 'array-contains', sourceId))));
+});
+
+test('source relationships preserve Editor ownership and Reviewer workflow-only boundaries', async () => {
+  const editorDb = dbAs('editor');
+  const own = doc(editorDb, 'contents', 'CNT-DRAFT');
+  await assertSucceeds(updateDoc(own, sourceRelationships([{ source_id: 'SRC-own00001', relation_type: 'primary' }])));
+  await assertFails(updateDoc(doc(editorDb, 'contents', 'CNT-OTHER-DRAFT'), sourceRelationships([{ source_id: 'SRC-other00001', relation_type: 'primary' }])));
+  await assertFails(setDoc(doc(editorDb, 'contents', 'CNT-EDITOR-PUBLISHED-SOURCE'), content({
+    content_id: 'CNT-EDITOR-PUBLISHED-SOURCE', created_by: accounts.editor.email,
+    ...sourceRelationships([{ source_id: 'SRC-own00001', relation_type: 'primary' }])
+  })));
+  const reviewerDb = dbAs('reviewer');
+  await assertFails(updateDoc(doc(reviewerDb, 'contents', 'CNT-REVIEW'), sourceRelationships([{ source_id: 'SRC-review00001', relation_type: 'primary' }])));
+  const approved = doc(reviewerDb, 'contents', 'CNT-REVIEW');
+  await assertSucceeds(updateDoc(approved, {
+    workflow_status: 'approved', approved_by: accounts.reviewer.email,
+    approved_at: serverTimestamp(), updated_at: serverTimestamp()
+  }));
+  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', 'CNT-OTHER-DRAFT'), sourceRelationships([{ source_id: 'SRC-admin00001', relation_type: 'primary' }])));
 });

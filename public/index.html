@@ -134,6 +134,11 @@
     @media(max-width:900px){.governance-overview{grid-template-columns:repeat(2,minmax(0,1fr))}.governance-card-list{grid-template-columns:minmax(0,1fr)}}
     @media(max-width:600px){.governance-filters{grid-template-columns:minmax(0,1fr);gap:9px}.governance-filter-panel{padding:12px}.governance-filter-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.governance-filter-actions .btn{width:100%;padding:9px 10px}.governance-stat{padding:12px}.governance-stat strong{font-size:21px}.governance-section{margin:19px 0}.governance-card{padding:13px}.governance-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}.governance-actions .btn{width:100%}}
   </style>
+  <style id="sourceCenterStyles">
+    .source-view,.source-detail-view{min-width:0}.source-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px 16px;margin:0 0 16px}.source-toolbar .field{min-width:0}.source-toolbar input,.source-toolbar select{width:100%;max-width:100%}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.source-card{min-width:0;padding:15px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow-wrap:anywhere}.source-card h3{margin:0 0 8px;font-size:16px;line-height:1.5}.source-meta{display:grid;gap:4px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.source-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.source-actions .btn{min-height:42px;white-space:normal}.source-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.source-detail-grid>div{min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere}.source-related-list{display:grid;gap:8px}.source-related-item{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:9px}.source-reference-list{display:grid;gap:8px;margin:10px 0}.source-reference-item{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px;border:1px solid var(--line);border-radius:9px}.source-reference-fields{display:grid;grid-template-columns:minmax(0,1fr) 180px auto;gap:8px;align-items:end}.source-reference-fields>*{min-width:0}.source-reference-list a,.source-meta a{overflow-wrap:anywhere}.source-empty{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}.source-hint{margin:8px 0;color:var(--muted);font-size:13px}
+    @media(max-width:900px){.source-grid{grid-template-columns:minmax(0,1fr)}}
+    @media(max-width:700px){.source-toolbar{grid-template-columns:minmax(0,1fr);gap:9px;padding:12px}.source-detail-grid{grid-template-columns:minmax(0,1fr)}.source-reference-fields{grid-template-columns:minmax(0,1fr)}.source-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.source-actions .btn{width:100%}}
+  </style>
 </head>
 <body>
 <script>
@@ -244,7 +249,7 @@
       <button class="active" data-view="home" data-title="หน้าแรก">⌂ หน้าแรก</button><button data-view="searchView" data-title="ค้นหาความรู้">⌕ ค้นหาความรู้</button><button data-view="knowledgeView" data-title="องค์ความรู้">◈ องค์ความรู้</button><button data-view="packagesView" data-title="ชุดองค์ความรู้">▣ ชุดองค์ความรู้</button><button data-view="lawsView" data-title="กฎหมายและหนังสือเวียน">⚖ กฎหมายและหนังสือเวียน</button><button data-view="judgmentsView" data-title="คำพิพากษา">▥ คำพิพากษา</button><button data-view="committeeDecisionsView" data-title="คำวินิจฉัยคณะกรรมการ">◉ คำวินิจฉัยคณะกรรมการ</button><button data-view="guidesView" data-title="คู่มือและแนวทางปฏิบัติ">▤ คู่มือและแนวทางปฏิบัติ</button><button data-view="learningView" data-title="บทเรียนออนไลน์">▷ บทเรียนออนไลน์</button><button data-view="qaView" data-title="ถาม–ตอบ">◎ ถาม–ตอบ</button><button data-view="savedView" data-title="รายการที่บันทึกไว้">♡ รายการที่บันทึกไว้</button>
     </nav>
     <div class="nav-label">ผู้ดูแลระบบ</div>
-    <nav class="nav"><button data-view="manageView" data-title="จัดการเนื้อหา">☷ จัดการเนื้อหา <span style="margin-left:auto" class="tag orange">7 รอตรวจ</span></button><button data-view="packageManageView" data-title="จัดการชุดองค์ความรู้">▣ จัดการชุดองค์ความรู้</button><button data-view="gapDashboardView" data-title="Knowledge Gap Dashboard">◫ Knowledge Gap Dashboard</button><button data-view="categoryManageView" data-title="จัดการหมวดเนื้อหา">▦ จัดการหมวดเนื้อหา</button><button data-view="usersView" data-title="ผู้ใช้งานและสิทธิ">♙ ผู้ใช้งานและสิทธิ</button><button data-view="reportsView" data-title="รายงานการใช้งาน">▥ รายงานการใช้งาน</button><button data-view="governanceView" data-title="ศูนย์ควบคุมคุณภาพองค์ความรู้">✓ ศูนย์ควบคุมคุณภาพองค์ความรู้</button></nav>
+    <nav class="nav"><button data-view="manageView" data-title="จัดการเนื้อหา">☷ จัดการเนื้อหา <span style="margin-left:auto" class="tag orange">7 รอตรวจ</span></button><button data-view="packageManageView" data-title="จัดการชุดองค์ความรู้">▣ จัดการชุดองค์ความรู้</button><button data-view="gapDashboardView" data-title="Knowledge Gap Dashboard">◫ Knowledge Gap Dashboard</button><button data-view="categoryManageView" data-title="จัดการหมวดเนื้อหา">▦ จัดการหมวดเนื้อหา</button><button data-view="usersView" data-title="ผู้ใช้งานและสิทธิ">♙ ผู้ใช้งานและสิทธิ</button><button data-view="reportsView" data-title="รายงานการใช้งาน">▥ รายงานการใช้งาน</button><button data-view="governanceView" data-title="ศูนย์ควบคุมคุณภาพองค์ความรู้">✓ ศูนย์ควบคุมคุณภาพองค์ความรู้</button><button data-view="sourcesView" data-title="แหล่งข้อมูลและเอกสารอ้างอิง">▤ แหล่งข้อมูลและเอกสารอ้างอิง</button></nav>
     <div class="account"><div class="avatar" id="userAvatar">P</div><div><b id="userName">ผู้ดูแลระบบ</b><small id="userEmail">ยังไม่ได้เข้าสู่ระบบ</small></div></div>
   </aside>
   <main>
@@ -333,6 +338,34 @@
         <section class="governance-section" id="governancePublishedSection" aria-labelledby="governancePublishedHeading"><div class="section-title"><div><h2 id="governancePublishedHeading">สุขภาพเนื้อหาที่เผยแพร่</h2><p class="doc-meta">ตรวจความครบถ้วนของข้อมูลที่รองรับเท่านั้น ไม่ได้ประเมินความถูกต้องทางกฎหมายหรือข้อเท็จจริง</p></div></div><div class="governance-card-list" id="governancePublishedHealth"></div></section>
         <section class="governance-section" id="governancePackagesSection" aria-labelledby="governancePackagesHeading"><div class="section-title"><div><h2 id="governancePackagesHeading">สุขภาพชุดองค์ความรู้</h2><p class="doc-meta">ตรวจสมาชิกจากข้อมูลที่โหลดอยู่ โดยไม่เปลี่ยนลำดับหรือแก้ชุดองค์ความรู้</p></div></div><div class="governance-card-list" id="governancePackageHealth"></div></section>
       </section>
+      <section class="view source-view" id="sourcesView" aria-labelledby="sourcesHeading">
+        <div class="page-head"><div><h1 id="sourcesHeading">แหล่งข้อมูลและเอกสารอ้างอิง</h1><p>ทะเบียนแหล่งข้อมูลที่เชื่อมโยงกับองค์ความรู้ โดยแสดงเฉพาะข้อมูลที่บัญชีนี้อ่านได้</p></div><button type="button" class="btn primary" id="newSourceButton">＋ เพิ่มแหล่งข้อมูล</button></div>
+        <p class="source-hint" id="sourcePoolNote" role="status"></p>
+        <section class="panel source-toolbar" aria-label="ค้นหาและกรองแหล่งข้อมูล">
+          <div class="field"><label for="sourceQuery">ค้นหาชื่อ เลขที่เอกสาร หน่วยงาน หรือ URL</label><input type="search" id="sourceQuery" autocomplete="off"></div>
+          <div class="field"><label for="sourceTypeFilter">ประเภทแหล่งข้อมูล</label><select id="sourceTypeFilter"><option value="all">ทุกประเภท</option><option value="law">กฎหมาย</option><option value="regulation">กฎ/ระเบียบ</option><option value="circular">หนังสือเวียน</option><option value="order">คำสั่ง</option><option value="officialLetter">หนังสือราชการ</option><option value="judgment">คำพิพากษา</option><option value="committeeDecision">คำวินิจฉัย/ความเห็นคณะกรรมการ</option><option value="guide">คู่มือ/แนวทางปฏิบัติ</option><option value="other">เอกสารอ้างอิงอื่น</option></select></div>
+          <div class="field"><label for="sourceUseFilter">การใช้งานและความครบถ้วน</label><select id="sourceUseFilter"><option value="all">ทุกสถานะ</option><option value="used">เชื่อมกับองค์ความรู้</option><option value="unused">ยังไม่เชื่อมโยง</option><option value="complete">ข้อมูลหลักครบ</option><option value="incomplete">ควรเติมข้อมูล</option><option value="duplicate">อาจเป็นเอกสารอ้างอิงเดียวกัน</option></select></div>
+        </section>
+        <div id="sourceFormCard" class="form-card" hidden><form id="sourceForm" class="form-grid">
+          <h2 class="form-section-title" id="sourceFormHeading">เพิ่มแหล่งข้อมูล</h2>
+          <div class="field"><label for="sourceFormType">ประเภท *</label><select id="sourceFormType" required><option value="law">กฎหมาย</option><option value="regulation">กฎ/ระเบียบ</option><option value="circular">หนังสือเวียน</option><option value="order">คำสั่ง</option><option value="officialLetter">หนังสือราชการ</option><option value="judgment">คำพิพากษา</option><option value="committeeDecision">คำวินิจฉัย/ความเห็นคณะกรรมการ</option><option value="guide">คู่มือ/แนวทางปฏิบัติ</option><option value="other">เอกสารอ้างอิงอื่น</option></select></div>
+          <div class="field"><label for="sourceFormTitle">ชื่อเอกสาร *</label><input id="sourceFormTitle" required maxlength="300"></div>
+          <div class="field"><label for="sourceFormReferenceNo">เลขที่เอกสาร/อ้างอิง</label><input id="sourceFormReferenceNo" maxlength="160"></div>
+          <div class="field"><label for="sourceFormDate">วันที่เอกสาร</label><input id="sourceFormDate" type="date"></div>
+          <div class="field"><label for="sourceFormAuthority">หน่วยงานผู้ออก</label><input id="sourceFormAuthority" maxlength="200"></div>
+          <div class="field"><label for="sourceFormUrl">URL เอกสารทางการ</label><input id="sourceFormUrl" type="url" maxlength="2048" placeholder="https://..."></div>
+          <div class="field full"><label for="sourceFormDescription">รายละเอียด</label><textarea id="sourceFormDescription" rows="3" maxlength="4000"></textarea></div>
+          <div class="field" id="sourceAccessField"><label for="sourceFormAccess">ระดับการอ่าน</label><select id="sourceFormAccess"><option value="restricted">บุคลากรที่มีสิทธิ</option><option value="internal">บุคลากรกรมที่ดิน</option><option value="public">สาธารณะ</option></select><small class="doc-meta">ผู้แก้ไขที่ไม่ใช่ Admin สร้างแหล่งข้อมูลในระดับจำกัดสิทธิ</small></div>
+          <p class="source-hint full" id="sourceFormFeedback" role="status"></p>
+          <div class="form-footer full"><span class="required-note">ไม่จัดเก็บเนื้อหาเอกสารหรือประเมินผลทางกฎหมาย</span><div><button type="button" class="btn" id="cancelSourceForm">ยกเลิก</button><button type="submit" class="btn primary" id="saveSourceButton">บันทึกแหล่งข้อมูล</button></div></div>
+        </form></div>
+        <div class="source-grid" id="sourceInventory" aria-live="polite"></div>
+      </section>
+      <section class="view source-detail-view" id="sourceDetailView" aria-labelledby="sourceDetailHeading">
+        <div class="page-head"><div><button type="button" class="btn" id="sourceDetailBack">← กลับแหล่งข้อมูล</button><h1 id="sourceDetailHeading" style="margin-top:14px"></h1><p id="sourceDetailType" class="doc-meta"></p></div><div class="source-actions"><a class="btn" id="sourceDetailExternal" target="_blank" rel="noopener noreferrer" hidden>เปิดแหล่งข้อมูล ↗</a><button type="button" class="btn" id="editSourceButton" hidden>แก้ไขแหล่งข้อมูล</button></div></div>
+        <section class="panel" aria-labelledby="sourceIdentityHeading"><h2 id="sourceIdentityHeading">ข้อมูลแหล่งข้อมูล</h2><div class="source-detail-grid" id="sourceDetailMetadata"></div><h2 id="sourceCompletenessHeading">ความครบถ้วนข้อมูล</h2><p id="sourceDetailCompleteness" class="source-hint"></p></section>
+        <section class="governance-section" aria-labelledby="sourceRelatedHeading"><div class="section-title"><div><h2 id="sourceRelatedHeading">องค์ความรู้ที่เชื่อมโยง</h2><p class="doc-meta" id="sourceRelatedNote"></p></div></div><div class="source-related-list" id="sourceRelatedContents"></div></section>
+      </section>
       <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
 
       <section class="view" id="packageManageView"><div class="page-head"><div><h1>จัดการชุดองค์ความรู้</h1><p>เชื่อมโยงเนื้อหาที่เผยแพร่แล้วให้เป็นชุดความรู้เรื่องเดียวกัน</p></div><button class="btn primary" id="newPackage">＋ สร้างชุดองค์ความรู้</button></div><div class="form-card" id="packageFormCard" hidden style="margin:0 0 18px"><form id="packageForm" class="form-grid"><div class="form-section-title" id="packageFormTitle">สร้างชุดองค์ความรู้</div><div class="field full"><label>ชื่อชุดองค์ความรู้ *</label><input id="packageTitle" required placeholder="เช่น การจดทะเบียนโอนมรดกที่ดิน"></div><div class="field"><label>หมวดเนื้อหา *</label><select id="packageCategory" required><option value="">เลือกหมวด</option></select></div><div class="field"><label>คำสำคัญ</label><input id="packageKeywords" placeholder="คั่นด้วยเครื่องหมายจุลภาค"></div><div class="field full"><label>บทสรุปของชุดองค์ความรู้ *</label><textarea id="packageDescription" rows="3" required></textarea></div><div id="packageSectionSelectors" class="field full form-grid"></div><div class="field"><label>วันที่ครบกำหนดทบทวน</label><input id="packageReviewDue" type="date"></div><div class="form-footer"><span class="required-note">เลือกเนื้อหาที่เผยแพร่แล้วได้หลายรายการในแต่ละส่วน</span><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn" id="cancelPackage">ยกเลิก</button><button type="button" class="btn" id="savePackageDraft">บันทึกฉบับร่าง</button><button class="btn primary">ส่งให้ตรวจสอบ</button></div></div></form></div><div class="table-wrap"><table><thead><tr><th>ชื่อชุด</th><th>เนื้อหาเชื่อมโยง</th><th>ผู้รับผิดชอบ</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody id="packageManageTable"></tbody></table></div></section>
@@ -403,6 +436,17 @@
     return show(previous?.id||fallbackId,previous?.name||fallbackName,{fromBack:true,restoreScroll:previous?.scrollY||0,allowDirtyExit:true});
   }
   navs.forEach(n=>n.onclick=()=>show(n.dataset.view,n.dataset.title||n.textContent.trim()));
+  document.querySelector('[data-view="sourcesView"]')?.addEventListener('click', () => { void loadSources(); });
+  document.getElementById('newSourceButton')?.addEventListener('click', () => showSourceForm());
+  document.getElementById('sourceForm')?.addEventListener('submit', saveSource);
+  document.getElementById('cancelSourceForm')?.addEventListener('click', () => {
+    document.getElementById('sourceFormCard').hidden = true;
+    window.show(sourceFormReturnView, sourceFormReturnView === 'formView' ? 'เพิ่มเนื้อหา' : 'แหล่งข้อมูลและเอกสารอ้างอิง');
+  });
+  document.getElementById('sourceDetailBack')?.addEventListener('click', () => window.showPreviousView('sourcesView', 'แหล่งข้อมูลและเอกสารอ้างอิง'));
+  document.getElementById('sourceQuery')?.addEventListener('input', event => { sourceCenterState.query = event.target.value; renderSourceInventory(); });
+  document.getElementById('sourceTypeFilter')?.addEventListener('change', event => { sourceCenterState.type = event.target.value; renderSourceInventory(); });
+  document.getElementById('sourceUseFilter')?.addEventListener('change', event => { sourceCenterState.use = event.target.value; renderSourceInventory(); });
   function search(q){q=q.trim();document.getElementById('queryLabel').textContent=q||'ทั้งหมด';document.getElementById('resultInput').value=q;show('searchView','ค้นหาความรู้')}
   document.getElementById('back').onclick=()=>showPreviousView('home','หน้าแรก');
   function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
@@ -485,6 +529,16 @@
   let completedLessonUnitIds = new Set();
   let currentUserProfile = null;
   let knowledgePackagesData = [];
+  let sourcesData = [];
+  let sourceLoadError = '';
+  let selectedSourceReferences = [];
+  let sourceWriteInFlight = false;
+  let sourceDetailCurrent = null;
+  let sourceEditId = '';
+  let sourceFormReturnView = 'sourcesView';
+  let sourceCenterState = { query: '', type: 'all', use: 'all' };
+  const MAX_SOURCE_REFERENCES = 5;
+  const SOURCE_TYPE_LABELS = Object.freeze({ law: 'กฎหมาย', regulation: 'กฎ/ระเบียบ', circular: 'หนังสือเวียน', order: 'คำสั่ง', officialLetter: 'หนังสือราชการ', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัย/ความเห็นคณะกรรมการ', guide: 'คู่มือ/แนวทางปฏิบัติ', other: 'เอกสารอ้างอิงอื่น' });
   let governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
   let governanceDetailLoadState = { law: 'loading', guide: 'loading', lesson: 'loading', qa: 'loading' };
   let authoringPreviewReturnView = 'formView';
@@ -507,6 +561,8 @@
     workspaceLearningProgress: 500,
     issueReports: 1000,
     knowledgePackages: 200,
+    sources: 500,
+    sourceRelated: 100,
     knowledgeGaps: 500,
     moderationQueue: 200,
     notifications: 50
@@ -1068,6 +1124,7 @@
 
     const manageNav = document.querySelector('[data-view="manageView"]');
     const governanceNav = document.querySelector('[data-view="governanceView"]');
+    const sourcesNav = document.querySelector('[data-view="sourcesView"]');
     const categoryNav = document.querySelector('[data-view="categoryManageView"]');
     const usersNav = document.querySelector('[data-view="usersView"]');
     const reportsNav = document.querySelector('[data-view="reportsView"]');
@@ -1075,6 +1132,7 @@
     const gapDashboardNav = document.querySelector('[data-view="gapDashboardView"]');
     if (manageNav) manageNav.hidden = !canManageContent;
     if (governanceNav) governanceNav.hidden = !canManageContent;
+    if (sourcesNav) sourcesNav.hidden = !canManageContent;
     if (categoryNav) categoryNav.hidden = !isAdmin;
     if (usersNav) usersNav.hidden = !isAdmin;
     if (reportsNav) reportsNav.hidden = !canViewReports;
@@ -3438,6 +3496,7 @@
       appendDetailSection(body, 'ตัวอย่าง', item.example);
     }
     if (!body.children.length) appendDetailSection(body, 'รายละเอียด', 'ไม่มีรายละเอียดเพิ่มเติมในรายการนี้');
+    renderStructuredSourceSection(item, body);
   }
 
   function getSharedContentIdFromHash() {
@@ -4693,7 +4752,7 @@
   function authoringFormSnapshot() {
     const fields = [...document.querySelectorAll('#contentForm input, #contentForm select, #contentForm textarea')]
       .map(field => [field.id, field.type === 'checkbox' ? field.checked : field.value]);
-    return JSON.stringify([activeAuthoringType(), fields]);
+    return JSON.stringify([activeAuthoringType(), fields, canonicalSourceReferences(selectedSourceReferences)]);
   }
 
   function setAuthoringDirty(value) {
@@ -4768,7 +4827,11 @@
     const warnings = [];
     if (!String(item.summary || '').trim() && item.content_type !== 'knowledge') warnings.push({ key: 'summary', label: 'ยังไม่มีบทสรุป' });
     if (!String(Array.isArray(item.keywords) ? item.keywords.join(' ') : item.keywords || '').trim()) warnings.push({ key: 'keywords', label: 'ยังไม่ได้ระบุคำสำคัญ' });
-    if (!String(item.source_url || '').trim()) warnings.push({ key: 'source', label: 'ไม่มีแหล่งอ้างอิงหรือลิงก์เอกสาร' });
+    const availableSources = options.sources || [];
+    const linkedSources = (Array.isArray(item.source_references) ? item.source_references : [])
+      .map(reference => availableSources.find(source => source.source_id === reference?.source_id)).filter(Boolean);
+    if (!String(item.source_url || '').trim() && !linkedSources.length && !String(item.legal_references || '').trim()) warnings.push({ key: 'source', label: 'ไม่มีแหล่งข้อมูลอ้างอิงที่เชื่อมโยง' });
+    linkedSources.forEach(source => sourceCompleteness(source).forEach(reason => warnings.push({ key: `source:${source.source_id}`, label: `แหล่งอ้างอิง ${source.title}: ${reason}` })));
     if (String(item.source_url || '').trim()) {
       try {
         const sourceUrl = new URL(item.source_url);
@@ -4794,7 +4857,8 @@
     const item = {
       title: value('contentTitle'), category_id: value('contentCategory'), owner_unit: value('contentOwnerUnit'),
       content_type: type, summary: type === 'knowledge' ? value('knowledgeSummary') : '',
-      guidance: value('knowledgeGuidance'), keywords: value('contentKeywords'), source_url: value('contentSourceUrl')
+      guidance: value('knowledgeGuidance'), keywords: value('contentKeywords'), source_url: value('contentSourceUrl'),
+      source_references: canonicalSourceReferences(selectedSourceReferences)
     };
     const detail = {
       document_no: value('lawDocumentNo'), document_date: value('lawDocumentDate'), official_title: value('lawOfficialTitle'),
@@ -4812,12 +4876,12 @@
 
   function authoringBlockingChecks(type = activeAuthoringType()) {
     const model = authoringReadinessModel(type);
-    return evaluateContentReadiness(model.item, model.detail).blocking;
+    return evaluateContentReadiness(model.item, model.detail, { sources: sourcesData }).blocking;
   }
 
   function authoringWarnings() {
     const model = authoringReadinessModel(activeAuthoringType());
-    return evaluateContentReadiness(model.item, model.detail).warnings
+    return evaluateContentReadiness(model.item, model.detail, { sources: sourcesData }).warnings
       .filter(warning => ['keywords', 'source'].includes(warning.key))
       .map(warning => `${warning.label} (ไม่บังคับ)`);
   }
@@ -4911,6 +4975,7 @@
       title: document.getElementById('contentTitle').value.trim(),
       category_id: document.getElementById('contentCategory').value,
       workflow_status: 'draft', summary: '', source_url: document.getElementById('contentSourceUrl').value.trim(),
+      source_references: canonicalSourceReferences(selectedSourceReferences), source_ids: sourceIdsFromReferences(selectedSourceReferences),
       access_level: document.getElementById('contentAccessLevel').value
     };
     const detail = {};
@@ -5037,8 +5102,310 @@
     const loadedDetail = governanceDetailFor(item);
     return evaluateContentReadiness(item, loadedDetail.detail, {
       categories: allCategoriesData,
+      sources: sourcesData,
       typeDetailsAvailable: loadedDetail.available
     });
+  }
+
+  function canonicalSourceReferences(references) {
+    if (!Array.isArray(references) || references.length > MAX_SOURCE_REFERENCES) throw new Error('เลือกแหล่งอ้างอิงได้ไม่เกิน 5 รายการ');
+    const seen = new Set();
+    return references.map(reference => {
+      if (!reference || typeof reference !== 'object' || Object.keys(reference).sort().join(',') !== 'relation_type,source_id') throw new Error('รูปแบบแหล่งอ้างอิงไม่ถูกต้อง');
+      const sourceId = String(reference.source_id || '').trim();
+      if (!/^SRC-[A-Za-z0-9_-]{8,65}$/.test(sourceId) || !['primary', 'supporting'].includes(reference.relation_type) || seen.has(sourceId)) throw new Error('ข้อมูลแหล่งอ้างอิงไม่ถูกต้องหรือซ้ำกัน');
+      seen.add(sourceId);
+      return { source_id: sourceId, relation_type: reference.relation_type };
+    }).sort((a, b) => a.source_id.localeCompare(b.source_id));
+  }
+
+  function sourceIdsFromReferences(references) {
+    return canonicalSourceReferences(references).map(reference => reference.source_id);
+  }
+
+  function sourceTypeLabel(type) { return SOURCE_TYPE_LABELS[type] || SOURCE_TYPE_LABELS.other; }
+  function safeSourceUrl(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    try { const url = new URL(raw); return ['http:', 'https:'].includes(url.protocol) ? url.href : ''; } catch (_) { return ''; }
+  }
+
+  function sourceCompleteness(source = {}) {
+    const warnings = [];
+    if (!String(source.title || '').trim()) warnings.push('ไม่มีชื่อแหล่งข้อมูล');
+    if (!String(source.reference_no || '').trim()) warnings.push('ไม่มีเลขที่เอกสารอ้างอิง');
+    if (!String(source.issuing_authority || '').trim()) warnings.push('ไม่มีหน่วยงานผู้ออก');
+    if (source.official_url && !safeSourceUrl(source.official_url)) warnings.push('URL แหล่งอ้างอิงไม่ถูกต้อง');
+    if (!source.official_url && !source.reference_no) warnings.push('ไม่มี URL หรือเลขที่เอกสารอ้างอิง');
+    return warnings;
+  }
+
+  function normalizedSourceText(value) { return normalizeSearchText(String(value || '').normalize('NFKC')); }
+  function sourceDuplicate(source) {
+    const referenceNo = normalizedSourceText(source.reference_no);
+    const url = safeSourceUrl(source.official_url);
+    const candidates = sourcesData.filter(item => item.source_id !== source.source_id && (
+      (referenceNo && normalizedSourceText(item.reference_no) === referenceNo) ||
+      (url && safeSourceUrl(item.official_url) === url)
+    ));
+    return candidates.length > 0;
+  }
+
+  function sourceContentVisible(item) {
+    if (!item || !currentUserProfile) return false;
+    const role = currentUserProfile.role;
+    if (role === 'admin' || role === 'reviewer') return true;
+    if (role === 'editor') return (item.workflow_status === 'published' && ['public', 'internal'].includes(item.access_level || 'public'))
+      || String(item.created_by || '').toLowerCase() === String(auth.currentUser?.email || '').toLowerCase();
+    return item.workflow_status === 'published' && ['public', 'internal'].includes(item.access_level || 'public');
+  }
+
+  function sourceUsages(sourceId, pool = contentItems) {
+    return pool.filter(item => sourceContentVisible(item) && Array.isArray(item.source_references)
+      && item.source_references.some(reference => reference?.source_id === sourceId));
+  }
+
+  function sourceMetadataNodes(source, options = {}) {
+    const parts = [];
+    const values = [
+      ['ประเภท', sourceTypeLabel(source.source_type)], ['เลขที่เอกสาร', source.reference_no],
+      ['วันที่เอกสาร', source.document_date], ['หน่วยงานผู้ออก', source.issuing_authority], ['รายละเอียด', source.description]
+    ];
+    values.forEach(([label, value]) => { if (value) { const p = document.createElement('p'); p.textContent = `${label}: ${value}`; parts.push(p); } });
+    const url = safeSourceUrl(source.official_url);
+    if (url && options.excludeUrl && url === safeSourceUrl(options.excludeUrl)) return parts;
+    if (url) { const p = document.createElement('p'); const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = 'เปิดแหล่งข้อมูลภายนอก ↗'; p.appendChild(a); parts.push(p); }
+    return parts;
+  }
+
+  async function loadSources() {
+    sourceLoadError = '';
+    try {
+      const role = currentUserProfile?.role;
+      let sourceDocs = [];
+      if (role === 'admin' || role === 'reviewer') {
+        const snapshot = await getDocs(query(collection(db, 'sources'), limit(APP_LIMITS.sources)));
+        sourceDocs = snapshot.docs;
+      } else if (role === 'editor') {
+        const [shared, owned] = await Promise.all([
+          getDocs(query(collection(db, 'sources'), where('access_level', 'in', ['public', 'internal']), limit(APP_LIMITS.sources))),
+          getDocs(query(collection(db, 'sources'), where('created_by', '==', auth.currentUser.email), limit(APP_LIMITS.sources)))
+        ]);
+        sourceDocs = [...new Map([...shared.docs, ...owned.docs].map(entry => [entry.id, entry])).values()];
+      } else {
+        const snapshot = await getDocs(query(collection(db, 'sources'), where('access_level', 'in', ['public', 'internal']), limit(APP_LIMITS.sources)));
+        sourceDocs = snapshot.docs;
+      }
+      sourcesData = sourceDocs.map(entry => ({ id: entry.id, ...entry.data() }))
+        .filter(source => source.id === source.source_id)
+        .sort((a, b) => String(a.title || '').localeCompare(String(b.title || ''), 'th'));
+    } catch (error) {
+      sourceLoadError = error?.message || 'ไม่สามารถโหลดรายการแหล่งข้อมูลได้';
+      sourcesData = [];
+    }
+    renderSourceCenter();
+    renderAuthoringSources();
+    renderGovernanceCenter();
+  }
+
+  function renderSourceInventory() {
+    const host = document.getElementById('sourceInventory');
+    if (!host) return;
+    host.replaceChildren();
+    const poolNote = document.getElementById('sourcePoolNote');
+    if (poolNote) poolNote.textContent = `แสดงแหล่งข้อมูล ${sourcesData.length} รายการที่บัญชีนี้อ่านได้ · จำนวนเนื้อหาที่เชื่อมโยงคำนวณจากรายการ ${contentItems.length} รายการที่โหลดอยู่`;
+    const queryText = normalizedSourceText(sourceCenterState.query);
+    const filtered = sourcesData.filter(source => {
+      const text = normalizedSourceText([source.title, source.reference_no, source.issuing_authority, source.description].join(' '));
+      const matchesQuery = !queryText || text.includes(queryText);
+      const matchesType = sourceCenterState.type === 'all' || source.source_type === sourceCenterState.type;
+      const used = sourceUsages(source.source_id).length > 0;
+      const warnings = sourceCompleteness(source);
+      const matchesUse = sourceCenterState.use === 'all'
+        || (sourceCenterState.use === 'used' && used)
+        || (sourceCenterState.use === 'unused' && !used)
+        || (sourceCenterState.use === 'complete' && !warnings.length)
+        || (sourceCenterState.use === 'incomplete' && warnings.length > 0)
+        || (sourceCenterState.use === 'duplicate' && sourceDuplicate(source));
+      return matchesQuery && matchesType && matchesUse;
+    });
+    if (sourceLoadError) { const note = document.createElement('p'); note.className = 'empty-note'; note.textContent = `โหลดแหล่งข้อมูลไม่สำเร็จ: ${sourceLoadError}`; host.appendChild(note); return; }
+    if (!filtered.length) { const note = document.createElement('p'); note.className = 'empty-note'; note.textContent = sourcesData.length ? 'ไม่พบแหล่งข้อมูลตามเงื่อนไข' : 'ยังไม่มีแหล่งข้อมูลในข้อมูลที่โหลดอยู่'; host.appendChild(note); return; }
+    filtered.forEach(source => {
+      const card = document.createElement('article'); card.className = 'source-card';
+      const title = document.createElement('h3'); title.textContent = source.title || 'แหล่งข้อมูลไม่มีชื่อ';
+      const type = document.createElement('span'); type.className = 'tag'; type.textContent = sourceTypeLabel(source.source_type);
+      const meta = document.createElement('div'); meta.className = 'source-meta'; sourceMetadataNodes(source).forEach(node => meta.appendChild(node));
+      const count = document.createElement('p'); count.textContent = `ใช้ในองค์ความรู้ ${sourceUsages(source.source_id).length} เรื่องในข้อมูลที่โหลดอยู่`;
+      const quality = document.createElement('p'); quality.className = 'source-quality'; const warnings = sourceCompleteness(source);
+      quality.textContent = warnings.length ? warnings.join(' · ') : 'ข้อมูลแหล่งอ้างอิงครบตามข้อมูลที่มี';
+      if (sourceDuplicate(source)) { const duplicate = document.createElement('p'); duplicate.className = 'source-quality'; duplicate.textContent = 'อาจเป็นเอกสารอ้างอิงเดียวกัน'; meta.appendChild(duplicate); }
+      const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = 'ตรวจสอบแหล่งข้อมูล'; open.onclick = () => void openSourceDetail(source.source_id);
+      card.append(type, title, meta, count, quality, open); host.appendChild(card);
+    });
+  }
+
+  function renderSourceCenter() {
+    renderSourceInventory();
+    const select = document.getElementById('sourceTypeFilter');
+    if (select && select.options.length <= 1) Object.entries(SOURCE_TYPE_LABELS).forEach(([value, label]) => select.add(new Option(label, value)));
+    if (select) select.value = sourceCenterState.type;
+    const queryInput = document.getElementById('sourceQuery'); if (queryInput && queryInput.value !== sourceCenterState.query) queryInput.value = sourceCenterState.query;
+    const useSelect = document.getElementById('sourceUseFilter'); if (useSelect) useSelect.value = sourceCenterState.use;
+  }
+
+  async function openSourceDetail(sourceId) {
+    const source = sourcesData.find(entry => entry.source_id === sourceId);
+    if (!source) return window.toast('ไม่พบแหล่งข้อมูลในข้อมูลที่โหลดอยู่');
+    sourceDetailCurrent = source;
+    const detail = document.getElementById('sourceDetailView');
+    detail.querySelector('#sourceDetailHeading').textContent = source.title || 'แหล่งข้อมูล';
+    detail.querySelector('#sourceDetailType').textContent = sourceTypeLabel(source.source_type);
+    const metadata = detail.querySelector('#sourceDetailMetadata');
+    const external = detail.querySelector('#sourceDetailExternal');
+    const safeUrl = safeSourceUrl(source.official_url);
+    external.hidden = !safeUrl;
+    if (safeUrl) { external.href = safeUrl; external.setAttribute('aria-label', `เปิดแหล่งข้อมูล ${source.title || ''} ในแท็บใหม่`); }
+    metadata.replaceChildren(...sourceMetadataNodes(source));
+    const warnings = sourceCompleteness(source);
+    if (sourceDuplicate(source)) warnings.push('อาจเป็นเอกสารอ้างอิงเดียวกัน');
+    detail.querySelector('#sourceDetailCompleteness').textContent = warnings.length ? warnings.join(' · ') : 'ข้อมูลแหล่งอ้างอิงครบตามข้อมูลที่มี';
+    const related = detail.querySelector('#sourceRelatedContents'); related.replaceChildren();
+    let usages = [];
+    if (['admin', 'reviewer'].includes(currentUserProfile?.role)) {
+      try {
+        const result = await getDocs(query(collection(db, 'contents'), where('source_ids', 'array-contains', sourceId), limit(APP_LIMITS.sourceRelated)));
+        usages = result.docs.map(entry => ({ id: entry.id, ...entry.data() })).filter(sourceContentVisible);
+      } catch (error) {
+        const note = document.createElement('p'); note.textContent = 'ไม่สามารถโหลดรายการองค์ความรู้ที่เชื่อมโยงได้ในขณะนี้'; related.appendChild(note);
+      }
+    } else usages = sourceUsages(sourceId);
+    usages.forEach(item => {
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'source-related-item';
+      button.textContent = `${item.title || item.content_id} · ${item.content_type || 'knowledge'}`;
+      button.onclick = () => void openContentFromFirestore(item); related.appendChild(button);
+    });
+    if (!related.children.length) { const note = document.createElement('p'); note.textContent = 'ไม่พบองค์ความรู้ที่เชื่อมโยงในข้อมูลที่เข้าถึงได้'; related.appendChild(note); }
+    const edit = detail.querySelector('#editSourceButton');
+    if (edit) { edit.hidden = currentUserProfile?.role !== 'admin'; edit.onclick = () => showSourceForm(source, 'sourceDetailView'); }
+    window.show('sourceDetailView', 'ตรวจสอบแหล่งข้อมูล');
+  }
+
+  function showSourceForm(source = null, returnView = 'sourcesView') {
+    if (!['admin', 'editor'].includes(currentUserProfile?.role)) return window.toast('ไม่มีสิทธิ์จัดการแหล่งข้อมูล');
+    if (source && currentUserProfile?.role !== 'admin') return window.toast('เฉพาะ Admin แก้ไขข้อมูลแหล่งข้อมูลได้');
+    sourceEditId = source?.source_id || '';
+    sourceFormReturnView = returnView;
+    document.getElementById('sourceForm').reset();
+    document.getElementById('sourceFormCard').hidden = false;
+    document.getElementById('sourceFormHeading').textContent = source ? 'แก้ไขข้อมูลแหล่งข้อมูล' : 'เพิ่มแหล่งข้อมูล';
+    document.getElementById('sourceFormType').value = source?.source_type || 'law';
+    document.getElementById('sourceFormTitle').value = source?.title || '';
+    document.getElementById('sourceFormReferenceNo').value = source?.reference_no || '';
+    document.getElementById('sourceFormDate').value = source?.document_date || '';
+    document.getElementById('sourceFormAuthority').value = source?.issuing_authority || '';
+    document.getElementById('sourceFormUrl').value = source?.official_url || '';
+    document.getElementById('sourceFormDescription').value = source?.description || '';
+    const access = document.getElementById('sourceFormAccess');
+    access.value = source?.access_level || (currentUserProfile?.role === 'editor' ? 'restricted' : 'public');
+    access.disabled = currentUserProfile?.role !== 'admin';
+    document.getElementById('saveSourceButton').disabled = false;
+    document.getElementById('sourceFormFeedback').textContent = '';
+    window.show('sourcesView', 'แหล่งข้อมูลและเอกสารอ้างอิง');
+    document.getElementById('sourceFormTitle').focus();
+  }
+
+  async function saveSource(event) {
+    event.preventDefault();
+    const button = document.getElementById('saveSourceButton');
+    if (sourceWriteInFlight || button.disabled) return;
+    if (!['admin', 'editor'].includes(currentUserProfile?.role) || (sourceEditId && currentUserProfile?.role !== 'admin')) return window.toast('ไม่มีสิทธิ์บันทึกแหล่งข้อมูล');
+    const title = document.getElementById('sourceFormTitle').value.trim();
+    const rawUrl = document.getElementById('sourceFormUrl').value.trim();
+    const safeUrl = safeSourceUrl(rawUrl);
+    if (!title) { document.getElementById('sourceFormTitle').focus(); return document.getElementById('sourceFormFeedback').textContent = 'กรุณาระบุชื่อเอกสาร'; }
+    if (rawUrl && !safeUrl) { document.getElementById('sourceFormUrl').focus(); return document.getElementById('sourceFormFeedback').textContent = 'URL ต้องเป็น HTTP หรือ HTTPS ที่ถูกต้อง'; }
+    sourceWriteInFlight = true; button.disabled = true; button.textContent = 'กำลังบันทึก…';
+    try {
+      const sourceId = sourceEditId || `SRC-${doc(collection(db, 'sources')).id}`;
+      const existing = sourceEditId ? sourcesData.find(source => source.source_id === sourceEditId) : null;
+      const payload = {
+        source_id: sourceId,
+        source_type: document.getElementById('sourceFormType').value,
+        title,
+        reference_no: document.getElementById('sourceFormReferenceNo').value.trim(),
+        document_date: document.getElementById('sourceFormDate').value,
+        issuing_authority: document.getElementById('sourceFormAuthority').value.trim(),
+        official_url: safeUrl,
+        description: document.getElementById('sourceFormDescription').value.trim(),
+        access_level: currentUserProfile.role === 'admin' ? document.getElementById('sourceFormAccess').value : 'restricted',
+        created_by: existing?.created_by || auth.currentUser.email,
+        created_at: existing?.created_at || serverTimestamp(),
+        updated_at: serverTimestamp()
+      };
+      await setDoc(doc(db, 'sources', sourceId), payload);
+      const wasEditing = Boolean(sourceEditId);
+      document.getElementById('sourceFormCard').hidden = true; sourceEditId = '';
+      await loadSources();
+      window.toast('บันทึกแหล่งข้อมูลแล้ว');
+      if (wasEditing && sourceFormReturnView === 'sourceDetailView') await openSourceDetail(sourceId);
+      else window.show(sourceFormReturnView, sourceFormReturnView === 'formView' ? 'เพิ่มเนื้อหา' : 'แหล่งข้อมูลและเอกสารอ้างอิง');
+    } catch (error) {
+      document.getElementById('sourceFormFeedback').textContent = `บันทึกแหล่งข้อมูลไม่สำเร็จ: ${error?.message || 'โปรดลองอีกครั้ง'}`;
+    } finally { sourceWriteInFlight = false; button.disabled = false; button.textContent = 'บันทึกแหล่งข้อมูล'; }
+  }
+
+  function renderAuthoringSources() {
+    const aside = document.querySelector('#formView .authoring-side');
+    if (!aside) return;
+    let section = document.getElementById('authoringSourcesPanel');
+    if (!section) {
+      section = document.createElement('section'); section.id = 'authoringSourcesPanel'; section.className = 'side-card'; section.setAttribute('aria-labelledby', 'authoringSourcesHeading');
+      section.innerHTML = '<h2 id="authoringSourcesHeading">แหล่งข้อมูลและเอกสารอ้างอิง</h2><label for="authoringSourceSelect">เลือกแหล่งข้อมูล</label><select id="authoringSourceSelect"><option value="">เลือกแหล่งข้อมูล</option></select><label for="authoringSourceRelation">ความสัมพันธ์</label><select id="authoringSourceRelation"><option value="primary">แหล่งอ้างอิงหลัก</option><option value="supporting">แหล่งอ้างอิงประกอบ</option></select><div class="source-actions"><button type="button" class="btn" id="attachAuthoringSource">เชื่อมโยง</button><button type="button" class="btn" id="createAuthoringSource">เพิ่มแหล่งข้อมูล</button></div><div id="authoringSourceList" class="source-reference-list"></div><p class="source-hint" id="authoringSourceFeedback" role="status"></p>';
+      aside.appendChild(section);
+      section.querySelector('#attachAuthoringSource').onclick = () => {
+        const sourceId = section.querySelector('#authoringSourceSelect').value;
+        const relation = section.querySelector('#authoringSourceRelation').value;
+        if (!sourceId) return;
+        if (selectedSourceReferences.some(entry => entry.source_id === sourceId)) { section.querySelector('#authoringSourceFeedback').textContent = 'แหล่งข้อมูลนี้เชื่อมโยงอยู่แล้ว'; return; }
+        if (selectedSourceReferences.length >= MAX_SOURCE_REFERENCES) { section.querySelector('#authoringSourceFeedback').textContent = 'เชื่อมโยงได้ไม่เกิน 5 แหล่งข้อมูล'; return; }
+        selectedSourceReferences = canonicalSourceReferences([...selectedSourceReferences, { source_id: sourceId, relation_type: relation }]);
+        section.querySelector('#authoringSourceFeedback').textContent = '';
+        updateAuthoringDirtyState(); renderAuthoringSources();
+      };
+      section.querySelector('#createAuthoringSource').onclick = () => showSourceForm(null, 'formView');
+    }
+    section.hidden = !['admin', 'editor'].includes(currentUserProfile?.role);
+    const select = section.querySelector('#authoringSourceSelect'); const oldValue = select.value;
+    select.replaceChildren(new Option('เลือกแหล่งข้อมูล', ''));
+    sourcesData.forEach(source => select.add(new Option(`${sourceTypeLabel(source.source_type)} · ${source.title}`, source.source_id)));
+    if (sourcesData.some(source => source.source_id === oldValue)) select.value = oldValue;
+    const list = section.querySelector('#authoringSourceList'); list.replaceChildren();
+    selectedSourceReferences = canonicalSourceReferences(selectedSourceReferences);
+    selectedSourceReferences.forEach(reference => {
+      const source = sourcesData.find(entry => entry.source_id === reference.source_id);
+      const row = document.createElement('div'); row.className = 'source-reference-item';
+      const text = document.createElement('span'); text.textContent = `${reference.relation_type === 'primary' ? 'แหล่งอ้างอิงหลัก' : 'แหล่งอ้างอิงประกอบ'} · ${source?.title || reference.source_id}`;
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'นำออก'; remove.setAttribute('aria-label', `นำ ${source?.title || reference.source_id} ออกจากรายการอ้างอิง`);
+      remove.onclick = () => { selectedSourceReferences = selectedSourceReferences.filter(entry => entry.source_id !== reference.source_id); updateAuthoringDirtyState(); renderAuthoringSources(); };
+      row.append(text, remove); if (source) sourceMetadataNodes(source).forEach(node => row.appendChild(node)); list.appendChild(row);
+    });
+  }
+
+  function renderStructuredSourceSection(item, body) {
+    const references = Array.isArray(item?.source_references) ? item.source_references : [];
+    if (!references.length) return;
+    const section = document.createElement('section'); section.className = 'detail-source-references';
+    const heading = document.createElement('h2'); heading.textContent = 'แหล่งข้อมูลและเอกสารอ้างอิง'; section.appendChild(heading);
+    references.forEach(reference => {
+      const source = sourcesData.find(entry => entry.source_id === reference.source_id);
+      if (!source) return;
+      const article = document.createElement('article'); article.className = 'source-reference-item';
+      const identity = document.createElement('div'); const title = document.createElement('strong'); title.textContent = `${reference.relation_type === 'primary' ? 'แหล่งอ้างอิงหลัก' : 'แหล่งอ้างอิงประกอบ'} · ${source.title}`;
+      identity.appendChild(title); sourceMetadataNodes(source, { excludeUrl: item.source_url }).forEach(node => identity.appendChild(node)); article.appendChild(identity); section.appendChild(article);
+      const inspect = document.createElement('button'); inspect.type = 'button'; inspect.className = 'btn'; inspect.textContent = 'ตรวจสอบแหล่งข้อมูล'; inspect.onclick = () => void openSourceDetail(source.source_id); article.appendChild(inspect);
+    });
+    if (section.querySelectorAll('article').length) body.appendChild(section);
   }
 
   function governanceRecordVisibleForRole(item) {
@@ -5407,6 +5774,7 @@
     }
     authoringWorkspaceReturnView = document.querySelector('.view.active')?.id === 'governanceView' ? 'governanceView' : 'manageView';
     editingContentId = id;
+    selectedSourceReferences = canonicalSourceReferences(item.source_references || []);
     const reasonField = ensureChangeReasonField();
     reasonField.hidden = false;
     document.getElementById('contentChangeReason').value = '';
@@ -5501,6 +5869,7 @@
       }
       document.getElementById('saveDraft').textContent = 'บันทึกการแก้ไข';
       renderAuthoringWorkflow(item);
+      renderAuthoringSources();
       captureAuthoringBaseline();
       window.toast('โหลดข้อมูลสำหรับแก้ไขแล้ว');
     } catch (error) {
@@ -5546,6 +5915,7 @@
     authoringWorkspaceReturnView = document.querySelector('.view.active')?.id === 'governanceView' ? 'governanceView' : 'manageView';
     setAuthoringDirty(false);
     editingContentId = null;
+    selectedSourceReferences = [];
     activeKnowledgeGapForContentId = '';
     const form = document.getElementById('contentForm');
     form.reset();
@@ -5554,17 +5924,20 @@
     ensureChangeReasonField().hidden = true;
     window.setFormType(type);
     renderAuthoringWorkflow(null);
+    renderAuthoringSources();
     captureAuthoringBaseline();
   }
 
   function finishContentCreation() {
     editingContentId = null;
+    selectedSourceReferences = [];
     activeKnowledgeGapForContentId = '';
     document.getElementById('contentForm').reset();
     document.querySelectorAll('.form-type').forEach(button => { button.disabled = false; });
     document.getElementById('saveDraft').textContent = 'บันทึกฉบับร่าง';
     ensureChangeReasonField().hidden = true;
     renderAuthoringWorkflow(null);
+    renderAuthoringSources();
     captureAuthoringBaseline();
   }
 
@@ -5581,6 +5954,8 @@
         .map(item => item.trim())
         .filter(Boolean),
       source_url: document.getElementById('contentSourceUrl').value.trim(),
+      source_references: canonicalSourceReferences(selectedSourceReferences),
+      source_ids: sourceIdsFromReferences(selectedSourceReferences),
       access_level: document.getElementById('contentAccessLevel').value,
       reviewer: document.getElementById('contentReviewer').value,
       review_due: document.getElementById('contentReviewDue').value
@@ -5611,7 +5986,9 @@
   }
 
   function queueContentBundle(batch, contentId, payload, detailPayloads, isNew) {
-    batch.set(doc(db, 'contents', contentId), payload, { merge: true });
+    const references = canonicalSourceReferences(payload.source_references || []);
+    const contentPayload = { ...payload, source_references: references, source_ids: references.map(reference => reference.source_id) };
+    batch.set(doc(db, 'contents', contentId), contentPayload, { merge: true });
     const entries = [
       ['laws', detailPayloads.law],
       ['guides', detailPayloads.guide],
@@ -7109,6 +7486,10 @@
       collectionDetailHistory.length = 0;
       relatedDetailHistory.length = 0;
       activeDetailItem = null;
+      sourcesData = [];
+      sourceCenterState = { query: '', type: 'all', use: 'all' };
+      selectedSourceReferences = [];
+      sourceDetailCurrent = null;
       lessonPlayerReturnToDetail = false;
       resetKnowledgeWorkspace(user?.uid || null);
     }
@@ -7136,6 +7517,7 @@
     try {
       await loadCategories();
       await loadContents();
+      await loadSources();
       await loadSavedItems();
       await loadUsers();
     } finally {

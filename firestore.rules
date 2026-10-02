@@ -70,6 +70,100 @@ service cloud.firestore {
         );
     }
 
+    function validSourceReference(reference) {
+      return reference is map
+        && reference.keys().hasAll(['source_id', 'relation_type'])
+        && reference.keys().hasOnly(['source_id', 'relation_type'])
+        && reference.source_id is string
+        && reference.source_id.size() >= 12
+        && reference.source_id.size() <= 69
+        && reference.source_id.matches('^SRC-[A-Za-z0-9_-]+$')
+        && reference.relation_type in ['primary', 'supporting'];
+    }
+
+    function sourceReferenceAt(data, index) {
+      return data.source_references.size() <= index
+        || (
+          validSourceReference(data.source_references[index])
+          && data.source_references[index].source_id == data.source_ids[index]
+        );
+    }
+
+    function validSourceRelationships(data) {
+      let hasReferences = 'source_references' in data;
+      let hasIds = 'source_ids' in data;
+      return (!hasReferences && !hasIds)
+        || (
+          hasReferences
+          && hasIds
+          && data.source_references is list
+          && data.source_ids is list
+          && data.source_references.size() <= 5
+          && data.source_ids.size() <= 5
+          && data.source_references.size() == data.source_ids.size()
+          && data.source_ids.toSet().size() == data.source_ids.size()
+          && sourceReferenceAt(data, 0)
+          && sourceReferenceAt(data, 1)
+          && sourceReferenceAt(data, 2)
+          && sourceReferenceAt(data, 3)
+          && sourceReferenceAt(data, 4)
+        );
+    }
+
+    function validSourceDocument(sourceId, data, expectedCreator) {
+      return data.keys().hasAll([
+          'source_id', 'source_type', 'title', 'reference_no', 'document_date',
+          'issuing_authority', 'official_url', 'description', 'access_level',
+          'created_by', 'created_at', 'updated_at'
+        ])
+        && data.keys().hasOnly([
+          'source_id', 'source_type', 'title', 'reference_no', 'document_date',
+          'issuing_authority', 'official_url', 'description', 'access_level',
+          'created_by', 'created_at', 'updated_at'
+        ])
+        && data.source_id == sourceId
+        && sourceId.size() >= 12
+        && sourceId.size() <= 69
+        && sourceId.matches('^SRC-[A-Za-z0-9_-]+$')
+        && data.source_type in ['law', 'regulation', 'circular', 'order', 'officialLetter', 'judgment', 'committeeDecision', 'guide', 'other']
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 300
+        && data.reference_no is string && data.reference_no.size() <= 160
+        && data.document_date is string && data.document_date.size() <= 40
+        && data.issuing_authority is string && data.issuing_authority.size() <= 200
+        && data.official_url is string && data.official_url.size() <= 2048
+        && (data.official_url == '' || data.official_url.matches('^https?://[^\\s]+$'))
+        && data.description is string && data.description.size() <= 4000
+        && data.access_level in ['public', 'internal', 'restricted']
+        && data.created_by is string && data.created_by == expectedCreator
+        && data.created_at is timestamp
+        && data.updated_at is timestamp;
+    }
+
+    match /sources/{sourceId} {
+      allow get, list: if isAdmin()
+        || isReviewer()
+        || (isEditor() && (
+          resource.data.access_level in ['public', 'internal']
+          || resource.data.created_by == request.auth.token.email
+        ))
+        || (isActive() && resource.data.access_level in ['public', 'internal']);
+
+      allow create: if (
+          isAdmin()
+          && validSourceDocument(sourceId, request.resource.data, request.auth.token.email)
+        ) || (
+          isEditor()
+          && request.resource.data.access_level == 'restricted'
+          && validSourceDocument(sourceId, request.resource.data, request.auth.token.email)
+        );
+
+      allow update: if isAdmin()
+        && validSourceDocument(sourceId, request.resource.data, resource.data.created_by)
+        && request.resource.data.created_at == resource.data.created_at;
+
+      allow delete: if false;
+    }
+
     // ข้อมูลผู้ใช้งาน
     match /users/{userId} {
       allow read: if isActive()
@@ -108,16 +202,18 @@ service cloud.firestore {
           && resource.data.access_level in ['public', 'internal']
         );
 
-      allow create: if isAdmin()
+      allow create: if validSourceRelationships(request.resource.data)
+        && (isAdmin()
         || (
           isEditor()
           && request.resource.data.created_by
             == request.auth.token.email
           && request.resource.data.workflow_status
             in ['draft', 'review']
-        );
+        ));
 
-      allow update: if isAdmin()
+      allow update: if validSourceRelationships(request.resource.data)
+        && (isAdmin()
         || (
           isEditor()
           && resource.data.created_by
@@ -145,8 +241,7 @@ service cloud.firestore {
               'approved_by',
               'approved_at',
               'updated_at'
-            ])
-        );
+            ])));
 
       allow delete: if isAdmin();
     }
@@ -192,7 +287,7 @@ service cloud.firestore {
           )
         );
 
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() && collectionName != 'sources';
     }
 
     match /questions/{questionId} {
