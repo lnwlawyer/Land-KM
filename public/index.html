@@ -138,6 +138,8 @@
     .source-view,.source-detail-view{min-width:0}.source-toolbar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px 16px;margin:0 0 16px}.source-toolbar .field{min-width:0}.source-toolbar input,.source-toolbar select{width:100%;max-width:100%}.source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.source-card{min-width:0;padding:15px;border:1px solid var(--line);border-radius:12px;background:#fff;overflow-wrap:anywhere}.source-card h3{margin:0 0 8px;font-size:16px;line-height:1.5}.source-meta{display:grid;gap:4px;color:var(--muted);font-size:13px;overflow-wrap:anywhere}.source-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.source-actions .btn{min-height:42px;white-space:normal}.source-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.source-detail-grid>div{min-width:0;padding:10px;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere}.source-related-list{display:grid;gap:8px}.source-related-item{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:9px}.source-reference-list{display:grid;gap:8px;margin:10px 0}.source-reference-item{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;padding:10px;border:1px solid var(--line);border-radius:9px}.source-reference-fields{display:grid;grid-template-columns:minmax(0,1fr) 180px auto;gap:8px;align-items:end}.source-reference-fields>*{min-width:0}.source-reference-list a,.source-meta a{overflow-wrap:anywhere}.source-empty{padding:16px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);text-align:center}.source-hint{margin:8px 0;color:var(--muted);font-size:13px}
     @media(max-width:900px){.source-grid{grid-template-columns:minmax(0,1fr)}}
     @media(max-width:700px){.source-toolbar{grid-template-columns:minmax(0,1fr);gap:9px;padding:12px}.source-detail-grid{grid-template-columns:minmax(0,1fr)}.source-reference-fields{grid-template-columns:minmax(0,1fr)}.source-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.source-actions .btn{width:100%}}
+    .ingestion-workspace{display:grid;gap:14px}.ingestion-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ingestion-form .field{min-width:0}.ingestion-form textarea{width:100%;min-height:220px;resize:vertical}.ingestion-list,.evidence-list{display:grid;gap:10px}.ingestion-card,.evidence-card,.grounding-preview{min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow-wrap:anywhere}.evidence-card pre,.grounding-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.65;margin:10px 0}.evidence-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.evidence-card:focus-within{outline:2px solid var(--brand);outline-offset:2px}
+    @media(max-width:700px){.ingestion-form{grid-template-columns:minmax(0,1fr)}.ingestion-card,.evidence-card,.grounding-preview{padding:12px}.ingestion-workspace .source-actions{grid-template-columns:minmax(0,1fr)}}
   </style>
 </head>
 <body>
@@ -365,6 +367,7 @@
         <div class="page-head"><div><button type="button" class="btn" id="sourceDetailBack">← กลับแหล่งข้อมูล</button><h1 id="sourceDetailHeading" style="margin-top:14px"></h1><p id="sourceDetailType" class="doc-meta"></p></div><div class="source-actions"><a class="btn" id="sourceDetailExternal" target="_blank" rel="noopener noreferrer" hidden>เปิดแหล่งข้อมูล ↗</a><button type="button" class="btn" id="editSourceButton" hidden>แก้ไขแหล่งข้อมูล</button></div></div>
         <section class="panel" aria-labelledby="sourceIdentityHeading"><h2 id="sourceIdentityHeading">ข้อมูลแหล่งข้อมูล</h2><div class="source-detail-grid" id="sourceDetailMetadata"></div><h2 id="sourceCompletenessHeading">ความครบถ้วนข้อมูล</h2><p id="sourceDetailCompleteness" class="source-hint"></p></section>
         <section class="governance-section" aria-labelledby="sourceRelatedHeading"><div class="section-title"><div><h2 id="sourceRelatedHeading">องค์ความรู้ที่เชื่อมโยง</h2><p class="doc-meta" id="sourceRelatedNote"></p></div></div><div class="source-related-list" id="sourceRelatedContents"></div></section>
+        <section class="governance-section ingestion-workspace" id="sourceIngestionSection" aria-labelledby="sourceIngestionHeading"><div class="section-title"><div><h2 id="sourceIngestionHeading">เอกสารนำเข้าและหลักฐาน</h2><p class="doc-meta">ข้อความหลักฐานคงถ้อยคำต้นทางและจำกัดการเข้าถึงตามแหล่งข้อมูล</p></div><button type="button" class="btn primary" id="startTextIngestion">นำเข้าข้อความต้นทาง</button></div><p id="ingestionStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionFormPanel" class="panel" hidden><form id="ingestionForm" class="ingestion-form"><div class="field"><label for="ingestionLabel">ชื่อเอกสาร/ฉบับ *</label><input id="ingestionLabel" maxlength="200" required></div><div class="field"><label for="ingestionOriginalUrl">URL ทางการ (บันทึกอ้างอิงเท่านั้น)</label><input id="ingestionOriginalUrl" type="url" maxlength="2048" placeholder="https://..."></div><div class="field full"><label for="ingestionText">วางข้อความต้นฉบับ *</label><textarea id="ingestionText" maxlength="200000" required aria-describedby="ingestionTextHelp"></textarea><small id="ingestionTextHelp">สูงสุด 200,000 ตัวอักษร · ระบบไม่ดึงข้อมูลจาก URL และไม่แก้ไขถ้อยคำ</small></div><p id="ingestionFeedback" class="source-hint full" role="status" aria-live="polite"></p><div class="source-actions full"><button type="button" class="btn" id="cancelIngestion">ยกเลิก</button><button type="submit" class="btn primary" id="saveIngestion">บันทึกและแยกหลักฐาน</button></div></form></div><div id="ingestionHistory" class="ingestion-list"></div><div id="evidencePanel" hidden><h3 id="evidenceHeading">หลักฐานในฉบับนำเข้า</h3><p id="evidenceStatus" class="source-hint" role="status" aria-live="polite"></p><div id="evidenceList" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn primary" id="buildGroundingContext">สร้างบริบทอ้างอิง</button></div><section id="groundingPreview" class="grounding-preview" aria-labelledby="groundingPreviewHeading" hidden><h3 id="groundingPreviewHeading">บริบทอ้างอิงสำหรับ AI</h3><p id="groundingCount" role="status"></p><div id="groundingItems"></div></section></div></section>
       </section>
       <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
 
@@ -436,17 +439,13 @@
     return show(previous?.id||fallbackId,previous?.name||fallbackName,{fromBack:true,restoreScroll:previous?.scrollY||0,allowDirtyExit:true});
   }
   navs.forEach(n=>n.onclick=()=>show(n.dataset.view,n.dataset.title||n.textContent.trim()));
-  document.querySelector('[data-view="sourcesView"]')?.addEventListener('click', () => { void loadSources(); });
-  document.getElementById('newSourceButton')?.addEventListener('click', () => showSourceForm());
-  document.getElementById('sourceForm')?.addEventListener('submit', saveSource);
-  document.getElementById('cancelSourceForm')?.addEventListener('click', () => {
-    document.getElementById('sourceFormCard').hidden = true;
-    window.show(sourceFormReturnView, sourceFormReturnView === 'formView' ? 'เพิ่มเนื้อหา' : 'แหล่งข้อมูลและเอกสารอ้างอิง');
-  });
   document.getElementById('sourceDetailBack')?.addEventListener('click', () => window.showPreviousView('sourcesView', 'แหล่งข้อมูลและเอกสารอ้างอิง'));
-  document.getElementById('sourceQuery')?.addEventListener('input', event => { sourceCenterState.query = event.target.value; renderSourceInventory(); });
-  document.getElementById('sourceTypeFilter')?.addEventListener('change', event => { sourceCenterState.type = event.target.value; renderSourceInventory(); });
-  document.getElementById('sourceUseFilter')?.addEventListener('change', event => { sourceCenterState.use = event.target.value; renderSourceInventory(); });
+  document.getElementById('startTextIngestion')?.addEventListener('click', () => {
+    document.getElementById('ingestionForm').reset();
+    document.getElementById('ingestionFormPanel').hidden = false;
+    document.getElementById('ingestionLabel').focus();
+  });
+  document.getElementById('cancelIngestion')?.addEventListener('click', () => { document.getElementById('ingestionFormPanel').hidden = true; document.getElementById('ingestionFeedback').textContent = ''; });
   function search(q){q=q.trim();document.getElementById('queryLabel').textContent=q||'ทั้งหมด';document.getElementById('resultInput').value=q;show('searchView','ค้นหาความรู้')}
   document.getElementById('back').onclick=()=>showPreviousView('home','หน้าแรก');
   function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),1800)}
@@ -537,6 +536,13 @@
   let sourceEditId = '';
   let sourceFormReturnView = 'sourcesView';
   let sourceCenterState = { query: '', type: 'all', use: 'all' };
+  let activeIngestions = [];
+  let activeEvidence = [];
+  let selectedGroundingEvidence = new Set();
+  let activeIngestionId = '';
+  const INGESTION_LIMITS = Object.freeze({ history: 20, evidence: 100, evidenceText: 8000, selected: 20, contextChars: 30000, input: 200000 });
+  const INGESTION_NORMALIZER_VERSION = 'text-normalizer-v1';
+  const INGESTION_SEGMENTER_VERSION = 'paragraph-segmenter-v1';
   const MAX_SOURCE_REFERENCES = 5;
   const SOURCE_TYPE_LABELS = Object.freeze({ law: 'กฎหมาย', regulation: 'กฎ/ระเบียบ', circular: 'หนังสือเวียน', order: 'คำสั่ง', officialLetter: 'หนังสือราชการ', judgment: 'คำพิพากษา', committeeDecision: 'คำวินิจฉัย/ความเห็นคณะกรรมการ', guide: 'คู่มือ/แนวทางปฏิบัติ', other: 'เอกสารอ้างอิงอื่น' });
   let governanceState = { status: 'all', type: 'all', category: 'all', quality: 'all', query: '' };
@@ -5288,7 +5294,209 @@
     if (!related.children.length) { const note = document.createElement('p'); note.textContent = 'ไม่พบองค์ความรู้ที่เชื่อมโยงในข้อมูลที่เข้าถึงได้'; related.appendChild(note); }
     const edit = detail.querySelector('#editSourceButton');
     if (edit) { edit.hidden = currentUserProfile?.role !== 'admin'; edit.onclick = () => showSourceForm(source, 'sourceDetailView'); }
+    activeIngestions = []; activeEvidence = []; activeIngestionId = ''; selectedGroundingEvidence = new Set();
+    const staffEvidenceRole = ['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role);
+    detail.querySelector('#sourceIngestionSection').hidden = !staffEvidenceRole;
+    if (staffEvidenceRole) await loadSourceIngestions(source);
     window.show('sourceDetailView', 'ตรวจสอบแหล่งข้อมูล');
+  }
+
+  function normalizeSourceText(value) {
+    return String(value || '').replace(/\r\n?/g, '\n').split('\n').map(line => line.replace(/[ \t]+$/g, '')).join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function segmentSourceEvidence(normalizedText) {
+    const paragraphs = [];
+    const boundaryPattern = /^(?:มาตรา\s*[๐-๙0-9]+(?:\s*(?:ทวิ|ตรี))?|ข้อ\s*[๐-๙0-9]+(?:\.[๐-๙0-9]+)*|หมวด\s*[๐-๙0-9ก-๙]+|ส่วนที่\s*[๐-๙0-9ก-๙]+|บทที่\s*[๐-๙0-9]+|หน้า\s*[๐-๙0-9]+|(?:Section|Article|Chapter|Page)\s*[0-9]+)(?:\s|[.)๐-๙0-9]|$)/i;
+    let current = [];
+    const flush = () => { const value = current.join('\n').trim(); if (value) paragraphs.push(value); current = []; };
+    normalizedText.split('\n').forEach(line => {
+      if (!line.trim()) { flush(); return; }
+      if (boundaryPattern.test(line.trim()) && current.length) flush();
+      current.push(line);
+    });
+    flush();
+    const result = [];
+    const locatorPattern = /^(?:มาตรา\s*[๐-๙0-9]+(?:\s*(?:ทวิ|ตรี))?|ข้อ\s*[๐-๙0-9]+(?:\.[๐-๙0-9]+)*|หมวด\s*[๐-๙0-9ก-๙]+|ส่วนที่\s*[๐-๙0-9ก-๙]+|บทที่\s*[๐-๙0-9]+|หน้า\s*[๐-๙0-9]+|(?:Section|Article|Chapter|Page)\s*[0-9]+)/i;
+    for (const paragraph of paragraphs) {
+      if (paragraph.length > INGESTION_LIMITS.evidenceText) throw new Error('ย่อหน้ามีความยาวเกิน 8,000 ตัวอักษร กรุณาแบ่งย่อหน้าตามต้นฉบับก่อนบันทึก');
+      const firstLine = paragraph.split('\n')[0].trim();
+      const locatorMatch = firstLine.match(locatorPattern);
+      const heading = firstLine.length <= 180 && (boundaryPattern.test(firstLine) || /^(?:บทนำ|ภาคที่|ภาคผนวก)/i.test(firstLine)) ? firstLine : '';
+      result.push({ sequence: result.length, ...(heading ? { heading } : {}), ...(locatorMatch ? { locator: locatorMatch[0] } : {}), text: paragraph });
+    }
+    if (!result.length) throw new Error('ไม่พบข้อความสำหรับแยกหลักฐาน');
+    if (result.length > INGESTION_LIMITS.evidence) throw new Error('เอกสารนี้มีหลักฐานเกิน 100 ส่วน กรุณาแบ่งการนำเข้า');
+    return result;
+  }
+
+  async function sha256Text(value) {
+    const bytes = new TextEncoder().encode(value);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    return [...new Uint8Array(digest)].map(byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  function canIngestCurrentSource(source) {
+    const role = currentUserProfile?.role;
+    return ['admin', 'editor'].includes(role) && (role === 'admin' || source.access_level !== 'restricted' || source.created_by === auth.currentUser?.email);
+  }
+
+  function setIngestionMessage(message, error = false) {
+    const status = document.getElementById('ingestionStatus');
+    status.textContent = message;
+    status.classList.toggle('error', error);
+  }
+
+  async function loadSourceIngestions(source) {
+    const history = document.getElementById('ingestionHistory');
+    const list = document.getElementById('evidenceList');
+    history.replaceChildren(); list.replaceChildren();
+    document.getElementById('evidencePanel').hidden = true;
+    document.getElementById('ingestionFormPanel').hidden = true;
+    document.getElementById('startTextIngestion').hidden = !canIngestCurrentSource(source);
+    setIngestionMessage('กำลังโหลดประวัติการนำเข้า…');
+    try {
+      const snapshot = await getDocs(query(collection(db, 'sources', source.source_id, 'ingestions'), orderBy('created_at', 'desc'), limit(INGESTION_LIMITS.history)));
+      activeIngestions = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      history.replaceChildren();
+      if (!activeIngestions.length) {
+        const empty = document.createElement('p'); empty.className = 'source-empty'; empty.textContent = 'ยังไม่มีเอกสารนำเข้า'; history.appendChild(empty);
+      }
+      activeIngestions.forEach(ingestion => {
+        const card = document.createElement('article'); card.className = 'ingestion-card';
+        const title = document.createElement('h3'); title.textContent = ingestion.document_label || 'เอกสารนำเข้า';
+        const meta = document.createElement('p'); meta.className = 'doc-meta'; meta.textContent = `${ingestion.ingestion_id} · ${ingestion.extraction_status === 'completed' ? 'ระบบแยกข้อความแล้ว' : 'แยกข้อความไม่สำเร็จ'} · ${ingestion.created_by || 'ไม่ระบุ'}`;
+        const duplicate = document.createElement('p'); duplicate.className = 'source-hint'; duplicate.textContent = activeIngestions.some(other => other.id !== ingestion.id && other.content_hash === ingestion.content_hash) ? 'พบข้อความนำเข้าที่มี hash เดียวกัน · เป็นคำเตือน ไม่มีการรวมรายการ' : '';
+        const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = 'ดูหลักฐาน'; open.onclick = () => void loadSourceEvidence(source, ingestion);
+        card.append(title, meta); if (duplicate.textContent) card.appendChild(duplicate); card.appendChild(open); history.appendChild(card);
+      });
+      setIngestionMessage(`แสดงประวัติไม่เกิน ${INGESTION_LIMITS.history} ฉบับ · ข้อความที่แยกระบบยังไม่ถือว่าตรวจสอบแล้ว`);
+      return activeIngestions;
+    } catch (error) {
+      history.replaceChildren(); setIngestionMessage('โหลดประวัติการนำเข้าไม่ได้ในขณะนี้', true); return [];
+    }
+  }
+
+  async function loadSourceEvidence(source, ingestion) {
+    const panel = document.getElementById('evidencePanel');
+    const list = document.getElementById('evidenceList');
+    list.replaceChildren(); panel.hidden = false; document.getElementById('groundingPreview').hidden = true;
+    document.getElementById('evidenceHeading').textContent = `${ingestion.document_label} · ${ingestion.ingestion_id}`;
+    document.getElementById('evidenceStatus').textContent = 'กำลังโหลดหลักฐาน…';
+    activeIngestionId = ingestion.id; selectedGroundingEvidence = new Set();
+    try {
+      const snapshot = await getDocs(query(collection(db, 'sources', source.source_id, 'ingestions', ingestion.id, 'evidence'), orderBy('sequence'), limit(INGESTION_LIMITS.evidence)));
+      activeEvidence = snapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+      document.getElementById('evidenceStatus').textContent = activeEvidence.length ? `แสดงไม่เกิน ${INGESTION_LIMITS.evidence} ส่วน · ${activeEvidence.filter(item => item.review_status === 'reviewed').length} ตรวจสอบแล้ว · ${activeEvidence.filter(item => item.review_status !== 'reviewed').length} รอตรวจสอบ · เลือกได้ไม่เกิน ${INGESTION_LIMITS.selected} ส่วน / ${INGESTION_LIMITS.contextChars.toLocaleString()} ตัวอักษร` : 'ฉบับนี้ยังไม่มีหลักฐานที่อ่านได้';
+      activeEvidence.forEach(evidence => {
+        const card = document.createElement('article'); card.className = 'evidence-card'; card.dataset.evidenceId = evidence.evidence_id;
+        const controls = document.createElement('div'); controls.className = 'evidence-controls';
+        const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.id = `ground-${evidence.evidence_id}`; checkbox.setAttribute('aria-label', `เลือกหลักฐาน ${evidence.locator || evidence.sequence + 1}`); checkbox.disabled = evidence.review_status !== 'reviewed';
+        checkbox.onchange = () => {
+          if (checkbox.checked) {
+            const next = activeEvidence.filter(item => selectedGroundingEvidence.has(item.evidence_id) || item.evidence_id === evidence.evidence_id);
+            const total = next.reduce((sum, item) => sum + item.text.length, 0);
+            if (next.length > INGESTION_LIMITS.selected || total > INGESTION_LIMITS.contextChars) {
+              checkbox.checked = false;
+              document.getElementById('evidenceStatus').textContent = `เลือกได้ไม่เกิน ${INGESTION_LIMITS.selected} หลักฐานและ ${INGESTION_LIMITS.contextChars.toLocaleString()} ตัวอักษร`;
+              return;
+            }
+            selectedGroundingEvidence.add(evidence.evidence_id);
+          } else selectedGroundingEvidence.delete(evidence.evidence_id);
+          document.getElementById('groundingPreview').hidden = true;
+        };
+        const label = document.createElement('label'); label.htmlFor = checkbox.id; label.textContent = `${evidence.review_status === 'reviewed' ? 'เจ้าหน้าที่ตรวจสอบแล้ว' : 'ระบบแยกข้อความแล้ว · รอตรวจสอบ'} · หลักฐาน ${evidence.evidence_id}`;
+        controls.append(checkbox, label);
+        if (['reviewer', 'admin'].includes(currentUserProfile?.role) && evidence.review_status === 'extracted') {
+          const review = document.createElement('button'); review.type = 'button'; review.className = 'btn'; review.textContent = 'ทำเครื่องหมายตรวจสอบแล้ว'; review.onclick = () => void markEvidenceReviewed(source, ingestion, evidence, review); controls.appendChild(review);
+        }
+        const provenance = document.createElement('p'); provenance.className = 'doc-meta'; provenance.textContent = `${source.title || 'ไม่ระบุ'} · ${ingestion.document_label || 'ไม่ระบุ'} · ${evidence.locator || 'ไม่ระบุ locator'}`;
+        const text = document.createElement('pre'); text.textContent = evidence.text;
+        card.append(controls, provenance); if (evidence.heading) { const heading = document.createElement('h4'); heading.textContent = evidence.heading; card.appendChild(heading); } card.appendChild(text); list.appendChild(card);
+      });
+      document.getElementById('buildGroundingContext').disabled = !activeEvidence.some(item => item.review_status === 'reviewed');
+    } catch (_) { document.getElementById('evidenceStatus').textContent = 'โหลดหลักฐานไม่ได้ในขณะนี้'; }
+  }
+
+  async function markEvidenceReviewed(source, ingestion, evidence, button) {
+    button.disabled = true;
+    try {
+      await setDoc(doc(db, 'sources', source.source_id, 'ingestions', ingestion.id, 'evidence', evidence.id), { review_status: 'reviewed', reviewed_by: auth.currentUser.email, reviewed_at: serverTimestamp() }, { merge: true });
+      await loadSourceEvidence(source, ingestion);
+    } catch (_) { button.disabled = false; document.getElementById('evidenceStatus').textContent = 'บันทึกสถานะตรวจสอบไม่ได้'; }
+  }
+
+  async function saveTextIngestion(event) {
+    event.preventDefault();
+    const source = sourceDetailCurrent;
+    if (!source || !canIngestCurrentSource(source)) return;
+    const feedback = document.getElementById('ingestionFeedback');
+    const label = document.getElementById('ingestionLabel').value.trim();
+    const rawText = document.getElementById('ingestionText').value;
+    const originalUrl = document.getElementById('ingestionOriginalUrl').value.trim();
+    const submit = document.getElementById('saveIngestion'); submit.disabled = true;
+    try {
+      if (!label || !rawText.trim() || rawText.length > INGESTION_LIMITS.input) throw new Error('กรุณาระบุชื่อและข้อความต้นฉบับไม่เกิน 200,000 ตัวอักษร');
+      if (originalUrl && !safeSourceUrl(originalUrl)) throw new Error('URL ต้องเป็น HTTP หรือ HTTPS');
+      const normalized = normalizeSourceText(rawText);
+      const evidenceParts = segmentSourceEvidence(normalized);
+      const contentHash = await sha256Text(normalized);
+      const ingestionRef = doc(collection(db, 'sources', source.source_id, 'ingestions'));
+      const batch = writeBatch(db);
+      const sourceSnapshot = Object.fromEntries(['source_type', 'title', 'reference_no', 'document_date', 'issuing_authority', 'official_url'].filter(key => source[key] !== undefined && source[key] !== '').map(key => [key, source[key]]));
+      const ingestionPayload = { ingestion_id: ingestionRef.id, source_id: source.source_id, ingestion_method: 'text', document_label: label, ...(originalUrl ? { original_url: originalUrl } : {}), content_hash: contentHash, normalizer_version: INGESTION_NORMALIZER_VERSION, segmenter_version: INGESTION_SEGMENTER_VERSION, extraction_status: 'completed', source_snapshot: sourceSnapshot, created_by: auth.currentUser.email, created_at: serverTimestamp(), updated_at: serverTimestamp() };
+      batch.set(ingestionRef, ingestionPayload);
+      for (const part of evidenceParts) {
+        const evidenceRef = doc(collection(ingestionRef, 'evidence'));
+        batch.set(evidenceRef, { evidence_id: evidenceRef.id, source_id: source.source_id, ingestion_id: ingestionRef.id, sequence: part.sequence, ...(part.heading ? { heading: part.heading } : {}), ...(part.locator ? { locator: part.locator } : {}), text: part.text, text_hash: await sha256Text(part.text), review_status: 'extracted', created_at: serverTimestamp() });
+      }
+      await batch.commit();
+      document.getElementById('ingestionForm').reset(); document.getElementById('ingestionFormPanel').hidden = true;
+      await loadSourceIngestions(source);
+      const created = activeIngestions.find(item => item.id === ingestionRef.id);
+      if (created) await loadSourceEvidence(source, created);
+    } catch (error) { feedback.textContent = error.message || 'บันทึกการนำเข้าไม่ได้'; }
+    finally { submit.disabled = false; }
+  }
+
+  function buildGroundingContext() {
+    const preview = document.getElementById('groundingPreview');
+    const items = document.getElementById('groundingItems');
+    const status = document.getElementById('evidenceStatus');
+    try {
+      if (!preview || !items || !status) throw new Error('Grounding preview target unavailable');
+      preview.hidden = true;
+      items.replaceChildren();
+      const source = sourceDetailCurrent;
+      const selected = activeEvidence.filter(item => selectedGroundingEvidence.has(item.evidence_id) && item.review_status === 'reviewed');
+      const totalChars = selected.reduce((sum, item) => sum + item.text.length, 0);
+      if (!selected.length) {
+        status.textContent = 'กรุณาเลือกหลักฐานที่ตรวจสอบแล้วอย่างน้อย 1 รายการ';
+        return;
+      }
+      if (selected.length > INGESTION_LIMITS.selected || totalChars > INGESTION_LIMITS.contextChars) {
+        status.textContent = `เลือกได้ไม่เกิน ${INGESTION_LIMITS.selected} รายการ และรวมไม่เกิน ${INGESTION_LIMITS.contextChars.toLocaleString()} ตัวอักษร`;
+        return;
+      }
+      const ingestion = activeIngestions.find(item => item.id === activeIngestionId);
+      const groundingContext = {
+        sources: [{ source_id: source.source_id, title: source.title || '', ingestion_id: ingestion?.ingestion_id || '' }],
+        evidence: selected.map(item => ({ source_id: item.source_id, ingestion_id: item.ingestion_id, evidence_id: item.evidence_id, locator: item.locator || '', text: item.text }))
+      };
+      groundingContext.evidence.forEach(evidence => {
+        const article = document.createElement('article'); article.className = 'evidence-card';
+        const provenance = document.createElement('p'); provenance.textContent = `แหล่งที่มา: ${source.title || 'ไม่ระบุ'} (${evidence.source_id}) · ฉบับนำเข้า: ${ingestion?.document_label || 'ไม่ระบุ'} (${evidence.ingestion_id || 'ไม่ระบุ'}) · หลักฐาน: ${evidence.evidence_id} · ตำแหน่ง: ${evidence.locator || 'ไม่ระบุ'}`;
+        const text = document.createElement('pre'); text.textContent = evidence.text;
+        article.append(provenance, text); items.appendChild(article);
+      });
+      document.getElementById('groundingCount').textContent = `หลักฐาน ${selected.length} ส่วน · ${totalChars.toLocaleString()} ตัวอักษร · บริบทนี้อยู่ในหน่วยความจำและยังไม่ถูกบันทึก`;
+      status.textContent = '';
+      preview.hidden = false;
+    } catch (_) {
+      if (preview) preview.hidden = true;
+      if (items) { try { items.replaceChildren(); } catch (_) {} }
+      if (status) status.textContent = 'สร้างบริบทอ้างอิงไม่สำเร็จ กรุณาลองอีกครั้ง';
+    }
   }
 
   function showSourceForm(source = null, returnView = 'sourcesView') {
@@ -5354,6 +5562,19 @@
       document.getElementById('sourceFormFeedback').textContent = `บันทึกแหล่งข้อมูลไม่สำเร็จ: ${error?.message || 'โปรดลองอีกครั้ง'}`;
     } finally { sourceWriteInFlight = false; button.disabled = false; button.textContent = 'บันทึกแหล่งข้อมูล'; }
   }
+
+  document.querySelector('[data-view="sourcesView"]')?.addEventListener('click', () => { void loadSources(); });
+  document.getElementById('newSourceButton')?.addEventListener('click', () => showSourceForm());
+  document.getElementById('sourceForm')?.addEventListener('submit', saveSource);
+  document.getElementById('cancelSourceForm')?.addEventListener('click', () => {
+    document.getElementById('sourceFormCard').hidden = true;
+    window.show(sourceFormReturnView, sourceFormReturnView === 'formView' ? 'เพิ่มเนื้อหา' : 'แหล่งข้อมูลและเอกสารอ้างอิง');
+  });
+  document.getElementById('ingestionForm')?.addEventListener('submit', event => { void saveTextIngestion(event); });
+  document.getElementById('buildGroundingContext')?.addEventListener('click', buildGroundingContext);
+  document.getElementById('sourceQuery')?.addEventListener('input', event => { sourceCenterState.query = event.target.value; renderSourceInventory(); });
+  document.getElementById('sourceTypeFilter')?.addEventListener('change', event => { sourceCenterState.type = event.target.value; renderSourceInventory(); });
+  document.getElementById('sourceUseFilter')?.addEventListener('change', event => { sourceCenterState.use = event.target.value; renderSourceInventory(); });
 
   function renderAuthoringSources() {
     const aside = document.querySelector('#formView .authoring-side');

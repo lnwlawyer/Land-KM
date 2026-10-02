@@ -701,3 +701,96 @@ test('source relationships preserve Editor ownership and Reviewer workflow-only 
   }));
   await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', 'CNT-OTHER-DRAFT'), sourceRelationships([{ source_id: 'SRC-admin00001', relation_type: 'primary' }])));
 });
+
+function ingestionPayload(sourceId, ingestionId, overrides = {}) {
+  return {
+    ingestion_id: ingestionId, source_id: sourceId, ingestion_method: 'text', document_label: 'ฉบับทดสอบ',
+    content_hash: 'a'.repeat(64), normalizer_version: 'text-normalizer-v1', segmenter_version: 'paragraph-segmenter-v1',
+    extraction_status: 'completed', source_snapshot: { source_type: 'law', title: 'กฎหมายทดสอบ' },
+    created_by: accounts.editor.email, created_at: serverTimestamp(), updated_at: serverTimestamp(), ...overrides
+  };
+}
+
+function evidencePayload(sourceId, ingestionId, evidenceId, overrides = {}) {
+  return {
+    evidence_id: evidenceId, source_id: sourceId, ingestion_id: ingestionId, sequence: 0,
+    text: 'ข้อความต้นฉบับ มาตรา 74', text_hash: 'b'.repeat(64), review_status: 'extracted',
+    created_at: serverTimestamp(), ...overrides
+  };
+}
+
+async function seedIngestionTree(sourceId, createdBy = accounts.editor.email) {
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'sources', sourceId), source(sourceId, createdBy));
+    await setDoc(doc(db, 'sources', sourceId, 'ingestions', 'INGESTION-001'), ingestionPayload(sourceId, 'INGESTION-001'));
+    await setDoc(doc(db, 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001'), evidencePayload(sourceId, 'INGESTION-001', 'EVIDENCE-001'));
+  });
+}
+
+test('Feature 11 nested evidence inherits source visibility and protects restricted records', async () => {
+  const sourceId = 'SRC-EVIDENCE-001';
+  await seedIngestionTree(sourceId);
+  const evidencePath = ['sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001'];
+  await assertSucceeds(getDoc(doc(dbAs('editor'), ...evidencePath)));
+  await assertSucceeds(getDoc(doc(dbAs('reviewer'), ...evidencePath)));
+  await assertSucceeds(getDoc(doc(dbAs('admin'), ...evidencePath)));
+  await assertFails(getDoc(doc(dbAs('user'), ...evidencePath)));
+  await assertFails(getDoc(doc(dbAs('inactive'), ...evidencePath)));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), ...evidencePath)));
+  await assertFails(getDoc(doc(dbAs('other'), 'sources', 'SRC-MISSING-001', 'ingestions', 'INGESTION-001')));
+});
+
+test('Feature 11 evidence stays staff-only even when the canonical source is public', async () => {
+  const sourceId = 'SRC-EVIDENCE-PUBLIC';
+  await seedIngestionTree(sourceId);
+  await env.withSecurityRulesDisabled(async context => {
+    await updateDoc(doc(context.firestore(), 'sources', sourceId), { access_level: 'public' });
+  });
+  await assertSucceeds(getDoc(doc(dbAs('user'), 'sources', sourceId)));
+  await assertFails(getDoc(doc(dbAs('user'), 'sources', sourceId, 'ingestions', 'INGESTION-001')));
+  await assertFails(getDoc(doc(dbAs('user'), 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001')));
+  await assertSucceeds(getDoc(doc(dbAs('editor'), 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001')));
+});
+
+test('Feature 11 permits append-only Editor ingestion only on owned or permitted sources', async () => {
+  const ownSource = 'SRC-EVIDENCE-OWN';
+  await seedIngestionTree(ownSource);
+  const editorDb = dbAs('editor');
+  const parent = doc(editorDb, 'sources', ownSource, 'ingestions', 'INGESTION-002');
+  await assertSucceeds(setDoc(parent, ingestionPayload(ownSource, 'INGESTION-002')));
+  await assertSucceeds(setDoc(doc(parent, 'evidence', 'EVIDENCE-002'), evidencePayload(ownSource, 'INGESTION-002', 'EVIDENCE-002')));
+  await assertFails(updateDoc(parent, { document_label: 'mutated' }));
+  await assertFails(deleteDoc(parent));
+  await assertFails(deleteDoc(doc(parent, 'evidence', 'EVIDENCE-002')));
+  await seedIngestionTree('SRC-EVIDENCE-OTHER', 'another-editor@landkm.test');
+  await assertFails(setDoc(doc(editorDb, 'sources', 'SRC-EVIDENCE-OTHER', 'ingestions', 'INGESTION-003'), ingestionPayload('SRC-EVIDENCE-OTHER', 'INGESTION-003')));
+  await assertFails(setDoc(doc(dbAs('reviewer'), 'sources', ownSource, 'ingestions', 'INGESTION-004'), ingestionPayload(ownSource, 'INGESTION-004')));
+});
+
+test('Feature 11 Reviewer can only transition extracted evidence to reviewed once', async () => {
+  const sourceId = 'SRC-EVIDENCE-REVIEW';
+  await seedIngestionTree(sourceId);
+  const evidenceRef = doc(dbAs('reviewer'), 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001');
+  await assertSucceeds(updateDoc(evidenceRef, { review_status: 'reviewed', reviewed_by: accounts.reviewer.email, reviewed_at: serverTimestamp() }));
+  await assertFails(updateDoc(evidenceRef, { text: 'rewritten evidence' }));
+  await assertFails(updateDoc(evidenceRef, { review_status: 'extracted' }));
+  await assertFails(updateDoc(evidenceRef, { review_status: 'reviewed', reviewed_by: accounts.admin.email, reviewed_at: serverTimestamp() }));
+  await assertFails(updateDoc(doc(dbAs('editor'), 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001'), { review_status: 'reviewed', reviewed_by: accounts.editor.email, reviewed_at: serverTimestamp() }));
+});
+
+test('Feature 11 Rules reject malformed provenance, path linkage, and oversized evidence', async () => {
+  const sourceId = 'SRC-EVIDENCE-SHAPE';
+  await seedIngestionTree(sourceId);
+  const editorDb = dbAs('editor');
+  const ingestionRef = doc(editorDb, 'sources', sourceId, 'ingestions', 'INGESTION-002');
+  await assertFails(setDoc(ingestionRef, ingestionPayload(sourceId, 'WRONG-INGESTION')));
+  await assertFails(setDoc(ingestionRef, ingestionPayload(sourceId, 'INGESTION-002', { original_url: 'javascript:alert(1)' })));
+  await assertFails(setDoc(ingestionRef, ingestionPayload(sourceId, 'INGESTION-002', { source_snapshot: { source_type: 'law', title: 'Fabricated title' } })));
+  await assertSucceeds(setDoc(ingestionRef, ingestionPayload(sourceId, 'INGESTION-002')));
+  await assertFails(setDoc(doc(ingestionRef, 'evidence', 'EVIDENCE-BAD'), evidencePayload(sourceId, 'WRONG-INGESTION', 'EVIDENCE-BAD')));
+  await assertFails(setDoc(doc(ingestionRef, 'evidence', 'EVIDENCE-LONG'), evidencePayload(sourceId, 'INGESTION-002', 'EVIDENCE-LONG', { text: 'x'.repeat(8001) })));
+  await assertFails(setDoc(doc(ingestionRef, 'evidence', 'EVIDENCE-EXTRA'), evidencePayload(sourceId, 'INGESTION-002', 'EVIDENCE-EXTRA', { access_level: 'public' })));
+  await assertSucceeds(setDoc(doc(editorDb, 'sources', sourceId, 'ingestions', 'INGESTION-FAILED'), ingestionPayload(sourceId, 'INGESTION-FAILED', { extraction_status: 'failed' })));
+  await assertFails(setDoc(doc(editorDb, 'sources', sourceId, 'ingestions', 'INGESTION-FAILED', 'evidence', 'EVIDENCE-FAILED'), evidencePayload(sourceId, 'INGESTION-FAILED', 'EVIDENCE-FAILED')));
+});

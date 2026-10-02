@@ -1163,3 +1163,146 @@ test('Feature 9 Governance Center has labeled controls, text quality reasons, an
   assert.match(styles, /grid-template-columns:minmax\(0,1fr\)/);
   assert.match(styles, /overflow-wrap:anywhere/);
 });
+
+test('Feature 11 ingestion stays under canonical Source Detail with bounded staff controls', () => {
+  assert.match(productionHtml, /sources', source\.source_id, 'ingestions'/);
+  assert.match(productionHtml, /sources', source\.source_id, 'ingestions', ingestion\.id, 'evidence'/);
+  assert.match(productionHtml, /limit\(INGESTION_LIMITS\.history\)/);
+  assert.match(productionHtml, /limit\(INGESTION_LIMITS\.evidence\)/);
+  assert.match(productionHtml, /id="ingestionText"/);
+  assert.match(productionHtml, /id="groundingPreview"/);
+  assert.match(productionHtml, /detail\.querySelector\('#sourceIngestionSection'\)\.hidden = !staffEvidenceRole/);
+  assert.match(productionHtml, /แสดงไม่เกิน \$\{INGESTION_LIMITS\.evidence\} ส่วน/);
+  assert.match(productionHtml, /noopener noreferrer/);
+  assert.match(productionHtml, /\['reviewer', 'admin'\]\.includes\(currentUserProfile\?\.role\)/);
+  assert.doesNotMatch(productionHtml, /console\.(?:log|error)\([^\n]*(?:evidence|normalized|rawText)/i);
+  assert.doesNotMatch(productionHtml, /collection\(db, ['"](?:sourceIngestions|sourceEvidence)['"]\)/);
+});
+
+test('Feature 11 normalization and segmentation preserve explicit source text and do not invent locator values', () => {
+  const start = productionHtml.indexOf('function normalizeSourceText(');
+  const end = productionHtml.indexOf('\n  async function sha256Text(', start);
+  assert.ok(start >= 0 && end > start);
+  const { normalizeSourceText, segmentSourceEvidence } = new Function('INGESTION_LIMITS', `${productionHtml.slice(start, end)}; return { normalizeSourceText, segmentSourceEvidence };`)({ evidenceText: 8000, evidence: 100 });
+  const normalized = normalizeSourceText('  มาตรา 74\r\nข้อความเดิม  \r\n\r\n\r\nข้อ 3\r\nข้อความข้อสาม  ');
+  assert.equal(normalized, 'มาตรา 74\nข้อความเดิม\n\nข้อ 3\nข้อความข้อสาม');
+  const evidence = segmentSourceEvidence(normalized);
+  assert.deepEqual(evidence.map(item => item.sequence), [0, 1]);
+  assert.equal(evidence[0].locator, 'มาตรา 74');
+  assert.equal(evidence[0].text, 'มาตรา 74\nข้อความเดิม');
+  assert.equal(evidence[1].locator, 'ข้อ 3');
+  assert.equal(segmentSourceEvidence('ข้อความที่ไม่มีตำแหน่ง')[0].locator, undefined);
+  assert.equal(segmentSourceEvidence('เนื้อหาบรรทัดแรก\nเนื้อหาบรรทัดถัดไป')[0].heading, undefined);
+  const contiguousProvisions = segmentSourceEvidence('มาตรา 1 เนื้อหาหนึ่ง\nมาตรา 2 เนื้อหาสอง');
+  assert.deepEqual(contiguousProvisions.map(item => item.locator), ['มาตรา 1', 'มาตรา 2']);
+  assert.deepEqual(contiguousProvisions.map(item => item.sequence), [0, 1]);
+  assert.equal(contiguousProvisions[1].text, 'มาตรา 2 เนื้อหาสอง');
+  assert.throws(() => segmentSourceEvidence('x'.repeat(8001)), /8,000/);
+});
+
+test('Feature 11 Grounding Context preserves stable IDs and enforces review and context bounds', () => {
+  assert.match(productionHtml, /item\.review_status === 'reviewed'/);
+  assert.match(productionHtml, /selected\.length > INGESTION_LIMITS\.selected/);
+  assert.match(productionHtml, /totalChars > INGESTION_LIMITS\.contextChars/);
+  for (const field of ['source_id', 'ingestion_id', 'evidence_id', 'locator', 'text']) assert.match(productionHtml, new RegExp(`evidence\\.${field}|${field}: evidence\\.`));
+  assert.match(productionHtml, /review_status: 'extracted'/);
+  assert.match(productionHtml, /review_status: 'reviewed'/);
+  assert.match(productionHtml, /future AI use|ยังไม่ถูกบันทึก/);
+});
+
+function createGroundingTestHarness({ evidence = [], selected = [] } = {}) {
+  const nodes = Object.fromEntries(['groundingPreview', 'groundingItems', 'groundingCount', 'evidenceStatus'].map(id => [id, {
+    hidden: id === 'groundingPreview',
+    textContent: '',
+    children: [],
+    replaceChildren(...children) { this.children = children; },
+    appendChild(child) { this.children.push(child); }
+  }]));
+  const document = {
+    getElementById(id) { return nodes[id] || null; },
+    createElement(tag) { return { tag, className: '', textContent: '', children: [], append(...children) { this.children.push(...children); } }; }
+  };
+  const start = productionHtml.indexOf('function buildGroundingContext()');
+  const end = productionHtml.indexOf('\n  function showSourceForm(', start);
+  assert.ok(start >= 0 && end > start);
+  const build = new Function(
+    'document',
+    'sourceDetailCurrent',
+    'activeEvidence',
+    'selectedGroundingEvidence',
+    'INGESTION_LIMITS',
+    'activeIngestions',
+    'activeIngestionId',
+    `${productionHtml.slice(start, end)}; return buildGroundingContext;`
+  )(document, { source_id: 'SRC-F11-LAW-001', title: 'ตัวอย่างกฎหมาย' }, evidence, new Set(selected), { selected: 20, contextChars: 30000 }, [{ id: 'ING-F11-LAW-001', ingestion_id: 'ING-F11-LAW-001', document_label: 'ฉบับทดสอบ' }], 'ING-F11-LAW-001');
+  return { build, nodes };
+}
+
+test('Feature 11 Grounding Preview uses only checked reviewed evidence and preserves provenance in memory', () => {
+  const reviewed = { source_id: 'SRC-F11-LAW-001', ingestion_id: 'ING-F11-LAW-001', evidence_id: 'EVD-001', locator: 'มาตรา 74', text: 'มาตรา 74\nถ้อยคำต้นฉบับ', review_status: 'reviewed' };
+  const otherReviewed = { ...reviewed, evidence_id: 'EVD-002', locator: 'ข้อ 3', text: 'ข้อ 3\nเนื้อหาต้นฉบับ' };
+  const unreviewed = { ...reviewed, evidence_id: 'EVD-003', locator: 'หน้า 4', text: 'รอตรวจ', review_status: 'extracted' };
+  const { build, nodes } = createGroundingTestHarness({ evidence: [reviewed, otherReviewed, unreviewed], selected: ['EVD-001', 'EVD-002', 'EVD-003'] });
+  build();
+  assert.equal(nodes.groundingPreview.hidden, false);
+  assert.equal(nodes.groundingItems.children.length, 2);
+  const rendered = nodes.groundingItems.children.map(card => card.children.map(child => child.textContent).join('\n')).join('\n');
+  for (const value of ['SRC-F11-LAW-001', 'ING-F11-LAW-001', 'EVD-001', 'EVD-002', 'มาตรา 74', 'ข้อ 3', 'ถ้อยคำต้นฉบับ', 'เนื้อหาต้นฉบับ']) assert.ok(rendered.includes(value), value);
+  assert.ok(!rendered.includes('EVD-003'));
+  assert.equal(nodes.groundingCount.textContent.includes('2'), true);
+  const start = productionHtml.indexOf('function buildGroundingContext()');
+  const groundingFunction = productionHtml.slice(start, productionHtml.indexOf('\n  function showSourceForm(', start));
+  assert.doesNotMatch(groundingFunction, /\b(?:setDoc|updateDoc|deleteDoc|writeBatch|addDoc|logEvent)\s*\(/);
+});
+
+test('Feature 11 Grounding Preview gives accessible no-selection feedback and keeps render errors local', () => {
+  const { build, nodes } = createGroundingTestHarness();
+  build();
+  assert.equal(nodes.groundingPreview.hidden, true);
+  assert.match(nodes.evidenceStatus.textContent, /กรุณาเลือกหลักฐานที่ตรวจสอบแล้วอย่างน้อย 1 รายการ/);
+  assert.match(productionHtml, /id="evidenceStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+
+  const evidence = { source_id: 'SRC-F11-LAW-001', ingestion_id: 'ING-F11-LAW-001', evidence_id: 'EVD-FAIL', text: 'source text', review_status: 'reviewed' };
+  const failure = createGroundingTestHarness({ evidence: [evidence], selected: ['EVD-FAIL'] });
+  failure.nodes.groundingItems.replaceChildren = () => { throw new Error('synthetic local render failure'); };
+  failure.build();
+  assert.equal(failure.nodes.groundingPreview.hidden, true);
+  assert.match(failure.nodes.evidenceStatus.textContent, /สร้างบริบทอ้างอิงไม่สำเร็จ/);
+});
+
+test('Feature 11 Grounding Preview enforces the 20-evidence and 30,000-character bounds', () => {
+  const makeEvidence = (index, length) => ({ source_id: 'SRC-F11-LAW-001', ingestion_id: 'ING-F11-LAW-001', evidence_id: `EVD-${index}`, sequence: index, text: 'x'.repeat(length), review_status: 'reviewed' });
+  const allowed = Array.from({ length: 20 }, (_, index) => makeEvidence(index, 1500));
+  const atLimit = createGroundingTestHarness({ evidence: allowed, selected: allowed.map(item => item.evidence_id) });
+  atLimit.build();
+  assert.equal(atLimit.nodes.groundingItems.children.length, 20);
+  assert.equal(atLimit.nodes.groundingPreview.hidden, false);
+
+  const tooMany = [...allowed, makeEvidence(20, 1)];
+  const overCount = createGroundingTestHarness({ evidence: tooMany, selected: tooMany.map(item => item.evidence_id) });
+  overCount.build();
+  assert.equal(overCount.nodes.groundingPreview.hidden, true);
+  assert.match(overCount.nodes.evidenceStatus.textContent, /20/);
+
+  const thirtyThousand = Array.from({ length: 4 }, (_, index) => makeEvidence(index, index === 3 ? 6000 : 8000));
+  const atCharLimit = createGroundingTestHarness({ evidence: thirtyThousand, selected: thirtyThousand.map(item => item.evidence_id) });
+  atCharLimit.build();
+  assert.equal(atCharLimit.nodes.groundingPreview.hidden, false);
+  const thirtyThousandOne = [...thirtyThousand.slice(0, 3), makeEvidence(3, 6001)];
+  const overChars = createGroundingTestHarness({ evidence: thirtyThousandOne, selected: thirtyThousandOne.map(item => item.evidence_id) });
+  overChars.build();
+  assert.equal(overChars.nodes.groundingPreview.hidden, true);
+  assert.match(overChars.nodes.evidenceStatus.textContent, /30,000/);
+});
+
+test('Feature 11 module owns source and grounding event wiring, with mobile-safe evidence text', () => {
+  const moduleStart = productionHtml.indexOf('<script type="module">');
+  const moduleEnd = productionHtml.indexOf('</script>', moduleStart);
+  const module = productionHtml.slice(moduleStart, moduleEnd);
+  const classic = productionHtml.slice(productionHtml.indexOf('navs.forEach'), moduleStart);
+  assert.ok(moduleStart > 0 && moduleEnd > moduleStart);
+  assert.doesNotMatch(classic, /\b(?:saveSource|showSourceForm|loadSources|saveTextIngestion|buildGroundingContext|sourceCenterState|renderSourceInventory)\b/);
+  assert.match(module, /document\.getElementById\('buildGroundingContext'\)\?\.addEventListener\('click', buildGroundingContext\)/);
+  assert.match(module, /document\.getElementById\('sourceForm'\)\?\.addEventListener\('submit', saveSource\)/);
+  assert.match(productionHtml, /\.evidence-card pre,\.grounding-preview pre\{white-space:pre-wrap;overflow-wrap:anywhere/);
+});

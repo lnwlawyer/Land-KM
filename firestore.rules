@@ -139,6 +139,76 @@ service cloud.firestore {
         && data.updated_at is timestamp;
     }
 
+    function canReadSource(sourceId) {
+      let sourcePath = /databases/$(database)/documents/sources/$(sourceId);
+      return isActive()
+        && exists(sourcePath)
+        && (isAdmin() || isReviewer()
+          || (isEditor() && (get(sourcePath).data.access_level in ['public', 'internal']
+            || get(sourcePath).data.created_by == request.auth.token.email)));
+    }
+
+    function validIngestion(sourceId, ingestionId, data) {
+      let canonicalSource = get(/databases/$(database)/documents/sources/$(sourceId)).data;
+      return data.keys().hasAll(['ingestion_id', 'source_id', 'ingestion_method', 'document_label',
+          'content_hash', 'normalizer_version', 'segmenter_version', 'extraction_status',
+          'source_snapshot', 'created_by', 'created_at', 'updated_at'])
+        && data.keys().hasOnly(['ingestion_id', 'source_id', 'ingestion_method', 'document_label',
+          'original_url', 'content_hash', 'normalizer_version', 'segmenter_version', 'extraction_status',
+          'source_snapshot', 'created_by', 'created_at', 'updated_at'])
+        && data.ingestion_id == ingestionId
+        && ingestionId.size() >= 8 && ingestionId.size() <= 100
+        && data.source_id == sourceId
+        && data.ingestion_method == 'text'
+        && data.document_label is string && data.document_label.size() > 0 && data.document_label.size() <= 200
+        && (!('original_url' in data) || (data.original_url is string && data.original_url.size() <= 2048
+          && data.original_url.matches('^https?://[^\\s]+$')))
+        && data.content_hash is string && data.content_hash.matches('^[a-f0-9]{64}$')
+        && data.normalizer_version is string && data.normalizer_version.size() <= 40
+        && data.segmenter_version is string && data.segmenter_version.size() <= 40
+        && data.extraction_status in ['completed', 'failed']
+        && data.source_snapshot is map
+        && data.source_snapshot.keys().hasOnly(['source_type', 'title', 'reference_no', 'document_date', 'issuing_authority', 'official_url'])
+        && data.source_snapshot.keys().hasAll(['source_type', 'title'])
+        && data.source_snapshot.source_type is string && data.source_snapshot.source_type.size() <= 40
+        && data.source_snapshot.title is string && data.source_snapshot.title.size() <= 300
+        && data.source_snapshot.source_type == canonicalSource.source_type
+        && data.source_snapshot.title == canonicalSource.title
+        && (!('reference_no' in data.source_snapshot) || (data.source_snapshot.reference_no is string && data.source_snapshot.reference_no.size() <= 160))
+        && (!('document_date' in data.source_snapshot) || (data.source_snapshot.document_date is string && data.source_snapshot.document_date.size() <= 40))
+        && (!('issuing_authority' in data.source_snapshot) || (data.source_snapshot.issuing_authority is string && data.source_snapshot.issuing_authority.size() <= 200))
+        && (!('official_url' in data.source_snapshot) || (data.source_snapshot.official_url is string && data.source_snapshot.official_url.size() <= 2048
+          && (data.source_snapshot.official_url == '' || data.source_snapshot.official_url.matches('^https?://[^\\s]+$'))))
+        && (!('reference_no' in data.source_snapshot) || data.source_snapshot.reference_no == canonicalSource.reference_no)
+        && (!('document_date' in data.source_snapshot) || data.source_snapshot.document_date == canonicalSource.document_date)
+        && (!('issuing_authority' in data.source_snapshot) || data.source_snapshot.issuing_authority == canonicalSource.issuing_authority)
+        && (!('official_url' in data.source_snapshot) || data.source_snapshot.official_url == canonicalSource.official_url)
+        && data.created_by is string && data.created_by == request.auth.token.email
+        && data.created_at is timestamp && data.updated_at is timestamp;
+    }
+
+    function validEvidence(sourceId, ingestionId, evidenceId, data) {
+      return data.keys().hasAll(['evidence_id', 'source_id', 'ingestion_id', 'sequence', 'text', 'text_hash', 'review_status', 'created_at'])
+        && data.keys().hasOnly(['evidence_id', 'source_id', 'ingestion_id', 'sequence', 'heading', 'locator', 'text', 'text_hash', 'review_status', 'reviewed_by', 'reviewed_at', 'created_at'])
+        && data.evidence_id == evidenceId && evidenceId.size() >= 8 && evidenceId.size() <= 100
+        && data.source_id == sourceId && data.ingestion_id == ingestionId
+        && data.sequence is int && data.sequence >= 0 && data.sequence < 100
+        && (!('heading' in data) || (data.heading is string && data.heading.size() <= 500))
+        && (!('locator' in data) || (data.locator is string && data.locator.size() <= 500))
+        && data.text is string && data.text.size() > 0 && data.text.size() <= 8000
+        && data.text_hash is string && data.text_hash.matches('^[a-f0-9]{64}$')
+        && data.review_status == 'extracted'
+        && !('reviewed_by' in data) && !('reviewed_at' in data)
+        && data.created_at is timestamp;
+    }
+
+    function mayIngestSource(sourceId) {
+      let sourcePath = /databases/$(database)/documents/sources/$(sourceId);
+      return canReadSource(sourceId) && (isAdmin() || isEditor())
+        && (isAdmin() || get(sourcePath).data.access_level in ['public', 'internal']
+          || get(sourcePath).data.created_by == request.auth.token.email);
+    }
+
     match /sources/{sourceId} {
       allow get, list: if isAdmin()
         || isReviewer()
@@ -162,6 +232,29 @@ service cloud.firestore {
         && request.resource.data.created_at == resource.data.created_at;
 
       allow delete: if false;
+
+      match /ingestions/{ingestionId} {
+        allow get, list: if canReadSource(sourceId);
+        allow create: if mayIngestSource(sourceId)
+          && validIngestion(sourceId, ingestionId, request.resource.data);
+        allow update, delete: if false;
+
+        match /evidence/{evidenceId} {
+          allow get, list: if canReadSource(sourceId);
+          allow create: if mayIngestSource(sourceId)
+            && exists(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId))
+            && get(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId)).data.extraction_status == 'completed'
+            && validEvidence(sourceId, ingestionId, evidenceId, request.resource.data);
+          allow update: if canReadSource(sourceId)
+            && (isReviewer() || isAdmin())
+            && resource.data.review_status == 'extracted'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['review_status', 'reviewed_by', 'reviewed_at'])
+            && request.resource.data.review_status == 'reviewed'
+            && request.resource.data.reviewed_by == request.auth.token.email
+            && request.resource.data.reviewed_at is timestamp;
+          allow delete: if false;
+        }
+      }
     }
 
     // ข้อมูลผู้ใช้งาน
