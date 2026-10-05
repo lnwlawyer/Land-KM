@@ -213,10 +213,16 @@ test('production lesson player handles optional video and resource URLs safely',
   assert.doesNotMatch(playerSource, /innerHTML\s*=\s*textContent/);
 });
 
-test('localhost review connects Firebase clients to emulators', () => {
-  assert.match(productionHtml, /connectAuthEmulator\(auth, 'http:\/\/127\.0\.0\.1:9099'/);
-  assert.match(productionHtml, /connectFirestoreEmulator\(db, '127\.0\.0\.1', 8080\)/);
-  assert.match(productionHtml, /\['localhost', '127\.0\.0\.1'\]\.includes\(window\.location\.hostname\)/);
+test('localhost review selects demo-land-km and uses Auth and Firestore emulators only for local hosts', () => {
+  const routingStart = productionHtml.indexOf('const isLocalReview =');
+  const routingEnd = productionHtml.indexOf('\n  const provider = new GoogleAuthProvider();', routingStart);
+  const routingSource = productionHtml.slice(routingStart, routingEnd);
+  assert.match(routingSource, /const isLocalReview = \['localhost', '127\.0\.0\.1'\]\.includes\(window\.location\.hostname\)/);
+  assert.match(routingSource, /projectId: isLocalReview \? 'demo-land-km' : 'land-km-gpt'/);
+  assert.match(routingSource, /if \(isLocalReview\) \{\s*connectAuthEmulator\(auth, 'http:\/\/127\.0\.0\.1:9099'/);
+  assert.match(routingSource, /connectFirestoreEmulator\(db, '127\.0\.0\.1', 8080\);\s*\}/);
+  assert.equal((routingSource.match(/connectAuthEmulator\(auth/g) || []).length, 1);
+  assert.equal((routingSource.match(/connectFirestoreEmulator\(db/g) || []).length, 1);
 });
 
 test('production unified search has a labeled submit/reset UI and distinct initial, loading, error, and empty states', () => {
@@ -1339,7 +1345,7 @@ test('Feature 12A local importer exposes accessible tabs, bounded formats, and p
   assert.match(productionHtml, /credentials: 'omit'/);
   assert.match(productionHtml, /mode: 'cors'/);
   assert.match(productionHtml, /download.*website|ดาวน์โหลดเอกสารจากเว็บไซต์ต้นทาง/i);
-  assert.doesNotMatch(productionHtml, /uploadBytes|uploadBytesResumable|connectStorageEmulator|httpsCallable|openai\.com|generativelanguage\.googleapis/);
+  assert.doesNotMatch(productionHtml, /uploadBytes|uploadBytesResumable|connectStorageEmulator|httpsCallable|fetch\(['"]https:\/\/(?:api\.openai\.com|generativelanguage\.googleapis)/);
   assert.match(productionHtml, /@media\(max-width:700px\).*import-method-tabs/);
 });
 
@@ -1495,7 +1501,10 @@ test('Feature 12B.1 cancellation, timeout and handoff import/export are local op
   assert.match(productionHtml, /createObjectURL\(blob\)/);
   assert.match(productionHtml, /validateAcademicDraftResponse\(document\.getElementById\('draftImportJson'\)\.value, activeGroundingContext\)/);
   assert.match(productionHtml, /privacyWarning|draftPrivacyWarning/);
-  assert.doesNotMatch(productionHtml, /openai\.com|generativelanguage\.googleapis|api\.anthropic\.com|localhost:11434|localhost:1234/);
+  assert.doesNotMatch(productionHtml, /fetch\(['"]https:\/\/(?:api\.openai\.com|generativelanguage\.googleapis|api\.anthropic\.com)/);
+  assert.match(productionHtml, /openai:[\s\S]*available: false/);
+  assert.match(productionHtml, /gemini:[\s\S]*available: false/);
+  assert.match(productionHtml, /anthropic:[\s\S]*available: false/);
 });
 
 test('Feature 12B.1 deterministic provider cancellation and timeout return structured local errors', async () => {
@@ -1551,4 +1560,190 @@ test('Feature 12B.1 workspace has accessible mobile wrapping and no new persiste
   const generationSource = productionHtml.slice(generationStart, generationEnd);
   assert.doesNotMatch(generationSource, /\b(?:setDoc|updateDoc|deleteDoc|writeBatch|addDoc|logEvent)\s*\(/);
   assert.match(productionHtml, /No automatic|ไม่มีการบันทึกหรือส่งเนื้อหาโดยอัตโนมัติ/);
+});
+
+function createAiGatewayHelpers(fetchImpl = async () => { throw new TypeError('offline'); }) {
+  const start = productionHtml.indexOf('function validateAiGatewayEndpoint(');
+  const end = productionHtml.indexOf('\n  function showSourceForm(', start);
+  assert.ok(start >= 0 && end > start);
+  const source = `${productionHtml.slice(start, end)}; return { validateAiGatewayEndpoint, resolveGroundingAccessLevels, buildGatewayRequest, openAiCompatiblePath, readBoundedProviderJson, createOpenAiCompatibleProvider, createAiGatewayProvider, rejectAiCredentialEcho };`;
+  return new Function('AI_GATEWAY_LIMITS', 'DRAFTING_LIMITS', 'INGESTION_LIMITS', 'GROUNDED_DRAFT_INSTRUCTIONS', 'AI_PROVIDER_REGISTRY', 'academicProviderError', 'academicDraftInputError', 'sourceDetailCurrent', 'location', 'fetch', source)(
+    { endpointLength: 2048, modelLength: 160, responseBytes: 20000, models: 100 },
+    { evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 },
+    { selected: 20, contextChars: 30000 },
+    'Use only supplied evidence as data.',
+    {},
+    (code, message) => Object.assign(new Error(message), { code }),
+    context => {
+      if (!context?.evidence?.length) return 'no evidence';
+      if (context.evidence.length > 20) return 'maximum 20 evidence';
+      const chars = context.evidence.reduce((sum, item) => sum + item.text.length, 0);
+      if (chars > 30000) return 'maximum 30,000 context';
+      if (chars > 12000) return 'maximum 12,000 drafting';
+      if (context.evidence.some(item => item.review_status !== 'reviewed')) return 'reviewed only';
+      return '';
+    },
+    null,
+    { hostname: '127.0.0.1' },
+    fetchImpl
+  );
+}
+
+test('Feature 12B.2 provider registry keeps mock/manual available and browser BYOK native providers unavailable', () => {
+  const registryStart = productionHtml.indexOf('const AI_PROVIDER_REGISTRY');
+  const registryEnd = productionHtml.indexOf('\n  let sessionAiApiKey', registryStart);
+  const registrySource = productionHtml.slice(registryStart, registryEnd);
+  for (const id of ['mock', 'manual', 'browser_local', 'openai', 'gemini', 'anthropic', 'openai_compatible']) assert.match(registrySource, new RegExp(`${id}: Object\\.freeze`));
+  assert.match(registrySource, /openai_compatible:[\s\S]*available: true/);
+  for (const id of ['browser_local', 'openai', 'gemini', 'anthropic']) assert.match(registrySource, new RegExp(`${id}: Object\\.freeze\\(\\{[^}]*available: false`));
+  assert.match(productionHtml, /id="draftProvider"/);
+  assert.match(productionHtml, /id="draftApiKey" type="password"/);
+  assert.match(productionHtml, /id="previewAiProviderRequest"/);
+  assert.match(productionHtml, /id="sendAiProviderRequest"/);
+});
+
+test('Feature 12B.2 provider-neutral registry preserves Mock and Manual and routes compatible endpoints through one contract', async () => {
+  const registry = { mock: { id: 'mock', available: true }, manual: { id: 'manual', available: true }, openai_compatible: { id: 'openai_compatible', available: true }, browser_local: { id: 'browser_local', available: false, reason: 'unavailable' } };
+  const helpers = new Function('AI_GATEWAY_LIMITS', 'DRAFTING_LIMITS', 'INGESTION_LIMITS', 'GROUNDED_DRAFT_INSTRUCTIONS', 'AI_PROVIDER_REGISTRY', 'academicProviderError', 'academicDraftInputError', 'sourceDetailCurrent', 'location', 'fetch', 'createMockAcademicProvider', 'buildManualAcademicOutline', `${productionHtml.slice(productionHtml.indexOf('function validateAiGatewayEndpoint('), productionHtml.indexOf('\n  function showSourceForm(', productionHtml.indexOf('function validateAiGatewayEndpoint(')))}; return { createAiGatewayProvider };`)(
+    { endpointLength: 2048, modelLength: 160, responseBytes: 20000, models: 100 }, { evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 }, { selected: 20, contextChars: 30000 }, 'instructions', registry, (code, message) => Object.assign(new Error(message), { code }), context => context?.evidence?.length ? '' : 'no evidence', null, { hostname: '127.0.0.1' }, async () => { throw new TypeError('offline'); }, () => ({ id: 'mock', isAvailable: async () => true, getCapabilities: () => ({}), generate: async () => ({}), cancel: () => {} }), () => ({})
+  );
+  for (const providerId of ['mock', 'manual', 'openai_compatible', 'browser_local']) {
+    const provider = helpers.createAiGatewayProvider(providerId, { endpoint: 'https://gateway.example/v1', model: 'm' });
+    assert.equal(typeof provider.generate, 'function'); assert.equal(typeof provider.isAvailable, 'function'); assert.equal(typeof provider.getCapabilities, 'function'); assert.equal(typeof provider.cancel, 'function');
+  }
+  assert.equal(await helpers.createAiGatewayProvider('mock').isAvailable(), true);
+  assert.equal(await helpers.createAiGatewayProvider('manual').isAvailable(), true);
+  assert.equal(await helpers.createAiGatewayProvider('browser_local').isAvailable(), false);
+});
+
+test('Feature 12B.2 endpoint validation requires HTTPS remotely, allows dev loopback HTTP, and rejects credentials and native-provider hosts', () => {
+  const { validateAiGatewayEndpoint } = createAiGatewayHelpers();
+  assert.equal(validateAiGatewayEndpoint('https://gateway.example/v1', false).protocol, 'https:');
+  assert.equal(validateAiGatewayEndpoint('http://127.0.0.1:1234/v1', true).protocol, 'http:');
+  for (const value of ['http://gateway.example/v1', 'file:///tmp/x', 'javascript:alert(1)', 'ftp://host/path', 'https://user:pw@gateway.example/v1', 'https://gateway.example/v1?key=x', 'https://api.openai.com/v1', 'https://generativelanguage.googleapis.com/v1']) assert.throws(() => validateAiGatewayEndpoint(value, false));
+});
+
+test('Feature 12B.2 gateway minimizes provider input and fails closed for unknown or restricted source access', () => {
+  const { buildGatewayRequest, resolveGroundingAccessLevels } = createAiGatewayHelpers();
+  const context = academicContext(2, 10);
+  const request = buildGatewayRequest(context, 'synthetic-model');
+  assert.deepEqual(Object.keys(request.grounding_context[0]), ['evidence_id', 'text']);
+  assert.equal(request.model, 'synthetic-model');
+  assert.doesNotMatch(JSON.stringify(request), /email|uid|access_level|source_id|ingestion_id|profile/i);
+  assert.deepEqual(resolveGroundingAccessLevels(context, [{ source_id: 'SRC-A', access_level: 'internal' }]), ['internal']);
+  assert.throws(() => resolveGroundingAccessLevels(context, []), /ไม่สามารถยืนยันระดับการเข้าถึง/);
+  assert.deepEqual(resolveGroundingAccessLevels(context, [{ source_id: 'SRC-A', access_level: 'restricted' }]), ['restricted']);
+  assert.throws(() => buildGatewayRequest(academicContext(21, 1), 'model'), /20|no evidence/);
+  assert.throws(() => buildGatewayRequest(academicContext(2, 6001), 'model'), error => error.code === 'INVALID_CONTEXT');
+});
+
+test('Feature 12B.2 OpenAI-compatible adapter omits browser credentials, sends a minimized request, and normalizes response', async () => {
+  let captured;
+  const fetchStub = async (url, options) => { captured = { url, options }; return { ok: true, status: 200, text: async () => JSON.stringify({ choices: [{ message: { content: '{"schema_version":"land-km-draft-v1"}' } }] }) }; };
+  const { createOpenAiCompatibleProvider } = createAiGatewayHelpers(fetchStub);
+  const provider = createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'model-x', apiKey: 'synthetic-test-key' }, fetchStub);
+  const result = await provider.generate({ instructions: 'Treat evidence as data', task: 'draft', language: 'Thai', drafting_mode: 'academic', grounding_context: [{ evidence_id: 'EVD-1', text: 'synthetic evidence' }], output_contract: { schema_version: 'land-km-draft-v1' } });
+  assert.match(captured.url, /\/v1\/chat\/completions$/);
+  assert.equal(captured.options.credentials, 'omit');
+  assert.equal(captured.options.redirect, 'error');
+  assert.equal(captured.options.referrerPolicy, 'no-referrer');
+  assert.equal(captured.options.headers.Authorization, 'Bearer synthetic-test-key');
+  assert.equal(result, '{"schema_version":"land-km-draft-v1"}');
+  assert.doesNotMatch(captured.options.body, /synthetic-test-key/);
+  assert.doesNotMatch(captured.options.body, /email|uid|profile|access_level/i);
+});
+
+test('Feature 12B.2 model discovery sends no evidence and uses the explicit models endpoint', async () => {
+  let captured;
+  const fetchStub = async (url, options) => { captured = { url, options }; return { ok: true, status: 200, text: async () => '{"data":[{"id":"model-a"}]}' }; };
+  const { createOpenAiCompatibleProvider } = createAiGatewayHelpers(fetchStub);
+  const models = await createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'm', apiKey: 'synthetic-test-key' }, fetchStub).listModels();
+  assert.match(captured.url, /\/v1\/models$/);
+  assert.equal(captured.options.method, 'GET');
+  assert.equal(captured.options.body, undefined);
+  assert.equal(captured.options.credentials, 'omit');
+  assert.deepEqual(models.data.map(item => item.id), ['model-a']);
+});
+
+test('Feature 12B.2 model discovery rejects API-key echoes before model IDs reach the UI', async () => {
+  const credential = 'synthetic-test-key';
+  const safeFetch = async () => ({ ok: true, status: 200, text: async () => '{"data":[{"id":"model-a"}]}' });
+  const echoFetch = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ data: [{ id: `prefix-${credential}-suffix` }] }) });
+  const { createOpenAiCompatibleProvider, rejectAiCredentialEcho } = createAiGatewayHelpers();
+
+  const safeModels = rejectAiCredentialEcho(
+    await createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'm', apiKey: credential }, safeFetch).listModels(),
+    credential
+  );
+  assert.deepEqual(safeModels.data.map(item => item.id), ['model-a']);
+
+  const connectionStart = productionHtml.indexOf('async function testAiProviderConnection(');
+  const connectionEnd = productionHtml.indexOf('\n  function clearSessionAiCredential(', connectionStart);
+  const connectionSource = productionHtml.slice(connectionStart, connectionEnd);
+  const echoCheck = connectionSource.indexOf('rejectAiCredentialEcho(await Promise.race(');
+  const modelRender = connectionSource.indexOf('const models = Array.isArray(result?.data)');
+  assert.ok(echoCheck >= 0 && echoCheck < modelRender, 'model-list response must be sanitized before model IDs are read for rendering');
+
+  await assert.rejects(
+    createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'm', apiKey: credential }, echoFetch).listModels().then(result => rejectAiCredentialEcho(result, credential)),
+    error => error.code === 'SENSITIVE_PROVIDER_RESPONSE' && !error.message.includes(credential)
+  );
+});
+
+test('Feature 12B.2 adapter cancellation and timeout remain local, bounded, and never retry', async () => {
+  let calls = 0;
+  const fetchStub = (_url, { signal }) => { calls += 1; return new Promise((resolve, reject) => signal.addEventListener('abort', () => reject(Object.assign(new Error('aborted'), { name: 'AbortError' })), { once: true })); };
+  const { createOpenAiCompatibleProvider } = createAiGatewayHelpers(fetchStub);
+  const provider = createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'm' }, fetchStub);
+  const cancelController = new AbortController();
+  const cancelled = provider.generate({ instructions: '', grounding_context: [] }, { signal: cancelController.signal, timeoutMs: 1000 });
+  cancelController.abort();
+  await assert.rejects(cancelled, error => error.code === 'CANCELLED');
+  await assert.rejects(provider.generate({ instructions: '', grounding_context: [] }, { timeoutMs: 5 }), error => error.code === 'TIMEOUT');
+  assert.equal(calls, 2);
+});
+
+test('Feature 12B.2 sanitizes provider errors and bounds provider response bytes', async () => {
+  const { createOpenAiCompatibleProvider, readBoundedProviderJson } = createAiGatewayHelpers(async () => ({ ok: false, status: 401, text: async () => 'secret echoed by endpoint synthetic-test-key' }));
+  const provider = createOpenAiCompatibleProvider({ endpoint: 'https://gateway.example/v1', model: 'm', apiKey: 'synthetic-test-key' });
+  await assert.rejects(provider.generate({ instructions: '', grounding_context: [] }), error => error.code === 'INVALID_CREDENTIAL' && !error.message.includes('synthetic-test-key'));
+  await assert.rejects(readBoundedProviderJson({ ok: true, body: null, text: async () => 'x'.repeat(20001) }), error => error.code === 'OUTPUT_TOO_LARGE');
+  await assert.rejects(readBoundedProviderJson({ ok: true, text: async () => '{broken' }), error => error.code === 'MALFORMED_PROVIDER_RESPONSE');
+});
+
+test('Feature 12B.2 refuses provider output that echoes the session credential', () => {
+  const { rejectAiCredentialEcho } = createAiGatewayHelpers();
+  assert.throws(() => rejectAiCredentialEcho('{"title":"synthetic-test-key"}', 'synthetic-test-key'), error => error.code === 'SENSITIVE_PROVIDER_RESPONSE' && !error.message.includes('synthetic-test-key'));
+  assert.equal(rejectAiCredentialEcho('{"title":"safe"}', 'synthetic-test-key'), '{"title":"safe"}');
+  assert.match(productionHtml, /rejectAiCredentialEcho\(await provider\.generate\([\s\S]*sessionAiApiKey\)/);
+});
+
+test('Feature 12B.2 keeps credentials session-only, gates external sends, and does not add persistence, analytics, or automatic AI calls', () => {
+  assert.match(productionHtml, /let sessionAiApiKey = ''/);
+  assert.match(productionHtml, /window\.addEventListener\('pagehide',[\s\S]*sessionAiApiKey = ''[\s\S]*input\.value = ''/);
+  assert.match(productionHtml, /function clearSessionAiCredential\([\s\S]*sessionAiApiKey = ''[\s\S]*key\.value = ''/);
+  assert.match(productionHtml, /function sendExternalAiRequest\([\s\S]*window\.confirm\(/);
+  const sendStart = productionHtml.indexOf('async function sendExternalAiRequest(');
+  const sendEnd = productionHtml.indexOf('\n  function cancelExternalAiRequest(', sendStart);
+  const sendSource = productionHtml.slice(sendStart, sendEnd);
+  assert.match(sendSource, /if \(!requestSnapshot \|\| !aiExternalConsentGranted\)/);
+  assert.match(sendSource, /createAiGatewayProvider\('openai_compatible'/);
+  assert.doesNotMatch(sendSource, /\b(?:setDoc|updateDoc|addDoc|writeBatch|logEvent)\s*\(/);
+  assert.match(productionHtml, /RESTRICTED_BLOCKED/);
+  assert.match(productionHtml, /credentials: 'omit'/);
+  assert.doesNotMatch(productionHtml, /(?:localStorage|sessionStorage|indexedDB)\.(?:setItem|put)\([^\n]*(?:ApiKey|apiKey|sessionAiApiKey)/i);
+  assert.doesNotMatch(productionHtml, /(?:setDoc|updateDoc|addDoc|writeBatch|logEvent)\([^\n]*(?:aiProvider|sessionAiApiKey|grounding_context)/i);
+  assert.match(productionHtml, /No automatic|ไม่ส่ง[^\n]*โดยอัตโนมัติ/);
+});
+
+test('Feature 12B.2 gateway UI uses labeled controls, textual privacy/status warnings, and mobile wrapping', () => {
+  for (const [label, id] of [['draftProvider', 'draftProvider'], ['draftModel', 'draftModel'], ['draftEndpoint', 'draftEndpoint'], ['draftApiKey', 'draftApiKey']]) assert.match(productionHtml, new RegExp(`<label for="${label}"`));
+  assert.match(productionHtml, /id="aiProviderStatus"[^>]*aria-live="polite"/);
+  assert.match(productionHtml, /id="draftPrivacyWarning"[^>]*role="note"/);
+  assert.match(productionHtml, /@media\(max-width:700px\)\{\.draft-workspace/);
+  assert.match(productionHtml, /word-break:break-word/);
+  assert.match(productionHtml, /id="cancelAiProviderRequest"/);
+  const cancelHandler = productionHtml.match(/getElementById\('cancelAiProviderRequest'\)\?\.addEventListener\('click'/g) || [];
+  assert.equal(cancelHandler.length, 1, 'provider cancellation must use one state-aware handler');
+  assert.match(productionHtml, /if \(aiGatewayRequestState === 'sending'\) cancelExternalAiRequest\(\)/);
 });
