@@ -19,7 +19,8 @@ import {
   updateDoc,
   query,
   where,
-  runTransaction
+  runTransaction,
+  writeBatch
 } from 'firebase/firestore';
 
 const projectId = 'demo-land-km';
@@ -727,6 +728,88 @@ async function seedIngestionTree(sourceId, createdBy = accounts.editor.email) {
     await setDoc(doc(db, 'sources', sourceId, 'ingestions', 'INGESTION-001', 'evidence', 'EVIDENCE-001'), evidencePayload(sourceId, 'INGESTION-001', 'EVIDENCE-001'));
   });
 }
+
+function commitIngestionBatch(db, sourceId, ingestionId, evidenceId, {
+  ingestionOverrides = {},
+  evidenceOverrides = {}
+} = {}) {
+  const ingestionRef = doc(db, 'sources', sourceId, 'ingestions', ingestionId);
+  const evidenceRef = doc(ingestionRef, 'evidence', evidenceId);
+  const batch = writeBatch(db);
+  batch.set(ingestionRef, ingestionPayload(sourceId, ingestionId, ingestionOverrides));
+  batch.set(evidenceRef, evidencePayload(sourceId, ingestionId, evidenceId, evidenceOverrides));
+  return batch.commit();
+}
+
+test('Feature 12C allows a valid Editor ingestion and evidence atomic batch', async () => {
+  const sourceId = 'SRC-F12C-ATOMIC-OK';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  await assertSucceeds(commitIngestionBatch(
+    dbAs('editor'), sourceId, 'ING-F12C-ATOMIC-OK', 'EVID-F12C-ATOMIC-OK'
+  ));
+});
+
+test('Feature 12C denies evidence without its matching staged or existing ingestion', async () => {
+  const sourceId = 'SRC-F12C-NO-PARENT';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  await assertFails(setDoc(
+    doc(dbAs('editor'), 'sources', sourceId, 'ingestions', 'ING-F12C-MISSING', 'evidence', 'EVID-F12C-MISSING'),
+    evidencePayload(sourceId, 'ING-F12C-MISSING', 'EVID-F12C-MISSING')
+  ));
+});
+
+test('Feature 12C denies evidence when the staged ingestion is invalid or not completed', async () => {
+  const sourceId = 'SRC-F12C-FAILED-PARENT';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  await assertFails(commitIngestionBatch(
+    dbAs('editor'), sourceId, 'ING-F12C-INVALID-PARENT', 'EVID-F12C-INVALID-PARENT',
+    { ingestionOverrides: { source_snapshot: { source_type: 'law', title: 'Wrong canonical title' } } }
+  ));
+  await assertFails(commitIngestionBatch(
+    dbAs('editor'), sourceId, 'ING-F12C-FAILED-PARENT', 'EVID-F12C-FAILED-PARENT',
+    { ingestionOverrides: { extraction_status: 'failed' } }
+  ));
+});
+
+test('Feature 12C denies evidence with mismatched source or ingestion identity', async () => {
+  const sourceId = 'SRC-F12C-MISMATCH';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  const db = dbAs('editor');
+  await assertFails(commitIngestionBatch(
+    db, sourceId, 'ING-F12C-WRONG-SOURCE', 'EVID-F12C-WRONG-SOURCE',
+    { evidenceOverrides: { source_id: 'SRC-F12C-OTHER-SOURCE' } }
+  ));
+  await assertFails(commitIngestionBatch(
+    db, sourceId, 'ING-F12C-WRONG-INGESTION', 'EVID-F12C-WRONG-INGESTION',
+    { evidenceOverrides: { ingestion_id: 'ING-F12C-OTHER-PARENT' } }
+  ));
+});
+
+test('Feature 12C denies unauthorized or inactive atomic ingestion batches', async () => {
+  const sourceId = 'SRC-F12C-ROLE-GUARD';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  await assertFails(commitIngestionBatch(
+    dbAs('reviewer'), sourceId, 'ING-F12C-REVIEWER', 'EVID-F12C-REVIEWER'
+  ));
+  await assertFails(commitIngestionBatch(
+    dbAs('inactiveAdmin'), sourceId, 'ING-F12C-INACTIVE', 'EVID-F12C-INACTIVE',
+    { ingestionOverrides: { created_by: accounts.inactiveAdmin.email } }
+  ));
+});
+
+test('Feature 12C denies malformed evidence and invalid initial review status in atomic batches', async () => {
+  const sourceId = 'SRC-F12C-EVIDENCE-SHAPE';
+  await seedIngestionTree(sourceId, accounts.editor.email);
+  const db = dbAs('editor');
+  await assertFails(commitIngestionBatch(
+    db, sourceId, 'ING-F12C-LONG-EVIDENCE', 'EVID-F12C-LONG-EVIDENCE',
+    { evidenceOverrides: { text: 'x'.repeat(8001) } }
+  ));
+  await assertFails(commitIngestionBatch(
+    db, sourceId, 'ING-F12C-REVIEW-STATUS', 'EVID-F12C-REVIEW-STATUS',
+    { evidenceOverrides: { review_status: 'reviewed', reviewed_by: accounts.editor.email, reviewed_at: serverTimestamp() } }
+  ));
+});
 
 test('Feature 11 nested evidence inherits source visibility and protects restricted records', async () => {
   const sourceId = 'SRC-EVIDENCE-001';

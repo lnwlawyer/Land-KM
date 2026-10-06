@@ -707,11 +707,14 @@ test('workspace account changes clear private state and detail return preserves 
   const resetEnd = productionHtml.indexOf('\n  initializeKnowledgeWorkspace();', resetStart);
   const reset = productionHtml.slice(resetStart, resetEnd);
   const authStart = productionHtml.indexOf('onAuthStateChanged(auth, async user => {', productionHtml.indexOf('document.getElementById(\'committeeDecisionSearch\').oninput'));
-  const auth = productionHtml.slice(authStart, authStart + 800);
+  const auth = productionHtml.slice(authStart, productionHtml.indexOf('\n    if (!user)', authStart));
   assert.match(reset, /savedItemsData = \[\]/);
   assert.match(reset, /workspaceRecentData = \[\]/);
   assert.match(reset, /workspaceLearningProgressData = \[\]/);
   assert.match(auth, /workspaceOwnerUid !== \(user\?\.uid \|\| null\)\) \{[\s\S]*?resetKnowledgeWorkspace\(user\?\.uid \|\| null\)/);
+  assert.match(auth, /activeGroundingContext = null; activeAcademicDraft = null/);
+  assert.match(auth, /comparisonEvidence = \[\]; comparisonSources = \[\]; comparisonAssessments = \[\]/);
+  assert.match(auth, /humanEvidenceComparison'\)\?\.remove\(\)/);
   assert.match(productionHtml, /viewHistory\.push\(\{id:current\.id/);
   assert.match(productionHtml, /function showPreviousView\(/);
   assert.match(productionHtml, /sourceButton\.onclick = \(\) => \{[\s\S]*?showPreviousView\(\)/);
@@ -1222,11 +1225,12 @@ function createGroundingTestHarness({ evidence = [], selected = [] } = {}) {
     textContent: '',
     children: [],
     replaceChildren(...children) { this.children = children; },
-    appendChild(child) { this.children.push(child); }
+    appendChild(child) { this.children.push(child); },
+    querySelector(selector) { return selector === '.source-actions' ? { insertBefore(child) { this.child = child; } } : null; }
   }]));
   const document = {
     getElementById(id) { return nodes[id] || null; },
-    createElement(tag) { return { tag, className: '', textContent: '', children: [], append(...children) { this.children.push(...children); } }; }
+    createElement(tag) { return { tag, className: '', textContent: '', children: [], addEventListener() {}, append(...children) { this.children.push(...children); } }; }
   };
   const start = productionHtml.indexOf('function buildGroundingContext()');
   const end = productionHtml.indexOf('\n  function showSourceForm(', start);
@@ -1339,6 +1343,10 @@ test('Feature 12A local importer exposes accessible tabs, bounded formats, and p
   assert.match(persist, /await batch\.commit\(\)/);
   assert.match(persist, /ingestion_method: prepared\.method/);
   assert.match(persist, /review_status: 'extracted'/);
+  assert.match(persist, /catch \(error\)/);
+  assert.match(persist, /isLocalReview && errorCode/);
+  assert.match(persist, /\^\[a-z-\]\{1,40\}\$/);
+  assert.doesNotMatch(persist, /error\?\.message|console\.(?:log|error)/);
   assert.match(productionHtml, /mammoth\.extractRawText/);
   assert.match(productionHtml, /getDocument\(\{ data: bytes \}\)/);
   assert.match(productionHtml, /OCR_REQUIRED/);
@@ -1406,6 +1414,17 @@ function createAcademicDraftHelpers() {
     { evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 },
     { selected: 20, contextChars: 30000 },
     ['บริบท', 'หลักการหรือสาระสำคัญ', 'ข้อกฎหมาย/แหล่งอ้างอิง', 'แนวทางปฏิบัติ', 'ข้อควรระวัง', 'ตัวอย่าง/กรณีประกอบ']
+  );
+}
+
+function createEvidenceComparisonHelpers() {
+  const start = productionHtml.indexOf('function comparisonEvidenceKey(');
+  const end = productionHtml.indexOf('\n  function getComparisonContext(', start);
+  assert.ok(start >= 0 && end > start);
+  const source = `${productionHtml.slice(start, end)}; return { comparisonEvidenceKey, mergeReviewedComparisonContext, createHumanComparisonAssessment };`;
+  return new Function('academicProviderError', 'structuredClone', source)(
+    (code, message) => Object.assign(new Error(message), { code }),
+    structuredClone
   );
 }
 
@@ -1633,6 +1652,9 @@ test('Feature 12B.2 gateway minimizes provider input and fails closed for unknow
   assert.deepEqual(resolveGroundingAccessLevels(context, [{ source_id: 'SRC-A', access_level: 'internal' }]), ['internal']);
   assert.throws(() => resolveGroundingAccessLevels(context, []), /ไม่สามารถยืนยันระดับการเข้าถึง/);
   assert.deepEqual(resolveGroundingAccessLevels(context, [{ source_id: 'SRC-A', access_level: 'restricted' }]), ['restricted']);
+  const combined = academicContext(2, 10); combined.sources = [{ source_id: 'SRC-A', access_level: 'internal' }, { source_id: 'SRC-B', access_level: 'restricted' }];
+  assert.deepEqual(resolveGroundingAccessLevels(combined, []), ['internal', 'restricted']);
+  assert.deepEqual(resolveGroundingAccessLevels(combined, [{ source_id: 'SRC-A', access_level: 'internal' }]), ['internal', 'restricted']);
   assert.throws(() => buildGatewayRequest(academicContext(21, 1), 'model'), /20|no evidence/);
   assert.throws(() => buildGatewayRequest(academicContext(2, 6001), 'model'), error => error.code === 'INVALID_CONTEXT');
 });
@@ -1746,4 +1768,81 @@ test('Feature 12B.2 gateway UI uses labeled controls, textual privacy/status war
   const cancelHandler = productionHtml.match(/getElementById\('cancelAiProviderRequest'\)\?\.addEventListener\('click'/g) || [];
   assert.equal(cancelHandler.length, 1, 'provider cancellation must use one state-aware handler');
   assert.match(productionHtml, /if \(aiGatewayRequestState === 'sending'\) cancelExternalAiRequest\(\)/);
+});
+
+test('Feature 12C comparison UI is Thai, session-only, explicitly human classified, and shows full evidence text', () => {
+  for (const label of ['เพิ่มหลักฐานชุดนี้เพื่อเปรียบเทียบ', 'เปรียบเทียบหลักฐานที่เลือก', 'การประเมินโดยผู้ใช้', 'สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้', 'หมายเหตุของผู้ใช้ (ไม่บังคับ)']) assert.ok(productionHtml.includes(label), `missing Thai comparison UI: ${label}`);
+  assert.match(productionHtml, /ยังไม่มีการประเมิน · ต้องให้ผู้ใช้จำแนกความสัมพันธ์เอง/);
+  assert.match(productionHtml, /body\.textContent = item\.text/);
+  assert.match(productionHtml, /comparisonAssessments = \[\]/);
+  assert.match(productionHtml, /comparisonEvidence = \[\]; comparisonSources = \[\]; comparisonAssessments = \[\]/);
+  assert.match(productionHtml, /การประเมินโดยผู้ใช้เท่านั้น · ข้อความประเมินไม่ใช่หลักฐานและไม่ใช้เป็นรายการอ้างอิง · ข้อมูลจะอยู่ในหน่วยความจำของรอบนี้/);
+});
+
+test('Feature 12C combines reviewed evidence from two sources and same-source items with stable provenance', () => {
+  const { mergeReviewedComparisonContext, comparisonEvidenceKey } = createEvidenceComparisonHelpers();
+  const sourceA = { source_id: 'SRC-A', title: 'กฎหมาย A', access_level: 'internal', document_label: 'ฉบับ 1' };
+  const sourceB = { source_id: 'SRC-B', title: 'กฎหมาย B', access_level: 'public', document_label: 'ฉบับ 2' };
+  const a = { source_id: 'SRC-A', ingestion_id: 'ING-A', evidence_id: 'EVD-0001', locator: 'มาตรา 1', review_status: 'reviewed', text: 'ข้อกำหนด X' };
+  const unreviewed = { ...a, evidence_id: 'EVD-0002', review_status: 'extracted', text: 'ยังไม่ตรวจ' };
+  const b = { source_id: 'SRC-B', ingestion_id: 'ING-B', evidence_id: 'EVD-0003', locator: 'ข้อ 2', review_status: 'reviewed', text: 'ข้อกำหนด Y' };
+  const sameSource = { ...a, ingestion_id: 'ING-A', evidence_id: 'EVD-0004', locator: '', text: 'รายละเอียดเพิ่มเติม' };
+  let result = mergeReviewedComparisonContext([], [], { sources: [sourceA], evidence: [a, unreviewed] });
+  result = mergeReviewedComparisonContext(result.evidence, result.sources, { sources: [sourceB], evidence: [b, sameSource, a] });
+  assert.deepEqual(result.evidence.map(item => item.evidence_id), ['EVD-0001', 'EVD-0003', 'EVD-0004']);
+  assert.equal(result.evidence[0].source_id, 'SRC-A');
+  assert.equal(result.evidence[0].ingestion_id, 'ING-A');
+  assert.equal(result.evidence[0].locator, 'มาตรา 1');
+  assert.equal(result.evidence[0].text, 'ข้อกำหนด X');
+  assert.deepEqual(result.sources.map(item => item.source_id), ['SRC-A', 'SRC-B']);
+  assert.equal(result.sources[0].access_level, 'internal');
+  assert.equal(result.evidence.length, 3, 'duplicate evidence identity is merged once');
+  assert.notEqual(comparisonEvidenceKey(a), comparisonEvidenceKey(b));
+  assert.notEqual(comparisonEvidenceKey(a), comparisonEvidenceKey(sameSource));
+  const optional = mergeReviewedComparisonContext([], [], { sources: [{ source_id: 'SRC-C', title: 'แหล่ง C' }], evidence: [{ source_id: 'SRC-C', ingestion_id: 'ING-C', evidence_id: 'EVD-0005', review_status: 'reviewed', text: 'ข้อความไม่มีตำแหน่ง' }] });
+  assert.equal(optional.evidence[0].locator, undefined);
+});
+
+test('Feature 12C accepts only an explicit human relationship and keeps notes separate from evidence citations', async () => {
+  const { createHumanComparisonAssessment } = createEvidenceComparisonHelpers();
+  const relationships = ['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้'];
+  for (const relationship of relationships) assert.equal(createHumanComparisonAssessment('evidence-A', 'evidence-B', relationship).relationship, relationship);
+  assert.throws(() => createHumanComparisonAssessment('evidence-A', 'evidence-B', ''), /เลือกการประเมิน/);
+  assert.throws(() => createHumanComparisonAssessment('evidence-A', 'evidence-A', 'แตกต่างกัน'), /แตกต่างกัน 2 รายการ/);
+  const assessment = createHumanComparisonAssessment('evidence-A', 'evidence-B', 'อาจขัดแย้งกัน', 'ต้องตรวจวันมีผล');
+  assert.deepEqual(Object.keys(assessment), ['leftKey', 'rightKey', 'relationship', 'note']);
+  assert.equal(assessment.note, 'ต้องตรวจวันมีผล');
+  assert.doesNotMatch(JSON.stringify(assessment), /evidence_id|support_excerpts/);
+
+  const { createMockAcademicProvider, validateAcademicDraftResponse } = createAcademicDraftHelpers();
+  const context = academicContext(); const valid = await createMockAcademicProvider().generate({ context });
+  assert.doesNotThrow(() => validateAcademicDraftResponse(valid, context));
+  const noteCannotBecomeCitation = structuredClone(valid);
+  noteCannotBecomeCitation.claims[0].evidence_ids = [assessment.note];
+  noteCannotBecomeCitation.claims[0].support_excerpts = ['ต้องตรวจวันมีผล'];
+  assert.throws(() => validateAcademicDraftResponse(noteCannotBecomeCitation, context), /ไม่พบหลักฐาน/);
+  assert.match(productionHtml, /มีการประเมินว่าอาจขัดแย้งกัน โปรดตรวจสอบแหล่งข้อมูลและข้อเท็จจริงโดยมนุษย์/);
+});
+
+test('Feature 12C annotations stay out of persistence, provider requests, citations, and automatic classification', () => {
+  const comparisonStart = productionHtml.indexOf('function comparisonEvidenceKey(');
+  const comparisonEnd = productionHtml.indexOf('\n  function academicProviderError(', comparisonStart);
+  const comparisonSource = productionHtml.slice(comparisonStart, comparisonEnd);
+  assert.doesNotMatch(comparisonSource, /\b(?:setDoc|updateDoc|addDoc|writeBatch|logEvent|fetch)\s*\(/);
+  assert.doesNotMatch(comparisonSource, /(?:localStorage|sessionStorage|indexedDB)\.(?:setItem|put)\s*\(/i);
+  const start = productionHtml.indexOf('function addGroundingContextToComparison(');
+  const end = productionHtml.indexOf('\n  function getComparisonContext(', start);
+  const addSource = productionHtml.slice(start, end);
+  assert.doesNotMatch(addSource, /\b(?:setDoc|updateDoc|addDoc|writeBatch|logEvent|fetch)\s*\(/);
+  assert.match(productionHtml, /comparisonAssessments\.push\(assessment\)/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function buildGatewayRequest('), productionHtml.indexOf('function openAiCompatiblePath(')), /comparisonAssessments|comparisonNote/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function confirmAcademicTransfer()'), productionHtml.indexOf('\n  async function runAcademicDraftMethod', productionHtml.indexOf('function confirmAcademicTransfer()'))), /comparisonAssessments|comparisonNote/);
+  assert.match(productionHtml, /const warning = document\.createElement\('p'\); warning\.id = 'comparisonConflictWarning'/);
+  assert.match(productionHtml, /warning\.hidden = !hasConflict/);
+  assert.match(productionHtml, /Do not|ไม่เลือกแหล่งที่ถูกต้องหรือชี้ขาดข้อกฎหมาย/);
+  assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
+  const transferStart = productionHtml.indexOf('function confirmAcademicTransfer()');
+  const transferEnd = productionHtml.indexOf('\n  async function runAcademicDraftMethod', transferStart);
+  assert.doesNotMatch(productionHtml.slice(transferStart, transferEnd), /saveDraftToFirestore|submitForReview|approveContent|publishContent/);
+  assert.match(productionHtml, /activeGroundingContext = null; activeAcademicDraft = null;[\s\S]*comparisonEvidence = \[\]; comparisonSources = \[\]; comparisonAssessments = \[\]/);
 });

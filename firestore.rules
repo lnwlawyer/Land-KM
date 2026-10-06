@@ -273,8 +273,8 @@ service cloud.firestore {
         match /evidence/{evidenceId} {
           allow get, list: if canReadSource(sourceId);
           allow create: if mayIngestSource(sourceId)
-            && exists(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId))
-            && get(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId)).data.extraction_status == 'completed'
+            && existsAfter(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId))
+            && getAfter(/databases/$(database)/documents/sources/$(sourceId)/ingestions/$(ingestionId)).data.extraction_status == 'completed'
             && validEvidence(sourceId, ingestionId, evidenceId, request.resource.data);
           allow update: if canReadSource(sourceId)
             && (isReviewer() || isAdmin())

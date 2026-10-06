@@ -540,6 +540,9 @@
   let activeEvidence = [];
   let selectedGroundingEvidence = new Set();
   let activeGroundingContext = null;
+  let comparisonEvidence = [];
+  let comparisonSources = [];
+  let comparisonAssessments = [];
   let activeAcademicDraft = null;
   let academicDraftController = null;
   const DRAFTING_LIMITS = Object.freeze({ evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 });
@@ -5785,9 +5788,10 @@
       const history = await loadSourceIngestions(source);
       const created = history.find(item => item.id === ingestionRef.id);
       if (created) await loadSourceEvidence(source, created);
-    } catch (_) {
+    } catch (error) {
       feedback.classList.add('error');
-      feedback.textContent = 'บันทึกไม่สำเร็จ · Firestore batch เป็น atomic จึงไม่มี ingestion/evidence บางส่วน · ตัวอย่างยังอยู่ในอุปกรณ์นี้ กรุณาลองยืนยันอีกครั้ง';
+      const errorCode = typeof error?.code === 'string' && /^[a-z-]{1,40}$/.test(error.code) ? error.code : '';
+      feedback.textContent = `บันทึกไม่สำเร็จ · Firestore batch เป็น atomic จึงไม่มี ingestion/evidence บางส่วน · ตัวอย่างยังอยู่ในอุปกรณ์นี้ กรุณาลองยืนยันอีกครั้ง${isLocalReview && errorCode ? ` · รหัสข้อผิดพลาด: ${errorCode}` : ''}`;
       button.disabled = false;
     }
   }
@@ -5813,7 +5817,7 @@
       }
       const ingestion = activeIngestions.find(item => item.id === activeIngestionId);
       const groundingContext = {
-        sources: [{ source_id: source.source_id, title: source.title || '', source_type: source.source_type || '', reference_no: source.reference_no || '', document_date: source.document_date || '', issuing_authority: source.issuing_authority || '', ingestion_id: ingestion?.ingestion_id || '', document_label: ingestion?.document_label || '' }],
+        sources: [{ source_id: source.source_id, title: source.title || '', source_type: source.source_type || '', reference_no: source.reference_no || '', document_date: source.document_date || '', issuing_authority: source.issuing_authority || '', access_level: source.access_level || '', ingestion_id: ingestion?.ingestion_id || '', document_label: ingestion?.document_label || '' }],
         evidence: selected.map(item => ({ source_id: item.source_id, ingestion_id: item.ingestion_id, evidence_id: item.evidence_id, locator: item.locator || '', text: item.text, review_status: item.review_status }))
       };
       activeGroundingContext = groundingContext;
@@ -5829,11 +5833,156 @@
       const draftButton = document.getElementById('openAcademicDrafting');
       draftButton.hidden = !['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role) || currentUserProfile?.is_active !== true;
       document.getElementById('academicDraftWorkspace').hidden = true;
+      const sourceActions = preview.querySelector('.source-actions');
+      let addButton = document.getElementById('addGroundingToComparison');
+      if (!addButton) {
+        addButton = document.createElement('button'); addButton.type = 'button'; addButton.id = 'addGroundingToComparison'; addButton.className = 'btn';
+        addButton.textContent = 'เพิ่มหลักฐานชุดนี้เพื่อเปรียบเทียบ';
+        addButton.addEventListener('click', addGroundingContextToComparison);
+        sourceActions.insertBefore(addButton, draftButton);
+      }
+      addButton.hidden = !draftButton.hidden;
     } catch (_) {
       if (preview) preview.hidden = true;
       if (items) { try { items.replaceChildren(); } catch (_) {} }
       if (status) status.textContent = 'สร้างบริบทอ้างอิงไม่สำเร็จ กรุณาลองอีกครั้ง';
     }
+  }
+
+  function comparisonEvidenceKey(item) {
+    if (!item?.source_id || !item?.ingestion_id || !item?.evidence_id) return '';
+    return JSON.stringify([item.source_id, item.ingestion_id, item.evidence_id]);
+  }
+
+  function mergeReviewedComparisonContext(existingEvidence, existingSources, context) {
+    const evidence = [...existingEvidence]; const sources = [...existingSources];
+    for (const source of context?.sources || []) if (source?.source_id && !sources.some(item => item.source_id === source.source_id)) sources.push(structuredClone(source));
+    for (const item of context?.evidence || []) {
+      if (item.review_status !== 'reviewed') continue;
+      const key = comparisonEvidenceKey(item);
+      if (!key) throw academicProviderError('INVALID_COMPARISON_EVIDENCE', 'หลักฐานขาดข้อมูลอ้างอิงที่จำเป็น');
+      if (!evidence.some(existing => comparisonEvidenceKey(existing) === key)) evidence.push(structuredClone(item));
+    }
+    return { evidence, sources, totalChars: evidence.reduce((sum, item) => sum + item.text.length, 0) };
+  }
+
+  function createHumanComparisonAssessment(leftKey, rightKey, relationship, note = '') {
+    if (!leftKey || !rightKey || leftKey === rightKey) throw academicProviderError('INVALID_COMPARISON_PAIR', 'เลือกหลักฐานที่แตกต่างกัน 2 รายการก่อน');
+    if (!['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้'].includes(relationship)) throw academicProviderError('INVALID_COMPARISON_RELATIONSHIP', 'เลือกการประเมินโดยผู้ใช้ก่อนบันทึก');
+    if (typeof note !== 'string' || note.length > 2000) throw academicProviderError('INVALID_COMPARISON_NOTE', 'หมายเหตุต้องมีความยาวไม่เกิน 2,000 ตัวอักษร');
+    return { leftKey, rightKey, relationship, note: note.trim() };
+  }
+
+  function addGroundingContextToComparison() {
+    const status = document.getElementById('evidenceStatus');
+    try {
+      if (academicDraftInputError(activeGroundingContext)) throw academicProviderError('INVALID_COMPARISON_CONTEXT', 'เพิ่มได้เฉพาะบริบทจากหลักฐานที่ตรวจสอบแล้ว');
+      const next = mergeReviewedComparisonContext(comparisonEvidence, comparisonSources, activeGroundingContext);
+      if (next.evidence.length > INGESTION_LIMITS.selected || next.totalChars > DRAFTING_LIMITS.evidenceChars) throw academicProviderError('COMPARISON_LIMIT', `ชุดหลักฐานเปรียบเทียบต้องไม่เกิน ${INGESTION_LIMITS.selected} รายการและ ${DRAFTING_LIMITS.evidenceChars.toLocaleString()} ตัวอักษร`);
+      comparisonEvidence = next.evidence; comparisonSources = next.sources;
+      status.textContent = `เพิ่มหลักฐานที่ตรวจสอบแล้ว ${activeGroundingContext.evidence.length} รายการ · ในชุดเปรียบเทียบ ${comparisonEvidence.length} รายการ · ข้อมูลอยู่ในหน่วยความจำของรอบนี้`;
+    } catch (error) { status.textContent = error.message || 'เพิ่มหลักฐานเพื่อเปรียบเทียบไม่สำเร็จ'; }
+  }
+
+  function getComparisonContext() {
+    if (activeGroundingContext) {
+      const merged = mergeReviewedComparisonContext(comparisonEvidence, comparisonSources, activeGroundingContext);
+      if (merged.evidence.length > INGESTION_LIMITS.selected || merged.totalChars > DRAFTING_LIMITS.evidenceChars) throw academicProviderError('COMPARISON_LIMIT', `ชุดหลักฐานเปรียบเทียบต้องไม่เกิน ${INGESTION_LIMITS.selected} รายการและ ${DRAFTING_LIMITS.evidenceChars.toLocaleString()} ตัวอักษร`);
+      comparisonEvidence = merged.evidence; comparisonSources = merged.sources;
+    }
+    const context = comparisonEvidence.length ? { sources: structuredClone(comparisonSources), evidence: structuredClone(comparisonEvidence) } : activeGroundingContext;
+    if (context?.evidence?.some(item => item.review_status !== 'reviewed')) throw academicProviderError('UNREVIEWED_COMPARISON_EVIDENCE', 'ชุดเปรียบเทียบใช้ได้เฉพาะหลักฐานที่ตรวจสอบแล้ว');
+    return context;
+  }
+
+  function comparisonSourceLabel(item) {
+    const source = (activeGroundingContext?.sources || []).find(entry => entry.source_id === item.source_id)
+      || (comparisonSources || []).find(entry => entry.source_id === item.source_id) || {};
+    return `${source.title || 'ไม่ระบุแหล่งข้อมูล'}${source.document_label ? ` · ${source.document_label}` : ''}${item.locator ? ` · ${item.locator}` : ''}`;
+  }
+
+  function comparisonAccessLabel(value) {
+    return ({ public: 'สาธารณะ', internal: 'ภายในหน่วยงาน', restricted: 'จำกัดสิทธิ์' })[value] || 'ไม่ระบุ';
+  }
+
+  function ensureHumanComparisonWorkspace() {
+    const draft = document.getElementById('academicDraftWorkspace');
+    let section = document.getElementById('humanEvidenceComparison');
+    if (section) return section;
+    section = document.createElement('section'); section.id = 'humanEvidenceComparison'; section.className = 'draft-comparison';
+    const heading = document.createElement('h3'); heading.textContent = 'เปรียบเทียบหลักฐานที่เลือก'; section.appendChild(heading);
+    const description = document.createElement('p'); description.textContent = 'การประเมินโดยผู้ใช้เท่านั้น · ข้อความประเมินไม่ใช่หลักฐานและไม่ใช้เป็นรายการอ้างอิง · ข้อมูลจะอยู่ในหน่วยความจำของรอบนี้'; section.appendChild(description);
+    const warning = document.createElement('p'); warning.id = 'comparisonConflictWarning'; warning.className = 'draft-warning'; warning.setAttribute('role', 'alert'); warning.hidden = true; warning.textContent = 'มีการประเมินว่าอาจขัดแย้งกัน โปรดตรวจสอบแหล่งข้อมูลและข้อเท็จจริงโดยมนุษย์ก่อนนำข้อสรุปไปใช้ ระบบไม่ได้เลือกแหล่งที่ถูกต้องหรือชี้ขาดข้อกฎหมาย'; section.appendChild(warning);
+    const grid = document.createElement('div'); grid.className = 'comparison-grid';
+    for (const side of ['left', 'right']) {
+      const column = document.createElement('div'); column.className = 'comparison-side';
+      const label = document.createElement('label'); label.htmlFor = `comparisonEvidence${side}`; label.textContent = side === 'left' ? 'หลักฐานรายการที่ 1' : 'หลักฐานรายการที่ 2';
+      const select = document.createElement('select'); select.id = `comparisonEvidence${side}`; select.addEventListener('change', updateComparisonEvidencePreview);
+      const detail = document.createElement('article'); detail.id = `comparisonPreview${side}`; detail.className = 'comparison-evidence';
+      column.append(label, select, detail); grid.appendChild(column);
+    }
+    section.appendChild(grid);
+    const relationField = document.createElement('div'); relationField.className = 'field';
+    const relationLabel = document.createElement('label'); relationLabel.htmlFor = 'comparisonRelationship'; relationLabel.textContent = 'การประเมินโดยผู้ใช้';
+    const relation = document.createElement('select'); relation.id = 'comparisonRelationship';
+    const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'เลือกความสัมพันธ์ก่อนบันทึก'; relation.appendChild(placeholder);
+    for (const value of ['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้']) { const option = document.createElement('option'); option.value = value; option.textContent = value; relation.appendChild(option); }
+    relationField.append(relationLabel, relation); section.appendChild(relationField);
+    const guidance = document.createElement('p'); guidance.className = 'doc-meta'; guidance.textContent = 'สอดคล้องกัน: สนับสนุนสาระไปในทิศทางเดียวกัน · แตกต่างกัน: รายละเอียดหรือบริบทต่างกันโดยยังไม่จำเป็นต้องขัดแย้ง · อาจขัดแย้งกัน: ควรตรวจสอบก่อนสรุป · ยังสรุปไม่ได้: ข้อมูลยังไม่เพียงพอ'; section.appendChild(guidance);
+    const noteField = document.createElement('div'); noteField.className = 'field';
+    const noteLabel = document.createElement('label'); noteLabel.htmlFor = 'comparisonNote'; noteLabel.textContent = 'หมายเหตุของผู้ใช้ (ไม่บังคับ)';
+    const note = document.createElement('textarea'); note.id = 'comparisonNote'; note.rows = 3; note.maxLength = 2000; note.placeholder = 'อธิบายบริบทหรือประเด็นที่ควรตรวจสอบ';
+    noteField.append(noteLabel, note); section.appendChild(noteField);
+    const actions = document.createElement('div'); actions.className = 'source-actions';
+    const add = document.createElement('button'); add.type = 'button'; add.className = 'btn primary'; add.id = 'addComparisonAssessment'; add.textContent = 'บันทึกการประเมินในรอบนี้'; add.addEventListener('click', addHumanComparisonAssessment);
+    actions.appendChild(add); section.appendChild(actions);
+    const status = document.createElement('p'); status.id = 'comparisonStatus'; status.className = 'source-hint'; status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
+    status.textContent = 'ยังไม่มีการประเมิน · ต้องให้ผู้ใช้จำแนกความสัมพันธ์เอง'; section.appendChild(status);
+    const list = document.createElement('div'); list.id = 'comparisonAssessmentList'; list.className = 'comparison-assessments'; section.appendChild(list);
+    const style = document.createElement('style'); style.id = 'humanEvidenceComparisonStyles'; style.textContent = '.draft-comparison{display:grid;gap:12px;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff}.comparison-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.comparison-side{display:grid;align-content:start;gap:8px;min-width:0}.comparison-evidence{padding:12px;border:1px solid var(--line);border-radius:8px;min-width:0}.comparison-evidence pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit;line-height:1.65}.comparison-assessments{display:grid;gap:10px}.comparison-assessment{padding:12px;border-inline-start:4px solid var(--brand);background:#f8fafb;overflow-wrap:anywhere}@media(max-width:700px){.comparison-grid{grid-template-columns:minmax(0,1fr)}}'; document.head.appendChild(style);
+    const controls = draft.querySelector('.draft-controls'); draft.insertBefore(section, controls);
+    return section;
+  }
+
+  function updateComparisonEvidencePreview() {
+    for (const side of ['left', 'right']) {
+      const select = document.getElementById(`comparisonEvidence${side}`); const root = document.getElementById(`comparisonPreview${side}`); root.replaceChildren();
+      const item = comparisonEvidence.find(entry => comparisonEvidenceKey(entry) === select.value);
+      if (!item) { const note = document.createElement('p'); note.textContent = 'เลือกหลักฐานที่ตรวจสอบแล้วเพื่ออ่านฉบับเต็ม'; root.appendChild(note); continue; }
+      const source = (activeGroundingContext?.sources || []).find(entry => entry.source_id === item.source_id) || (comparisonSources || []).find(entry => entry.source_id === item.source_id) || {};
+      const provenance = document.createElement('p'); provenance.textContent = `แหล่งข้อมูล: ${source.title || 'ไม่ระบุ'} · ฉบับ: ${source.document_label || item.ingestion_id} · ตำแหน่งอ้างอิง: ${item.locator || 'ไม่ระบุ'} · ระดับการเข้าถึง: ${comparisonAccessLabel(source.access_level)}`;
+      const body = document.createElement('pre'); body.textContent = item.text; root.append(provenance, body);
+    }
+  }
+
+  function renderHumanComparisonAssessments() {
+    const root = document.getElementById('comparisonAssessmentList'); if (!root) return;
+    root.replaceChildren();
+    const hasConflict = comparisonAssessments.some(item => item.relationship === 'อาจขัดแย้งกัน');
+    const warning = document.getElementById('comparisonConflictWarning'); if (warning) warning.hidden = !hasConflict;
+    comparisonAssessments.forEach((assessment, index) => {
+      const card = document.createElement('article'); card.className = 'comparison-assessment';
+      const title = document.createElement('p'); title.textContent = `การประเมินโดยผู้ใช้: ${assessment.relationship}`;
+      const details = document.createElement('p'); details.textContent = `${comparisonSourceLabel(comparisonEvidence.find(item => comparisonEvidenceKey(item) === assessment.leftKey) || {})} ↔ ${comparisonSourceLabel(comparisonEvidence.find(item => comparisonEvidenceKey(item) === assessment.rightKey) || {})}`;
+      card.append(title, details);
+      if (assessment.note) { const note = document.createElement('p'); note.textContent = `หมายเหตุของผู้ใช้: ${assessment.note}`; card.appendChild(note); }
+      const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'ลบการประเมิน'; remove.addEventListener('click', () => { comparisonAssessments.splice(index, 1); renderHumanComparisonAssessments(); }); card.appendChild(remove); root.appendChild(card);
+    });
+  }
+
+  function addHumanComparisonAssessment() {
+    const leftKey = document.getElementById('comparisonEvidenceleft').value; const rightKey = document.getElementById('comparisonEvidenceright').value;
+    const relationship = document.getElementById('comparisonRelationship').value; const note = document.getElementById('comparisonNote').value.trim(); const status = document.getElementById('comparisonStatus');
+    let assessment;
+    try { assessment = createHumanComparisonAssessment(leftKey, rightKey, relationship, note); }
+    catch (error) { status.textContent = error.message; return; }
+    const existing = comparisonAssessments.find(item => item.leftKey === leftKey && item.rightKey === rightKey || item.leftKey === rightKey && item.rightKey === leftKey);
+    if (existing) Object.assign(existing, assessment);
+    else comparisonAssessments.push(assessment);
+    status.textContent = 'บันทึกการประเมินไว้ในหน่วยความจำของรอบนี้แล้ว · ข้อมูลนี้ไม่ใช่หลักฐาน';
+    document.getElementById('comparisonRelationship').value = '';
+    document.getElementById('comparisonNote').value = '';
+    renderHumanComparisonAssessments();
   }
 
   function academicProviderError(code, message) { const error = new Error(message); error.code = code; return error; }
@@ -5920,10 +6069,22 @@
   function openAcademicDraftWorkspace() {
     const status = document.getElementById('draftWorkspaceStatus');
     if (!['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role) || currentUserProfile?.is_active !== true) { status.textContent = 'พื้นที่นี้สำหรับเจ้าหน้าที่ที่ใช้งานอยู่เท่านั้น'; return; }
+    try { activeGroundingContext = getComparisonContext(); }
+    catch (error) { status.textContent = error.message; return; }
     const error = academicDraftInputError(activeGroundingContext);
     if (error) { status.textContent = error; return; }
     const workspace = document.getElementById('academicDraftWorkspace'); workspace.hidden = false;
     const context = activeGroundingContext;
+    ensureHumanComparisonWorkspace();
+    const comparisonOptions = [new Option('เลือกหลักฐาน', '')];
+    context.evidence.filter(item => item.review_status === 'reviewed').forEach(item => comparisonOptions.push(new Option(comparisonSourceLabel(item), comparisonEvidenceKey(item))));
+    for (const side of ['left', 'right']) {
+      const select = document.getElementById(`comparisonEvidence${side}`); const previous = select.value;
+      select.replaceChildren(...comparisonOptions.map(option => option.cloneNode(true)));
+      if (comparisonOptions.some(option => option.value === previous)) select.value = previous;
+    }
+    updateComparisonEvidencePreview();
+    renderHumanComparisonAssessments();
     const totalChars = context.evidence.reduce((sum, item) => sum + item.text.length, 0);
     document.getElementById('draftEvidenceSummary').textContent = `ใช้หลักฐานที่ผ่านการตรวจทานแล้ว ${context.evidence.length} รายการ · ${totalChars.toLocaleString()} ตัวอักษร · เพดานการจัดทำ ${DRAFTING_LIMITS.evidenceChars.toLocaleString()} ตัวอักษร`;
     document.getElementById('draftInstructions').textContent = GROUNDED_DRAFT_INSTRUCTIONS;
@@ -6050,7 +6211,7 @@
   function resolveGroundingAccessLevels(context, sourceRecords = []) {
     const levels = new Set();
     for (const source of context?.sources || []) {
-      const record = sourceRecords.find(item => item.source_id === source.source_id) || (sourceDetailCurrent?.source_id === source.source_id ? sourceDetailCurrent : null);
+      const record = sourceRecords.find(item => item.source_id === source.source_id) || (sourceDetailCurrent?.source_id === source.source_id ? sourceDetailCurrent : null) || source;
       if (!record || !['public', 'internal', 'restricted'].includes(record.access_level)) throw academicProviderError('ACCESS_UNKNOWN', 'ไม่สามารถยืนยันระดับการเข้าถึงของทุกแหล่งข้อมูลได้ จึงไม่อนุญาตให้ส่งออก');
       levels.add(record.access_level);
     }
@@ -8532,6 +8693,10 @@
       sourceCenterState = { query: '', type: 'all', use: 'all' };
       selectedSourceReferences = [];
       sourceDetailCurrent = null;
+      activeIngestions = []; activeEvidence = []; selectedGroundingEvidence = new Set(); activeIngestionId = '';
+      activeGroundingContext = null; activeAcademicDraft = null;
+      comparisonEvidence = []; comparisonSources = []; comparisonAssessments = [];
+      document.getElementById('humanEvidenceComparison')?.remove(); document.getElementById('humanEvidenceComparisonStyles')?.remove(); document.getElementById('addGroundingToComparison')?.remove();
       lessonPlayerReturnToDetail = false;
       resetKnowledgeWorkspace(user?.uid || null);
     }
