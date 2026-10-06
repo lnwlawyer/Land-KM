@@ -367,7 +367,7 @@
         <div class="page-head"><div><button type="button" class="btn" id="sourceDetailBack">← กลับแหล่งข้อมูล</button><h1 id="sourceDetailHeading" style="margin-top:14px"></h1><p id="sourceDetailType" class="doc-meta"></p></div><div class="source-actions"><a class="btn" id="sourceDetailExternal" target="_blank" rel="noopener noreferrer" hidden>เปิดแหล่งข้อมูล ↗</a><button type="button" class="btn" id="editSourceButton" hidden>แก้ไขแหล่งข้อมูล</button></div></div>
         <section class="panel" aria-labelledby="sourceIdentityHeading"><h2 id="sourceIdentityHeading">ข้อมูลแหล่งข้อมูล</h2><div class="source-detail-grid" id="sourceDetailMetadata"></div><h2 id="sourceCompletenessHeading">ความครบถ้วนข้อมูล</h2><p id="sourceDetailCompleteness" class="source-hint"></p></section>
         <section class="governance-section" aria-labelledby="sourceRelatedHeading"><div class="section-title"><div><h2 id="sourceRelatedHeading">องค์ความรู้ที่เชื่อมโยง</h2><p class="doc-meta" id="sourceRelatedNote"></p></div></div><div class="source-related-list" id="sourceRelatedContents"></div></section>
-        <section class="governance-section ingestion-workspace" id="sourceIngestionSection" aria-labelledby="sourceIngestionHeading"><div class="section-title"><div><h2 id="sourceIngestionHeading">เอกสารนำเข้าและหลักฐาน</h2><p class="doc-meta">ข้อความหลักฐานคงถ้อยคำต้นทางและจำกัดการเข้าถึงตามแหล่งข้อมูล</p></div><button type="button" class="btn primary" id="startTextIngestion">นำเข้าเอกสาร</button></div><p id="ingestionStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionFormPanel" class="panel" hidden><form id="ingestionForm" class="ingestion-form" novalidate><div class="field full"><label for="ingestionLabel">ชื่อเอกสาร/ฉบับ *</label><input id="ingestionLabel" maxlength="200" required></div><div class="import-method-tabs" role="tablist" aria-label="วิธีนำเข้าเอกสาร"><button type="button" class="btn active" role="tab" aria-selected="true" aria-controls="importTextPanel" data-import-method="text">วางข้อความ</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importFilePanel" data-import-method="local_file">อัปโหลดไฟล์จากอุปกรณ์</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importUrlPanel" data-import-method="remote_url">นำเข้าจาก URL</button></div><div id="importTextPanel" class="import-method-panel"><div class="field"><label for="ingestionOriginalUrl">URL ทางการ (บันทึกอ้างอิงเท่านั้น)</label><input id="ingestionOriginalUrl" type="url" maxlength="2048" placeholder="https://..."></div><div class="field full"><label for="ingestionText">วางข้อความต้นฉบับ *</label><textarea id="ingestionText" maxlength="200000" aria-describedby="ingestionTextHelp"></textarea><small id="ingestionTextHelp">สูงสุด 200,000 ตัวอักษร · แสดงตัวอย่างก่อนบันทึกหลักฐาน</small></div><div class="field full"><button type="button" class="btn primary" id="prepareTextIngestion">แสดงตัวอย่างการนำเข้า</button></div></div><div id="importFilePanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionFile">เลือกไฟล์ TXT, Markdown, PDF หรือ DOCX</label><input id="ingestionFile" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="ingestionFileHelp"><small id="ingestionFileHelp">TXT/MD สูงสุด 5 MB · DOCX สูงสุด 10 MB · PDF สูงสุด 20 MB และ 300 หน้า · ไฟล์จะถูกอ่านในอุปกรณ์นี้และไม่ถูกอัปโหลด</small></div><p id="ingestionFileInfo" class="doc-meta full" role="status" aria-live="polite">ยังไม่ได้เลือกไฟล์</p><div class="field full"><button type="button" class="btn primary" id="prepareFileIngestion">อ่านไฟล์และแสดงตัวอย่าง</button></div></div><div id="importUrlPanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionRemoteUrl">URL เอกสาร (HTTP/HTTPS)</label><input id="ingestionRemoteUrl" type="url" maxlength="2048" placeholder="https://example.org/document.pdf" autocomplete="url"></div><p class="doc-meta full">เบราว์เซอร์จะลองอ่านลิงก์โดยไม่ส่งข้อมูลเข้าสู่ระบบ หากเว็บไซต์ไม่อนุญาต CORS จะไม่สามารถดึงเอกสารได้</p><div class="field full"><button type="button" class="btn primary" id="prepareUrlIngestion">ตรวจสอบและแสดงตัวอย่าง</button></div></div><section id="ingestionPreview" class="import-preview full" aria-labelledby="ingestionPreviewHeading" hidden><h3 id="ingestionPreviewHeading">ตรวจข้อความและหลักฐานก่อนบันทึก</h3><p id="ingestionPreviewStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionPreviewWarnings"></div><div id="ingestionPreviewEvidence" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn" id="reviseIngestion">กลับไปแก้ไข</button><button type="button" class="btn primary" id="confirmIngestion">ยืนยันและบันทึกหลักฐาน</button></div></section><p id="ingestionFeedback" class="source-hint full" tabindex="-1" role="status" aria-live="polite"></p><div class="source-actions full"><button type="button" class="btn" id="cancelIngestion">ยกเลิก</button></div></form></div><div id="ingestionHistory" class="ingestion-list"></div><div id="evidencePanel" hidden><h3 id="evidenceHeading">หลักฐานในฉบับนำเข้า</h3><p id="evidenceStatus" class="source-hint" role="status" aria-live="polite"></p><div id="evidenceList" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn primary" id="buildGroundingContext">สร้างบริบทอ้างอิง</button></div><section id="groundingPreview" class="grounding-preview" aria-labelledby="groundingPreviewHeading" hidden><h3 id="groundingPreviewHeading">บริบทอ้างอิงสำหรับ AI</h3><p id="groundingCount" role="status"></p><div id="groundingItems"></div><div class="source-actions"><button type="button" class="btn primary" id="openAcademicDrafting" hidden>จัดทำร่างองค์ความรู้</button></div></section><section id="academicDraftWorkspace" class="draft-workspace" aria-labelledby="academicDraftHeading" hidden><div class="section-title"><div><h2 id="academicDraftHeading">ผู้ช่วยจัดทำองค์ความรู้ทางวิชาการ</h2><p>ร่างในหน่วยความจำเท่านั้น · ไม่มีการบันทึกหรือส่งเนื้อหาโดยอัตโนมัติ</p></div><button type="button" class="btn" id="closeAcademicDraft">กลับไปยังหลักฐาน</button></div><p id="draftWorkspaceStatus" class="source-hint" role="status" aria-live="polite"></p><section><h3 id="draftEvidenceHeading">บริบทหลักฐาน</h3><p id="draftEvidenceSummary"></p><div id="draftEvidenceCards" class="draft-claims"></div><details><summary>แสดงข้อความหลักฐานฉบับเต็ม</summary><div id="draftEvidenceItems" class="evidence-list"></div></details><details><summary>แสดงคำสั่งกำกับการจัดทำ</summary><pre id="draftInstructions"></pre></details></section><div class="draft-controls"><div class="field"><label for="draftMethod">วิธีจัดทำ</label><select id="draftMethod"><option value="mock">ผู้ช่วยจำลองแบบกำหนดผลแน่นอน (ทดสอบโครงสร้าง)</option><option value="manual">จัดโครงร่างด้วยตนเอง</option><option value="handoff">นำเข้าผลจาก AI ภายนอก</option><option value="external">AI Provider Gateway</option></select></div><div class="source-actions"><button type="button" class="btn primary" id="runDraftMethod">เริ่มจัดทำ</button><button type="button" class="btn" id="cancelDraftGeneration" disabled>ยกเลิกการจัดทำ</button><button type="button" class="btn" id="exportDraftPackage">ส่งออกชุดข้อมูลสำหรับ AI ภายนอก</button></div></div><section id="aiProviderPanel" class="provider-panel" aria-labelledby="aiProviderHeading" hidden><h3 id="aiProviderHeading">ผู้ให้บริการ AI</h3><p>การตั้งค่าและ API Key อยู่ในหน่วยความจำของหน้านี้เท่านั้น ไม่มีการบันทึกลง Land KM</p><div class="provider-grid"><div class="field"><label for="draftProvider">ผู้ให้บริการ</label><select id="draftProvider"><option value="openai_compatible">OpenAI-compatible endpoint</option><option value="openai" disabled>OpenAI · unavailable in Browser BYOK mode</option><option value="gemini" disabled>Google Gemini · unavailable in Browser BYOK mode</option><option value="anthropic" disabled>Anthropic · unavailable in Browser BYOK mode</option><option value="browser_local" disabled>Browser-Local AI · experimental / unavailable</option></select></div><div class="field"><label for="draftModel">โมเดล</label><input id="draftModel" list="aiAvailableModels" maxlength="160" autocomplete="off" placeholder="ระบุ model ID ที่ endpoint รองรับ"><datalist id="aiAvailableModels"></datalist><small>รุ่นแนะนำและค่าใช้จ่ายขึ้นกับ endpoint ที่คุณเลือก</small></div><div class="field"><label for="draftEndpoint">Custom endpoint (Base URL)</label><input id="draftEndpoint" type="url" maxlength="2048" autocomplete="off" placeholder="https://gateway.example/v1"><small>Remote endpoint ต้องใช้ HTTPS · HTTP อนุญาตเฉพาะ localhost ระหว่างพัฒนา</small></div><div class="field"><label for="draftApiKey">API Key (ไม่บังคับสำหรับ local endpoint)</label><input id="draftApiKey" type="password" autocomplete="off" spellcheck="false" aria-describedby="draftApiKeyHelp"><small id="draftApiKeyHelp">ไม่เก็บใน Firestore, storage, URL, analytics หรือ export</small></div></div><p id="draftProviderUnavailable" class="draft-warning" role="note">OpenAI, Gemini และ Anthropic ปิดใช้การเรียกโดยตรงจาก Browser BYOK เพราะข้อกำหนดด้านการปกป้อง API Key ของผู้ให้บริการ · Browser-Local AI ยังเป็น Experimental / unavailable · ใช้ OpenAI-compatible endpoint ที่คุณควบคุม หรือ Manual/Mock</p><div class="source-actions"><button type="button" class="btn" id="testAiProviderConnection">ทดสอบการเชื่อมต่อ (ไม่ส่งหลักฐาน)</button><button type="button" class="btn" id="clearAiApiKey">ล้าง API Key</button><button type="button" class="btn primary" id="previewAiProviderRequest">ตรวจสอบข้อมูลที่จะส่ง</button></div><p id="aiProviderStatus" class="source-hint" role="status" aria-live="polite"></p></section><section id="aiRequestPreview" class="gateway-preview" aria-labelledby="aiRequestPreviewHeading" hidden><h3 id="aiRequestPreviewHeading">ตรวจสอบคำขอก่อนส่ง</h3><p id="aiRequestSummary"></p><p id="aiRequestAccessWarning" class="draft-warning" role="alert" hidden></p><p class="draft-warning">ผู้ให้บริการอาจประมวลผลข้อมูลตามเงื่อนไขของตน และการใช้ API อาจมีค่าใช้จ่ายในบัญชีของคุณ Land KM จะไม่ส่ง restricted evidence</p><details><summary>ดู instructions และข้อมูลที่จะส่ง</summary><pre id="aiRequestPayload"></pre></details><div class="source-actions"><button type="button" class="btn primary" id="sendAiProviderRequest">ส่งไปยัง AI</button><button type="button" class="btn" id="cancelAiProviderRequest">ยกเลิก</button></div></section><p id="draftPrivacyWarning" class="draft-warning" role="note">คำเตือนความเป็นส่วนตัว: ชุดข้อมูลมีข้อความหลักฐานที่เลือกและอาจเป็นข้อมูลภายใน การส่งไปยังบริการ AI ภายนอกอยู่นอก Land KM และเป็นการตัดสินใจโดยชัดแจ้งของผู้ใช้</p><div id="draftHandoffPanel" hidden><label for="draftImportJson">วางผลลัพธ์ JSON ที่ได้รับจาก AI ภายนอก</label><textarea id="draftImportJson" rows="8" spellcheck="false"></textarea><button type="button" class="btn" id="importDraftResult">ตรวจสอบและนำเข้าผลลัพธ์</button></div><section id="draftClaimReview" hidden><h3>ตรวจทานข้อกล่าวอ้างและหลักฐาน</h3><p class="draft-warning">การตรวจนี้ยืนยันโครงสร้างและที่มาของข้อความอ้างอิงเท่านั้น ไม่ได้ยืนยันว่าหลักฐานสนับสนุนข้อกล่าวอ้างในเชิงความหมาย</p><div id="draftClaims" class="draft-claims"></div><h3>ประเด็นที่ควรค้นคว้าเพิ่มเติม</h3><ul id="draftResearchQuestions"></ul><div class="field"><label for="draftTitle">ชื่อเรื่อง (แก้ไขได้)</label><input id="draftTitle" maxlength="300"></div><div id="draftSections" class="draft-sections"></div><div class="source-actions"><button type="button" class="btn" id="previewAcademicDraft">ดูตัวอย่างร่าง</button><button type="button" class="btn primary" id="transferAcademicDraft">นำร่างไปยังหน้าจัดทำเนื้อหา</button></div><p id="draftTransferFeedback" class="source-hint" role="status" aria-live="polite"></p></section><section id="draftPreview" class="grounding-preview" hidden><h3>ตัวอย่างร่างองค์ความรู้</h3><div id="draftPreviewBody"></div></section><section id="draftSourceChoices" hidden><h3>ยืนยันความสัมพันธ์ของแหล่งข้อมูล</h3><p>เลือกบทบาทของแต่ละแหล่งที่สนับสนุนข้อกล่าวอ้างที่เลือก ก่อนโอนไปยังแบบจัดทำเนื้อหา</p><div id="draftSourceChoiceList" class="draft-claims"></div><button type="button" class="btn primary" id="confirmDraftTransfer">ยืนยันและเติมแบบจัดทำเนื้อหา</button></section></section></div></section>
+        <section class="governance-section ingestion-workspace" id="sourceIngestionSection" aria-labelledby="sourceIngestionHeading"><div class="section-title"><div><h2 id="sourceIngestionHeading">เอกสารนำเข้าและหลักฐาน</h2><p class="doc-meta">ข้อความหลักฐานคงถ้อยคำต้นทางและจำกัดการเข้าถึงตามแหล่งข้อมูล</p></div><button type="button" class="btn primary" id="startTextIngestion">นำเข้าเอกสาร</button></div><p id="ingestionStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionFormPanel" class="panel" hidden><form id="ingestionForm" class="ingestion-form" novalidate><div class="field full"><label for="ingestionLabel">ชื่อเอกสาร/ฉบับ *</label><input id="ingestionLabel" maxlength="200" required></div><div class="import-method-tabs" role="tablist" aria-label="วิธีนำเข้าเอกสาร"><button type="button" class="btn active" role="tab" aria-selected="true" aria-controls="importTextPanel" data-import-method="text">วางข้อความ</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importFilePanel" data-import-method="local_file">อัปโหลดไฟล์จากอุปกรณ์</button><button type="button" class="btn" role="tab" aria-selected="false" aria-controls="importUrlPanel" data-import-method="remote_url">นำเข้าจาก URL</button></div><div id="importTextPanel" class="import-method-panel"><div class="field"><label for="ingestionOriginalUrl">URL ทางการ (บันทึกอ้างอิงเท่านั้น)</label><input id="ingestionOriginalUrl" type="url" maxlength="2048" placeholder="https://..."></div><div class="field full"><label for="ingestionText">วางข้อความต้นฉบับ *</label><textarea id="ingestionText" maxlength="200000" aria-describedby="ingestionTextHelp"></textarea><small id="ingestionTextHelp">สูงสุด 200,000 ตัวอักษร · แสดงตัวอย่างก่อนบันทึกหลักฐาน</small></div><div class="field full"><button type="button" class="btn primary" id="prepareTextIngestion">แสดงตัวอย่างการนำเข้า</button></div></div><div id="importFilePanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionFile">เลือกไฟล์ TXT, Markdown, PDF หรือ DOCX</label><input id="ingestionFile" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="ingestionFileHelp"><small id="ingestionFileHelp">TXT/MD สูงสุด 5 MB · DOCX สูงสุด 10 MB · PDF สูงสุด 20 MB และ 300 หน้า · ไฟล์จะถูกอ่านในอุปกรณ์นี้และไม่ถูกอัปโหลด</small></div><p id="ingestionFileInfo" class="doc-meta full" role="status" aria-live="polite">ยังไม่ได้เลือกไฟล์</p><div class="field full"><button type="button" class="btn primary" id="prepareFileIngestion">อ่านไฟล์และแสดงตัวอย่าง</button></div></div><div id="importUrlPanel" class="import-method-panel" hidden><div class="field full"><label for="ingestionRemoteUrl">URL เอกสาร (HTTP/HTTPS)</label><input id="ingestionRemoteUrl" type="url" maxlength="2048" placeholder="https://example.org/document.pdf" autocomplete="url"></div><p class="doc-meta full">เบราว์เซอร์จะลองอ่านลิงก์โดยไม่ส่งข้อมูลเข้าสู่ระบบ หากเว็บไซต์ไม่อนุญาต CORS จะไม่สามารถดึงเอกสารได้</p><div class="field full"><button type="button" class="btn primary" id="prepareUrlIngestion">ตรวจสอบและแสดงตัวอย่าง</button></div></div><section id="ingestionPreview" class="import-preview full" aria-labelledby="ingestionPreviewHeading" hidden><h3 id="ingestionPreviewHeading">ตรวจข้อความและหลักฐานก่อนบันทึก</h3><p id="ingestionPreviewStatus" class="source-hint" role="status" aria-live="polite"></p><div id="ingestionPreviewWarnings"></div><div id="ingestionPreviewEvidence" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn" id="reviseIngestion">กลับไปแก้ไข</button><button type="button" class="btn primary" id="confirmIngestion">ยืนยันและบันทึกหลักฐาน</button></div></section><p id="ingestionFeedback" class="source-hint full" tabindex="-1" role="status" aria-live="polite"></p><div class="source-actions full"><button type="button" class="btn" id="cancelIngestion">ยกเลิก</button></div></form></div><div id="ingestionHistory" class="ingestion-list"></div><div id="evidencePanel" hidden><h3 id="evidenceHeading">หลักฐานในฉบับนำเข้า</h3><p id="evidenceStatus" class="source-hint" role="status" aria-live="polite"></p><div id="evidenceList" class="evidence-list"></div><div class="source-actions"><button type="button" class="btn primary" id="buildGroundingContext">สร้างบริบทอ้างอิง</button></div><section id="groundingPreview" class="grounding-preview" aria-labelledby="groundingPreviewHeading" hidden><h3 id="groundingPreviewHeading">บริบทอ้างอิงสำหรับ AI</h3><p id="groundingCount" role="status"></p><div id="groundingItems"></div><div class="source-actions"><button type="button" class="btn primary" id="openAcademicDrafting" hidden>จัดทำร่างองค์ความรู้</button></div></section><section id="academicDraftWorkspace" class="draft-workspace" aria-labelledby="academicDraftHeading" hidden><div class="section-title"><div><h2 id="academicDraftHeading">ผู้ช่วยจัดทำองค์ความรู้ทางวิชาการ</h2><p>ร่างในหน่วยความจำเท่านั้น · ไม่มีการบันทึกหรือส่งเนื้อหาโดยอัตโนมัติ</p></div><button type="button" class="btn" id="closeAcademicDraft">กลับไปยังหลักฐาน</button></div><p id="draftWorkspaceStatus" class="source-hint" role="status" aria-live="polite"></p><section><h3 id="draftEvidenceHeading">บริบทหลักฐาน</h3><p id="draftEvidenceSummary"></p><div id="draftEvidenceCards" class="draft-claims"></div><details><summary>แสดงข้อความหลักฐานฉบับเต็ม</summary><div id="draftEvidenceItems" class="evidence-list"></div></details><details><summary>แสดงคำสั่งกำกับการจัดทำ</summary><pre id="draftInstructions"></pre></details></section><div class="draft-controls"><div class="field"><label for="draftMethod">วิธีจัดทำ</label><select id="draftMethod"><option value="mock">ผู้ช่วยจำลองแบบกำหนดผลแน่นอน (ทดสอบโครงสร้าง)</option><option value="manual">จัดโครงร่างด้วยตนเอง</option><option value="handoff">นำเข้าผลจาก AI ภายนอก</option><option value="external">AI Provider Gateway</option></select></div><div class="source-actions"><button type="button" class="btn primary" id="runDraftMethod">เริ่มจัดทำ</button><button type="button" class="btn" id="cancelDraftGeneration" disabled>ยกเลิกการจัดทำ</button><button type="button" class="btn" id="exportDraftPackage">ส่งออกชุดข้อมูลสำหรับ AI ภายนอก</button></div></div><section id="aiProviderPanel" class="provider-panel" aria-labelledby="aiProviderHeading" hidden><h3 id="aiProviderHeading">ผู้ให้บริการ AI</h3><p>การตั้งค่าและ API Key อยู่ในหน่วยความจำของหน้านี้เท่านั้น ไม่มีการบันทึกลง Land KM</p><div class="provider-grid"><div class="field"><label for="draftProvider">ผู้ให้บริการ</label><select id="draftProvider"><option value="openai_compatible">OpenAI-compatible endpoint</option><option value="openai" disabled>OpenAI · unavailable in Browser BYOK mode</option><option value="gemini" disabled>Google Gemini · unavailable in Browser BYOK mode</option><option value="anthropic" disabled>Anthropic · unavailable in Browser BYOK mode</option><option value="browser_local" disabled>Browser-Local AI · experimental / unavailable</option></select></div><div class="field"><label for="draftModel">โมเดล</label><input id="draftModel" list="aiAvailableModels" maxlength="160" autocomplete="off" placeholder="ระบุ model ID ที่ endpoint รองรับ"><datalist id="aiAvailableModels"></datalist><small>รุ่นแนะนำและค่าใช้จ่ายขึ้นกับ endpoint ที่คุณเลือก</small></div><div class="field"><label for="draftEndpoint">Custom endpoint (Base URL)</label><input id="draftEndpoint" type="url" maxlength="2048" autocomplete="off" placeholder="https://gateway.example/v1"><small>Remote endpoint ต้องใช้ HTTPS · HTTP อนุญาตเฉพาะ localhost ระหว่างพัฒนา</small></div><div class="field"><label for="draftApiKey">API Key (ไม่บังคับสำหรับ local endpoint)</label><input id="draftApiKey" type="password" autocomplete="off" spellcheck="false" aria-describedby="draftApiKeyHelp"><small id="draftApiKeyHelp">ไม่เก็บใน Firestore, storage, URL, analytics หรือ export</small></div></div><p id="draftProviderUnavailable" class="draft-warning" role="note">OpenAI, Gemini และ Anthropic ปิดใช้การเรียกโดยตรงจาก Browser BYOK เพราะข้อกำหนดด้านการปกป้อง API Key ของผู้ให้บริการ · Browser-Local AI ยังเป็น Experimental / unavailable · ใช้ OpenAI-compatible endpoint ที่คุณควบคุม หรือ Manual/Mock</p><div class="source-actions"><button type="button" class="btn" id="testAiProviderConnection">ทดสอบการเชื่อมต่อ (ไม่ส่งหลักฐาน)</button><button type="button" class="btn" id="clearAiApiKey">ล้าง API Key</button><button type="button" class="btn primary" id="previewAiProviderRequest">ตรวจสอบข้อมูลที่จะส่ง</button></div><p id="aiProviderStatus" class="source-hint" role="status" aria-live="polite"></p></section><section id="aiRequestPreview" class="gateway-preview" aria-labelledby="aiRequestPreviewHeading" hidden><h3 id="aiRequestPreviewHeading">ตรวจสอบคำขอก่อนส่ง</h3><p id="aiRequestSummary"></p><p id="aiRequestAccessWarning" class="draft-warning" role="alert" hidden></p><p class="draft-warning">ผู้ให้บริการอาจประมวลผลข้อมูลตามเงื่อนไขของตน และการใช้ API อาจมีค่าใช้จ่ายในบัญชีของคุณ Land KM จะไม่ส่ง restricted evidence</p><details><summary>ดู instructions และข้อมูลที่จะส่ง</summary><pre id="aiRequestPayload"></pre></details><div class="source-actions"><button type="button" class="btn primary" id="sendAiProviderRequest">ส่งไปยัง AI</button><button type="button" class="btn" id="cancelAiProviderRequest">ยกเลิก</button></div></section><p id="draftPrivacyWarning" class="draft-warning" role="note">คำเตือนความเป็นส่วนตัว: ชุดข้อมูลมีข้อความหลักฐานที่เลือกและอาจเป็นข้อมูลภายใน การส่งไปยังบริการ AI ภายนอกอยู่นอก Land KM และเป็นการตัดสินใจโดยชัดแจ้งของผู้ใช้</p><div id="draftHandoffPanel" hidden><label for="draftImportJson">วางผลลัพธ์ JSON ที่ได้รับจาก AI ภายนอก</label><textarea id="draftImportJson" rows="8" spellcheck="false"></textarea><button type="button" class="btn" id="importDraftResult">ตรวจสอบและนำเข้าผลลัพธ์</button></div><section id="draftClaimReview" hidden><h3>ตรวจทานข้อกล่าวอ้างและหลักฐาน</h3><p class="draft-warning">การตรวจนี้ยืนยันโครงสร้างและที่มาของข้อความอ้างอิงเท่านั้น ไม่ได้ยืนยันว่าหลักฐานสนับสนุนข้อกล่าวอ้างในเชิงความหมาย</p><div id="draftClaims" class="draft-claims"></div><h3>ประเด็นที่ควรค้นคว้าเพิ่มเติม</h3><ul id="draftResearchQuestions"></ul><div class="field"><label for="draftTitle">ชื่อเรื่อง (แก้ไขได้)</label><input id="draftTitle" maxlength="300"></div><div id="draftSections" class="draft-sections"></div><div class="source-actions"><button type="button" class="btn" id="previewAcademicDraft">ดูตัวอย่างร่าง</button><button type="button" class="btn primary" id="transferAcademicDraft">นำร่างไปยังหน้าจัดทำเนื้อหา</button></div><p id="draftTransferFeedback" class="source-hint" role="status" aria-live="polite"></p></section><section id="draftPreview" class="grounding-preview" hidden><h3>ตัวอย่างร่างองค์ความรู้</h3><div id="draftPreviewBody"></div></section><section id="draftSourceChoices" hidden><section id="draftEvidenceReadiness" class="grounding-preview" aria-labelledby="draftEvidenceReadinessHeading" hidden><h3 id="draftEvidenceReadinessHeading">ตรวจความพร้อมของร่างจากหลักฐาน</h3><p>สรุปจากหลักฐานที่ตรวจสอบแล้วและข้อมูลในร่างรอบนี้ · เป็นตัวช่วยตรวจขั้นตอน ไม่ใช่การวินิจฉัยความถูกต้องทางกฎหมาย</p><p id="draftReadinessStatus" class="authoring-summary" role="status" aria-live="polite"></p><ul id="draftReadinessMetrics" class="authoring-checklist"></ul><h4>ความสัมพันธ์ที่ผู้ใช้ประเมิน</h4><p id="draftReadinessAssessments"></p><ul id="draftReadinessWarnings" class="authoring-checklist"></ul><div id="draftReadinessClaims" class="draft-claims"></div><label id="draftConflictAcknowledgmentWrap" hidden><input type="checkbox" id="draftConflictAcknowledgment"> ข้าพเจ้าได้ตรวจสอบคำเตือนเกี่ยวกับหลักฐานที่อาจขัดแย้งกันแล้ว · การยืนยันนี้ไม่ได้แปลว่าความขัดแย้งได้รับการแก้ไขหรือเนื้อหาได้รับอนุมัติ</label></section><h3>ยืนยันความสัมพันธ์ของแหล่งข้อมูล</h3><p>เลือกบทบาทของแต่ละแหล่งที่สนับสนุนข้อกล่าวอ้างที่เลือก ก่อนโอนไปยังแบบจัดทำเนื้อหา</p><div id="draftSourceChoiceList" class="draft-claims"></div><button type="button" class="btn primary" id="confirmDraftTransfer">ยืนยันและเติมแบบจัดทำเนื้อหา</button></section></section></div></section>
       </section>
       <section class="view" id="manageView"><div class="page-head"><div><h1>จัดการเนื้อหา</h1><p>ตรวจสอบ อนุมัติ เผยแพร่ และติดตามวงจรองค์ความรู้</p></div><button class="btn primary" id="newContent">＋ สร้างเนื้อหา</button></div><div class="stat-grid"><div class="stat-card"><small>ฉบับร่าง</small><strong>12</strong></div><div class="stat-card"><small>รอตรวจสอบ</small><strong style="color:var(--warn)">7</strong></div><div class="stat-card"><small>เผยแพร่แล้ว</small><strong style="color:var(--brand)">842</strong></div><div class="stat-card"><small>ครบกำหนดทบทวน</small><strong>9</strong></div></div><div class="tabs"><button class="active">ทั้งหมด</button><button>ฉบับร่าง</button><button>รอตรวจสอบ</button><button>เผยแพร่แล้ว</button><button>ครบกำหนดทบทวน</button></div><div class="table-wrap"><table><thead><tr><th>ชื่อเรื่อง</th><th>ประเภท</th><th>ผู้รับผิดชอบ</th><th>แก้ไขล่าสุด</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td><b>การจดทะเบียนโอนตามกฎหมาย</b></td><td>แนวทางปฏิบัติ</td><td>กลุ่มกำหนดสิทธิฯ</td><td>วันนี้ 10:35</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td><b>Checklist การตรวจนิติบุคคล</b></td><td>Checklist</td><td>ฝ่ายตรวจสอบฯ</td><td>10 ก.ย. 2569</td><td><span class="tag">เผยแพร่แล้ว</span></td><td><button class="btn demo">แก้ไข</button></td></tr><tr><td><b>การรับมรดกที่ดินของวัด</b></td><td>แนววินิจฉัย</td><td>กลุ่มกำหนดสิทธิฯ</td><td>8 ก.ย. 2569</td><td><span class="tag">ฉบับร่าง</span></td><td><button class="btn demo">แก้ไข</button></td></tr></tbody></table></div><div class="section-title"><h2>ความคิดเห็นและรายงานรอตรวจสอบ</h2><button class="btn demo">ดูคิวทั้งหมด</button></div><div class="table-wrap"><table><thead><tr><th>ประเภท</th><th>ข้อความ/เนื้อหา</th><th>ผู้รายงาน</th><th>เหตุผล</th><th>สถานะ</th><th>การดำเนินการ</th></tr></thead><tbody><tr><td>ความคิดเห็น</td><td><b>ความคิดเห็นในเรื่องการจดทะเบียนมรดก</b><br><small>ขอให้ตรวจสอบข้อมูลอ้างอิงเพิ่มเติม...</small></td><td>ผู้ใช้งานทั่วไป</td><td>ข้อมูลอาจคลาดเคลื่อน</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr><tr><td>คำตอบ</td><td><b>คำตอบในกระทู้การเพิ่มวงเงินจำนอง</b></td><td>เจ้าหน้าที่</td><td>ขอรับรองคำตอบ</td><td><span class="tag orange">รอตรวจ</span></td><td><button class="btn demo">ตรวจสอบ</button></td></tr></tbody></table></div></section>
 
@@ -544,6 +544,7 @@
   let comparisonSources = [];
   let comparisonAssessments = [];
   let activeAcademicDraft = null;
+  let draftReadinessAcknowledgment = '';
   let academicDraftController = null;
   const DRAFTING_LIMITS = Object.freeze({ evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 });
   const AI_GATEWAY_LIMITS = Object.freeze({ endpointLength: 2048, modelLength: 160, responseBytes: 80000, models: 100 });
@@ -5821,6 +5822,7 @@
         evidence: selected.map(item => ({ source_id: item.source_id, ingestion_id: item.ingestion_id, evidence_id: item.evidence_id, locator: item.locator || '', text: item.text, review_status: item.review_status }))
       };
       activeGroundingContext = groundingContext;
+      draftReadinessAcknowledgment = '';
       groundingContext.evidence.forEach(evidence => {
         const article = document.createElement('article'); article.className = 'evidence-card';
         const provenance = document.createElement('p'); provenance.textContent = `แหล่งที่มา: ${source.title || 'ไม่ระบุ'} (${evidence.source_id}) · ฉบับนำเข้า: ${ingestion?.document_label || 'ไม่ระบุ'} (${evidence.ingestion_id || 'ไม่ระบุ'}) · หลักฐาน: ${evidence.evidence_id} · ตำแหน่ง: ${evidence.locator || 'ไม่ระบุ'}`;
@@ -5968,6 +5970,7 @@
       if (assessment.note) { const note = document.createElement('p'); note.textContent = `หมายเหตุของผู้ใช้: ${assessment.note}`; card.appendChild(note); }
       const remove = document.createElement('button'); remove.type = 'button'; remove.className = 'btn'; remove.textContent = 'ลบการประเมิน'; remove.addEventListener('click', () => { comparisonAssessments.splice(index, 1); renderHumanComparisonAssessments(); }); card.appendChild(remove); root.appendChild(card);
     });
+    invalidateDraftReadinessAcknowledgment();
   }
 
   function addHumanComparisonAssessment() {
@@ -6067,6 +6070,8 @@
   }
 
   function openAcademicDraftWorkspace() {
+    draftReadinessAcknowledgment = '';
+    document.getElementById('draftEvidenceReadiness').hidden = true;
     const status = document.getElementById('draftWorkspaceStatus');
     if (!['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role) || currentUserProfile?.is_active !== true) { status.textContent = 'พื้นที่นี้สำหรับเจ้าหน้าที่ที่ใช้งานอยู่เท่านั้น'; return; }
     try { activeGroundingContext = getComparisonContext(); }
@@ -6108,15 +6113,17 @@
   }
 
   function renderAcademicDraft(draft) {
+    draftReadinessAcknowledgment = '';
+    document.getElementById('draftEvidenceReadiness').hidden = true;
     activeAcademicDraft = { ...draft, claims: draft.claims.map(claim => ({ ...claim, originalText: claim.text, edited: false })), accepted: new Set(draft.claims.filter(claim => claim.support_status === 'supported').map(claim => claim.claim_id)) };
     const claimRoot = document.getElementById('draftClaims'); claimRoot.replaceChildren();
     activeAcademicDraft.claims.forEach(claim => {
       const card = document.createElement('article'); card.className = `draft-claim draft-${claim.support_status}`;
       const statusText = { supported: 'มีหลักฐานรองรับ · ต้องตรวจสอบโดยผู้จัดทำ', partial: 'รองรับบางส่วน · ไม่รวมในร่างโดยค่าเริ่มต้น', unsupported: 'ยังไม่มีหลักฐานรองรับ · ไม่รวมในร่างโดยค่าเริ่มต้น' }[claim.support_status];
-      const label = document.createElement('label'); const accept = document.createElement('input'); accept.type = 'checkbox'; accept.checked = activeAcademicDraft.accepted.has(claim.claim_id); accept.disabled = claim.support_status === 'unsupported'; accept.setAttribute('aria-label', `รวมข้อกล่าวอ้าง ${claim.claim_id} หลังตรวจทาน`); accept.onchange = () => accept.checked ? activeAcademicDraft.accepted.add(claim.claim_id) : activeAcademicDraft.accepted.delete(claim.claim_id);
+      const label = document.createElement('label'); const accept = document.createElement('input'); accept.type = 'checkbox'; accept.checked = activeAcademicDraft.accepted.has(claim.claim_id); accept.disabled = claim.support_status === 'unsupported'; accept.setAttribute('aria-label', `รวมข้อกล่าวอ้าง ${claim.claim_id} หลังตรวจทาน`); accept.onchange = () => { accept.checked ? activeAcademicDraft.accepted.add(claim.claim_id) : activeAcademicDraft.accepted.delete(claim.claim_id); invalidateDraftReadinessAcknowledgment(); };
       label.append(accept, document.createTextNode(` ${statusText}`));
       const textLabel = document.createElement('label'); textLabel.textContent = `ข้อกล่าวอ้าง ${claim.claim_id}`;
-      const editor = document.createElement('textarea'); editor.rows = 3; editor.value = claim.text; editor.setAttribute('aria-label', `แก้ไขข้อกล่าวอ้าง ${claim.claim_id}`); editor.oninput = () => { claim.text = editor.value; claim.edited = claim.text !== claim.originalText; if (claim.edited) { activeAcademicDraft.accepted.delete(claim.claim_id); accept.checked = false; } renderClaimCitations(card, claim); };
+      const editor = document.createElement('textarea'); editor.rows = 3; editor.value = claim.text; editor.setAttribute('aria-label', `แก้ไขข้อกล่าวอ้าง ${claim.claim_id}`); editor.oninput = () => { claim.text = editor.value; claim.edited = claim.text !== claim.originalText; if (claim.edited) { activeAcademicDraft.accepted.delete(claim.claim_id); accept.checked = false; } renderClaimCitations(card, claim); invalidateDraftReadinessAcknowledgment(); };
       card.append(label, textLabel, editor);
       claim.evidence_ids.forEach((id, index) => {
         const evidence = activeGroundingContext.evidence.find(item => item.evidence_id === id); if (!evidence) return;
@@ -6134,7 +6141,7 @@
       const field = document.createElement('div'); field.className = 'field';
       const label = document.createElement('label'); label.textContent = section.heading;
       const textarea = document.createElement('textarea'); textarea.rows = 3; textarea.value = section.text || ''; textarea.dataset.sectionId = section.section_id; textarea.setAttribute('aria-label', section.heading);
-      textarea.oninput = () => { section.text = textarea.value; section.edited = true; };
+       textarea.oninput = () => { section.text = textarea.value; section.edited = true; invalidateDraftReadinessAcknowledgment(); };
       field.append(label, textarea); sections.appendChild(field);
     });
     document.getElementById('draftClaimReview').hidden = false;
@@ -6156,6 +6163,142 @@
     return { title: document.getElementById('draftTitle').value.trim(), claims, evidence: [...evidenceIds].map(id => activeGroundingContext.evidence.find(item => item.evidence_id === id)).filter(Boolean), sections: [...document.querySelectorAll('#draftSections textarea')].map(area => ({ heading: area.getAttribute('aria-label'), text: area.value.trim() })) };
   }
 
+  function evaluateDraftReadiness(draft, context, assessments = []) {
+    const blocking = []; const warnings = [];
+    const evidence = Array.isArray(context?.evidence) ? context.evidence : [];
+    const sources = Array.isArray(context?.sources) ? context.sources : [];
+    const claims = Array.isArray(draft?.claims) ? draft.claims : [];
+    const acceptedIds = new Set(Array.isArray(draft?.acceptedClaimIds) ? draft.acceptedClaimIds : []);
+    const acceptedClaims = claims.filter(claim => acceptedIds.has(claim.claim_id));
+    const evidenceById = new Map(evidence.map(item => [item.evidence_id, item]));
+    if (!draft) blocking.push('ยังไม่มีร่างให้ตรวจสอบ');
+    if (!String(draft?.title || '').trim()) blocking.push('ยังไม่ได้ระบุชื่อเรื่อง');
+    if (!Array.isArray(draft?.sections) || !draft.sections.some(section => String(section?.text || '').trim())) blocking.push('ยังไม่มีเนื้อหาในหัวข้อร่าง');
+    if (!acceptedClaims.length) blocking.push('เลือกรวมข้อสรุปที่มีหลักฐานรองรับอย่างน้อย 1 รายการ');
+
+    const claimRows = claims.map(claim => {
+      const relevant = claim.support_status !== 'unsupported';
+      const ids = Array.isArray(claim.evidence_ids) ? claim.evidence_ids : [];
+      const excerpts = Array.isArray(claim.support_excerpts) ? claim.support_excerpts : [];
+      let valid = !relevant;
+      if (relevant) {
+        valid = ids.length > 0 && ids.length === excerpts.length && new Set(ids).size === ids.length;
+        valid = valid && ids.every((id, index) => {
+          const item = evidenceById.get(id);
+          return Boolean(item && item.review_status === 'reviewed' && item.source_id && typeof excerpts[index] === 'string' && excerpts[index].trim() && item.text.includes(excerpts[index]));
+        });
+      }
+      if (acceptedIds.has(claim.claim_id) && !valid) blocking.push('มีข้อสรุปที่เลือกไว้แต่หลักฐานอ้างอิงไม่ผ่านการตรวจสอบ');
+      const relatedEvidence = ids.map(id => evidenceById.get(id)).filter(item => item?.review_status === 'reviewed');
+      const sourceTitles = [...new Set(relatedEvidence.map(item => sources.find(source => source.source_id === item.source_id)?.title).filter(Boolean))];
+      return { claimId: claim.claim_id, text: claim.text, accepted: acceptedIds.has(claim.claim_id), relevant, valid, evidenceCount: valid && relevant ? ids.length : 0, sourceTitles };
+    });
+
+    const usedEvidenceIds = new Set(acceptedClaims.flatMap(claim => Array.isArray(claim.evidence_ids) ? claim.evidence_ids : []));
+    const usedEvidence = [...usedEvidenceIds].map(id => evidenceById.get(id));
+    if (usedEvidence.some(item => !item || item.review_status !== 'reviewed')) blocking.push('พบการอ้างอิงที่อยู่นอกหลักฐานที่ตรวจสอบแล้วในบริบทปัจจุบัน');
+    const validUsedEvidence = usedEvidence.filter(item => item?.review_status === 'reviewed');
+    const sourceIds = new Set(validUsedEvidence.map(item => item.source_id).filter(Boolean));
+    const provenanceCount = validUsedEvidence.filter(item => {
+      const source = sources.find(entry => entry.source_id === item.source_id);
+      return Boolean(source?.title && item.locator);
+    }).length;
+    if (validUsedEvidence.length && provenanceCount < validUsedEvidence.length) warnings.push('ข้อมูลชื่อแหล่งที่มาหรือตำแหน่งอ้างอิงยังไม่ครบทุกหลักฐาน');
+    const unsupportedCount = claims.filter(claim => claim.support_status === 'unsupported').length;
+    if (unsupportedCount) warnings.push(`มีข้อสรุป ${unsupportedCount} รายการที่ยังไม่มีหลักฐานรองรับและไม่ถูกรวมในร่าง`);
+
+    const evidenceKey = item => item?.source_id && item?.ingestion_id && item?.evidence_id ? JSON.stringify([item.source_id, item.ingestion_id, item.evidence_id]) : '';
+    const contextKeys = new Set(evidence.map(evidenceKey).filter(Boolean));
+    const relevantAssessments = assessments.filter(item => contextKeys.has(item.leftKey) && contextKeys.has(item.rightKey));
+    const contextSourceCount = new Set(evidence.filter(item => item.review_status === 'reviewed').map(item => item.source_id).filter(Boolean)).size;
+    const relationshipCounts = Object.fromEntries(['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้'].map(label => [label, relevantAssessments.filter(item => item.relationship === label).length]));
+    const conflicts = relevantAssessments.filter(item => item.relationship === 'อาจขัดแย้งกัน');
+    if (conflicts.length) warnings.push(`มีการประเมินโดยผู้ใช้ว่าอาจขัดแย้งกัน ${conflicts.length} คู่ · โปรดตรวจสอบหลักฐานและข้อเท็จจริงก่อนนำข้อสรุปไปใช้`);
+    if (contextSourceCount > 1 && !relevantAssessments.length) warnings.push('มีหลักฐานจากหลายแหล่ง แต่ยังไม่มีการประเมินความสัมพันธ์ที่เกี่ยวข้องโดยผู้ใช้');
+    if (relevantAssessments.some(item => item.relationship === 'ยังสรุปไม่ได้')) warnings.push('มีการประเมินโดยผู้ใช้ว่ายังสรุปความสัมพันธ์ไม่ได้');
+
+    const status = blocking.length ? 'ต้องแก้ไขก่อนดำเนินการต่อ' : warnings.length ? 'ควรตรวจสอบก่อนดำเนินการต่อ' : 'พร้อมดำเนินการต่อ';
+    return {
+      status, blocking, warnings, claimRows, claimCount: claims.length,
+      citedClaimCount: claimRows.filter(row => row.relevant && row.valid).length,
+      evidenceCount: validUsedEvidence.length, sourceCount: sourceIds.size,
+      provenanceCount, relationshipCounts, assessmentCount: relevantAssessments.length, conflictCount: conflicts.length,
+      sourceTitles: [...new Set(validUsedEvidence.map(item => sources.find(source => source.source_id === item.source_id)?.title).filter(Boolean))]
+    };
+  }
+
+  function draftReadinessSignature(draft, context, assessments = []) {
+    return JSON.stringify({
+      uid: auth.currentUser?.uid || '', role: currentUserProfile?.role || '', active: currentUserProfile?.is_active === true,
+      title: draft?.title || '', sections: draft?.sections || [],
+      claims: (draft?.claims || []).map(claim => ({ claim_id: claim.claim_id, text: claim.text, support_status: claim.support_status, evidence_ids: claim.evidence_ids, support_excerpts: claim.support_excerpts, accepted: draft?.acceptedClaimIds?.includes(claim.claim_id) })),
+      evidence: (context?.evidence || []).map(item => ({ source_id: item.source_id, ingestion_id: item.ingestion_id, evidence_id: item.evidence_id, locator: item.locator, review_status: item.review_status, text: item.text })),
+      sources: (context?.sources || []).map(source => ({ source_id: source.source_id, title: source.title, source_type: source.source_type, reference_no: source.reference_no, document_date: source.document_date, issuing_authority: source.issuing_authority, access_level: source.access_level, document_label: source.document_label })),
+      assessments: assessments.map(item => ({ leftKey: item.leftKey, rightKey: item.rightKey, relationship: item.relationship, note: item.note }))
+    });
+  }
+
+  function currentDraftReadinessInput() {
+    if (!activeAcademicDraft) return null;
+    return {
+      title: document.getElementById('draftTitle').value.trim(),
+      claims: activeAcademicDraft.claims,
+      acceptedClaimIds: [...activeAcademicDraft.accepted],
+      sections: [...document.querySelectorAll('#draftSections textarea')].map(area => ({ heading: area.getAttribute('aria-label'), text: area.value.trim() }))
+    };
+  }
+
+  function renderDraftReadiness() {
+    const panel = document.getElementById('draftEvidenceReadiness');
+    if (!panel) return null;
+    const draft = currentDraftReadinessInput();
+    const summary = evaluateDraftReadiness(draft, activeGroundingContext, comparisonAssessments);
+    const signature = draftReadinessSignature(draft, activeGroundingContext, comparisonAssessments);
+    const status = document.getElementById('draftReadinessStatus');
+    status.textContent = summary.status;
+    status.dataset.state = summary.blocking.length ? 'blocking' : summary.warnings.length ? 'warning' : 'ready';
+    const metrics = document.getElementById('draftReadinessMetrics'); metrics.replaceChildren();
+    [
+      `ข้อสรุป/ประเด็นในร่าง ${summary.claimCount}`,
+      `ข้อสรุปที่มีหลักฐานอ้างอิงผ่านการตรวจสอบ ${summary.citedClaimCount}`,
+      `หลักฐานที่ใช้อ้างอิง ${summary.evidenceCount}`,
+      `แหล่งข้อมูลที่เกี่ยวข้อง ${summary.sourceCount}`,
+      `หลักฐานที่มีชื่อแหล่งและตำแหน่งอ้างอิง ${summary.provenanceCount}/${summary.evidenceCount}`
+    ].forEach(text => { const item = document.createElement('li'); item.textContent = text; metrics.appendChild(item); });
+    const warnings = document.getElementById('draftReadinessWarnings'); warnings.replaceChildren();
+    [...summary.blocking, ...summary.warnings].forEach(text => { const item = document.createElement('li'); item.textContent = text; warnings.appendChild(item); });
+    const assessmentSummary = document.getElementById('draftReadinessAssessments'); assessmentSummary.textContent = summary.assessmentCount ? Object.entries(summary.relationshipCounts).map(([label, count]) => `${label} ${count}`).join(' · ') : 'ยังไม่มีการประเมินที่เกี่ยวข้อง';
+    const claimRoot = document.getElementById('draftReadinessClaims'); claimRoot.replaceChildren();
+    summary.claimRows.forEach(row => {
+      const item = document.createElement('article'); item.className = 'draft-claim';
+      const title = document.createElement('strong'); title.textContent = row.accepted ? 'ข้อสรุปที่เลือกไว้' : row.relevant ? 'ข้อสรุปที่ยังไม่ได้เลือก' : 'ข้อสรุปที่ยังไม่มีหลักฐาน';
+      const text = document.createElement('p'); text.textContent = row.text;
+      const statusText = document.createElement('p'); statusText.textContent = row.relevant ? `${row.valid ? 'มีหลักฐานอ้างอิงผ่านการตรวจสอบ' : 'หลักฐานอ้างอิงไม่ผ่านการตรวจสอบ'} · ${row.evidenceCount} รายการ${row.sourceTitles.length ? ` · ${row.sourceTitles.join(', ')}` : ''}` : 'ยังไม่มีหลักฐานอ้างอิง';
+      item.append(title, text, statusText); claimRoot.appendChild(item);
+    });
+    const acknowledgment = document.getElementById('draftConflictAcknowledgment');
+    const acknowledgmentWrap = document.getElementById('draftConflictAcknowledgmentWrap');
+    acknowledgmentWrap.hidden = summary.conflictCount === 0;
+    acknowledgment.checked = summary.conflictCount > 0 && draftReadinessAcknowledgment === signature;
+    acknowledgment.onchange = () => { draftReadinessAcknowledgment = acknowledgment.checked ? signature : ''; updateDraftReadinessTransferButton(); };
+    panel.hidden = false;
+    document.getElementById('confirmDraftTransfer').disabled = summary.blocking.length > 0 || (summary.conflictCount > 0 && draftReadinessAcknowledgment !== signature);
+    return { summary, signature };
+  }
+
+  function updateDraftReadinessTransferButton() {
+    const result = renderDraftReadiness();
+    if (!result) return;
+    const acknowledged = result.summary.conflictCount === 0 || draftReadinessAcknowledgment === result.signature;
+    document.getElementById('confirmDraftTransfer').disabled = result.summary.blocking.length > 0 || !acknowledged;
+  }
+
+  function invalidateDraftReadinessAcknowledgment() {
+    draftReadinessAcknowledgment = '';
+    const panel = document.getElementById('draftEvidenceReadiness');
+    if (panel && !panel.hidden) renderDraftReadiness();
+  }
+
   function renderAcademicDraftPreview() {
     try {
       const accepted = resolveAcceptedDraft(); const body = document.getElementById('draftPreviewBody'); body.replaceChildren();
@@ -6167,9 +6310,16 @@
   }
 
   function prepareAcademicTransfer() {
+    const readiness = renderDraftReadiness();
+    const choices = document.getElementById('draftSourceChoiceList'); choices.replaceChildren();
+    document.getElementById('draftSourceChoices').hidden = false;
+    if (readiness.summary.blocking.length) {
+      document.getElementById('draftTransferFeedback').textContent = 'แก้ไขรายการที่ระบุในส่วนตรวจความพร้อมก่อนดำเนินการต่อ';
+      return;
+    }
     try {
       const accepted = resolveAcceptedDraft(); const sourceIds = [...new Set(accepted.evidence.map(item => item.source_id))];
-      const root = document.getElementById('draftSourceChoiceList'); root.replaceChildren();
+      const root = choices;
       sourceIds.forEach(sourceId => { const source = activeGroundingContext.sources.find(item => item.source_id === sourceId) || {}; const row = document.createElement('div'); row.className = 'draft-claim'; const label = document.createElement('label'); label.textContent = `${source.title || 'ไม่ระบุชื่อแหล่ง'} · ${sourceId}`; const select = document.createElement('select'); select.dataset.sourceId = sourceId; select.setAttribute('aria-label', `ยืนยันความสัมพันธ์ ${sourceId}`); [['','ไม่แนบ'], ['primary','แหล่งอ้างอิงหลัก'], ['supporting','แหล่งอ้างอิงประกอบ']].forEach(([value, text]) => select.add(new Option(text, value))); row.append(label, select); root.appendChild(row); });
       const feedback = document.getElementById('draftTransferFeedback'); feedback.textContent = sourceIds.length > MAX_SOURCE_REFERENCES ? `ข้อกล่าวอ้างใช้ ${sourceIds.length} แหล่ง แต่แนบได้ไม่เกิน ${MAX_SOURCE_REFERENCES} · กรุณาเลือกแนบ/ไม่แนบให้ชัดเจน` : 'ยืนยันความสัมพันธ์ของแต่ละแหล่งข้อมูลก่อนเติมแบบจัดทำเนื้อหา';
       document.getElementById('draftSourceChoices').hidden = false;
@@ -6178,6 +6328,16 @@
 
   function confirmAcademicTransfer() {
     try {
+      const readiness = renderDraftReadiness();
+      if (readiness.summary.blocking.length) {
+        document.getElementById('draftTransferFeedback').textContent = 'ต้องแก้ไขรายการในส่วนตรวจความพร้อมก่อนดำเนินการต่อ';
+        return;
+      }
+      if (readiness.summary.conflictCount && draftReadinessAcknowledgment !== readiness.signature) {
+        document.getElementById('draftConflictAcknowledgment').checked = false;
+        document.getElementById('draftTransferFeedback').textContent = 'โปรดรับทราบคำเตือนเกี่ยวกับหลักฐานที่อาจขัดแย้งกันก่อนดำเนินการต่อ';
+        return;
+      }
       const accepted = resolveAcceptedDraft();
       const sourceChoices = [...document.querySelectorAll('#draftSourceChoiceList select')].map(select => ({ source_id: select.dataset.sourceId, relation_type: select.value })).filter(item => item.relation_type);
       if (sourceChoices.length > MAX_SOURCE_REFERENCES) throw academicProviderError('SOURCE_OVERFLOW', `แนบแหล่งข้อมูลได้ไม่เกิน ${MAX_SOURCE_REFERENCES}; ปรับตัวเลือกก่อนดำเนินการ`);
@@ -6547,13 +6707,14 @@
   document.getElementById('testAiProviderConnection')?.addEventListener('click', () => void testAiProviderConnection());
   document.getElementById('clearAiApiKey')?.addEventListener('click', clearSessionAiCredential);
   document.getElementById('draftApiKey')?.addEventListener('input', event => { sessionAiApiKey = event.target.value; });
-  window.addEventListener('pagehide', () => { sessionAiApiKey = ''; aiExternalConsentGranted = false; pendingAiGatewayRequest = null; aiGatewayRequestController?.abort(); const input = document.getElementById('draftApiKey'); if (input) input.value = ''; });
+  window.addEventListener('pagehide', () => { sessionAiApiKey = ''; draftReadinessAcknowledgment = ''; aiExternalConsentGranted = false; pendingAiGatewayRequest = null; aiGatewayRequestController?.abort(); const input = document.getElementById('draftApiKey'); if (input) input.value = ''; });
   document.getElementById('cancelDraftGeneration')?.addEventListener('click', cancelAcademicDraftGeneration);
   document.getElementById('exportDraftPackage')?.addEventListener('click', () => void exportAcademicHandoff());
   document.getElementById('importDraftResult')?.addEventListener('click', importAcademicHandoff);
   document.getElementById('previewAcademicDraft')?.addEventListener('click', renderAcademicDraftPreview);
   document.getElementById('transferAcademicDraft')?.addEventListener('click', prepareAcademicTransfer);
   document.getElementById('confirmDraftTransfer')?.addEventListener('click', confirmAcademicTransfer);
+  document.getElementById('draftTitle')?.addEventListener('input', invalidateDraftReadinessAcknowledgment);
   document.getElementById('sourceQuery')?.addEventListener('input', event => { sourceCenterState.query = event.target.value; renderSourceInventory(); });
   document.getElementById('sourceTypeFilter')?.addEventListener('change', event => { sourceCenterState.type = event.target.value; renderSourceInventory(); });
   document.getElementById('sourceUseFilter')?.addEventListener('change', event => { sourceCenterState.use = event.target.value; renderSourceInventory(); });
@@ -8695,6 +8856,7 @@
       sourceDetailCurrent = null;
       activeIngestions = []; activeEvidence = []; selectedGroundingEvidence = new Set(); activeIngestionId = '';
       activeGroundingContext = null; activeAcademicDraft = null;
+      draftReadinessAcknowledgment = '';
       comparisonEvidence = []; comparisonSources = []; comparisonAssessments = [];
       document.getElementById('humanEvidenceComparison')?.remove(); document.getElementById('humanEvidenceComparisonStyles')?.remove(); document.getElementById('addGroundingToComparison')?.remove();
       lessonPlayerReturnToDetail = false;
@@ -8713,7 +8875,13 @@
         await signOut(auth);
         return showLogin('บัญชีนี้ยังไม่ได้รับสิทธิ์ หรือถูกระงับการใช้งาน');
       }
-      currentUserProfile = { id: profileSnapshot.id, ...profileSnapshot.data() };
+      const nextProfile = { id: profileSnapshot.id, ...profileSnapshot.data() };
+      if (currentUserProfile && (currentUserProfile.role !== nextProfile.role || currentUserProfile.is_active !== nextProfile.is_active)) {
+        draftReadinessAcknowledgment = '';
+        document.getElementById('draftEvidenceReadiness').hidden = true;
+        document.getElementById('draftSourceChoices').hidden = true;
+      }
+      currentUserProfile = nextProfile;
     } catch (error) {
       console.error('Load user profile failed:', error);
       await signOut(auth);

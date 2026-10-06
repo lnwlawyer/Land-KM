@@ -1405,15 +1405,17 @@ test('Feature 12A remote URL import rejects redirects to avoid fetching an unche
   assert.match(productionHtml, /redirect:\s*'error'/);
 });
 
-function createAcademicDraftHelpers() {
+function createAcademicDraftHelpers(userProfile = { role: 'editor', is_active: true }) {
   const start = productionHtml.indexOf('function academicProviderError(');
   const end = productionHtml.indexOf('\n  function showSourceForm(', start);
   assert.ok(start >= 0 && end > start);
-  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, academicCitationForEvidence, academicDraftInputError };`;
-  return new Function('DRAFTING_LIMITS', 'INGESTION_LIMITS', 'ACADEMIC_DRAFT_SECTIONS', helperSource)(
+  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, academicCitationForEvidence, academicDraftInputError, evaluateDraftReadiness, draftReadinessSignature };`;
+  return new Function('DRAFTING_LIMITS', 'INGESTION_LIMITS', 'ACADEMIC_DRAFT_SECTIONS', 'auth', 'currentUserProfile', helperSource)(
     { evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 },
     { selected: 20, contextChars: 30000 },
-    ['บริบท', 'หลักการหรือสาระสำคัญ', 'ข้อกฎหมาย/แหล่งอ้างอิง', 'แนวทางปฏิบัติ', 'ข้อควรระวัง', 'ตัวอย่าง/กรณีประกอบ']
+    ['บริบท', 'หลักการหรือสาระสำคัญ', 'ข้อกฎหมาย/แหล่งอ้างอิง', 'แนวทางปฏิบัติ', 'ข้อควรระวัง', 'ตัวอย่าง/กรณีประกอบ'],
+    { currentUser: { uid: 'test-user' } },
+    userProfile
   );
 }
 
@@ -1430,6 +1432,21 @@ function createEvidenceComparisonHelpers() {
 
 function academicContext(count = 2, textSize = 40) {
   return { sources: [{ source_id: 'SRC-A', title: 'ต้นทาง A' }], evidence: Array.from({ length: count }, (_, index) => ({ source_id: 'SRC-A', ingestion_id: 'ING-A', evidence_id: `EVD-${index + 1}`, locator: index ? '' : 'มาตรา 74', review_status: 'reviewed', text: `ข้อความหลักฐาน ${index + 1} ` + 'ก'.repeat(textSize) })) };
+}
+
+function evidenceReadyDraft(context, evidenceIndexes = [0]) {
+  const citedEvidence = evidenceIndexes.map(index => context.evidence[index]);
+  return {
+    title: 'ร่างทดสอบ',
+    sections: [{ heading: 'หลักการ', text: 'เนื้อหาที่ตรวจทานแล้ว' }],
+    acceptedClaimIds: ['claim-1'],
+    claims: [{ claim_id: 'claim-1', text: 'ข้อสรุปที่ตรวจสอบได้', support_status: 'supported', evidence_ids: citedEvidence.map(item => item.evidence_id), support_excerpts: citedEvidence.map(item => item.text.slice(0, 12)) }]
+  };
+}
+
+function comparisonAssessmentFor(context, leftIndex, rightIndex, relationship, note = '') {
+  const { comparisonEvidenceKey } = createEvidenceComparisonHelpers();
+  return { leftKey: comparisonEvidenceKey(context.evidence[leftIndex]), rightKey: comparisonEvidenceKey(context.evidence[rightIndex]), relationship, note };
 }
 
 test('Feature 12B.1 staff drafting workspace reuses the selected reviewed Grounding Context only', () => {
@@ -1845,4 +1862,131 @@ test('Feature 12C annotations stay out of persistence, provider requests, citati
   const transferEnd = productionHtml.indexOf('\n  async function runAcademicDraftMethod', transferStart);
   assert.doesNotMatch(productionHtml.slice(transferStart, transferEnd), /saveDraftToFirestore|submitForReview|approveContent|publishContent/);
   assert.match(productionHtml, /activeGroundingContext = null; activeAcademicDraft = null;[\s\S]*comparisonEvidence = \[\]; comparisonSources = \[\]; comparisonAssessments = \[\]/);
+});
+
+test('Feature 12D readiness panel is Thai and explains that it is not a legal determination', () => {
+  for (const label of ['ตรวจความพร้อมของร่างจากหลักฐาน', 'พร้อมดำเนินการต่อ', 'ควรตรวจสอบก่อนดำเนินการต่อ', 'ต้องแก้ไขก่อนดำเนินการต่อ', 'ความสัมพันธ์ที่ผู้ใช้ประเมิน', 'ข้อสรุปที่มีหลักฐานอ้างอิงผ่านการตรวจสอบ', 'แหล่งข้อมูลที่เกี่ยวข้อง', 'ข้าพเจ้าได้ตรวจสอบคำเตือนเกี่ยวกับหลักฐานที่อาจขัดแย้งกันแล้ว']) assert.ok(productionHtml.includes(label), `missing readiness UI label: ${label}`);
+  for (const id of ['draftEvidenceReadiness', 'draftReadinessStatus', 'draftReadinessMetrics', 'draftReadinessAssessments', 'draftReadinessWarnings', 'draftReadinessClaims', 'draftConflictAcknowledgment']) assert.match(productionHtml, new RegExp(`id="${id}"`));
+  assert.match(productionHtml, /ไม่ใช่การวินิจฉัยความถูกต้องทางกฎหมาย/);
+});
+
+test('Feature 12D reports a valid cited draft as ready and summarizes evidence and sources', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(1); const result = evaluateDraftReadiness(evidenceReadyDraft(context), context);
+  assert.equal(result.status, 'พร้อมดำเนินการต่อ');
+  assert.equal(result.claimCount, 1); assert.equal(result.citedClaimCount, 1);
+  assert.equal(result.evidenceCount, 1); assert.equal(result.sourceCount, 1);
+  assert.equal(result.provenanceCount, 1);
+  assert.equal(result.claimRows[0].valid, true);
+  assert.deepEqual(result.claimRows[0].sourceTitles, ['ต้นทาง A']);
+});
+
+test('Feature 12D blocks missing draft fields, empty accepted claims, unknown citations, and invalid excerpts', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(1); const draft = evidenceReadyDraft(context);
+  assert.match(evaluateDraftReadiness({ ...draft, title: '' }, context).blocking.join(' '), /ชื่อเรื่อง/);
+  assert.match(evaluateDraftReadiness({ ...draft, sections: [{ heading: 'หัวข้อ', text: '' }] }, context).blocking.join(' '), /เนื้อหา/);
+  assert.match(evaluateDraftReadiness({ ...draft, acceptedClaimIds: [] }, context).blocking.join(' '), /เลือก.*ข้อสรุป/);
+  const unknown = structuredClone(draft); unknown.claims[0].evidence_ids = ['NOTE-USER']; unknown.claims[0].support_excerpts = ['ข้อความของผู้ใช้'];
+  assert.match(evaluateDraftReadiness(unknown, context).blocking.join(' '), /อ้างอิง/);
+  const invalidExcerpt = structuredClone(draft); invalidExcerpt.claims[0].support_excerpts = ['ไม่มีในหลักฐาน'];
+  assert.equal(evaluateDraftReadiness(invalidExcerpt, context).status, 'ต้องแก้ไขก่อนดำเนินการต่อ');
+});
+
+test('Feature 12D summarizes reviewed evidence across multiple source records', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' });
+  context.evidence[1].source_id = 'SRC-B'; context.evidence[1].locator = 'ข้อ 2';
+  const result = evaluateDraftReadiness(evidenceReadyDraft(context, [0, 1]), context, [comparisonAssessmentFor(context, 0, 1, 'แตกต่างกัน')]);
+  assert.equal(result.status, 'พร้อมดำเนินการต่อ');
+  assert.equal(result.evidenceCount, 2); assert.equal(result.sourceCount, 2); assert.equal(result.provenanceCount, 2);
+  assert.equal(result.relationshipCounts['แตกต่างกัน'], 1);
+});
+
+test('Feature 12D recognizes all four human comparison assessments without reinterpreting them', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B';
+  const draft = evidenceReadyDraft(context, [0, 1]);
+  for (const relationship of ['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้']) {
+    const result = evaluateDraftReadiness(draft, context, [comparisonAssessmentFor(context, 0, 1, relationship)]);
+    assert.equal(result.relationshipCounts[relationship], 1);
+    assert.equal(result.conflictCount, relationship === 'อาจขัดแย้งกัน' ? 1 : 0);
+  }
+});
+
+test('Feature 12D conflict and incomplete provenance are non-blocking warnings', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B'; context.evidence[1].locator = '';
+  const result = evaluateDraftReadiness(evidenceReadyDraft(context, [0, 1]), context, [comparisonAssessmentFor(context, 0, 1, 'อาจขัดแย้งกัน', 'หมายเหตุไม่ใช่หลักฐาน')]);
+  assert.equal(result.status, 'ควรตรวจสอบก่อนดำเนินการต่อ');
+  assert.equal(result.conflictCount, 1); assert.equal(result.provenanceCount, 1);
+  assert.match(result.warnings.join(' '), /อาจขัดแย้งกัน/);
+  assert.doesNotMatch(JSON.stringify(result.claimRows), /หมายเหตุไม่ใช่หลักฐาน/);
+});
+
+test('Feature 12D warns for a potentially conflicting assessment in the reviewed current context even if the draft cites one side', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B';
+  const result = evaluateDraftReadiness(evidenceReadyDraft(context, [0]), context, [comparisonAssessmentFor(context, 0, 1, 'อาจขัดแย้งกัน')]);
+  assert.equal(result.conflictCount, 1);
+  assert.equal(result.status, 'ควรตรวจสอบก่อนดำเนินการต่อ');
+});
+
+test('Feature 12D warns when multiple sources have no related human assessment', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B';
+  const result = evaluateDraftReadiness(evidenceReadyDraft(context, [0]), context);
+  assert.equal(result.status, 'ควรตรวจสอบก่อนดำเนินการต่อ');
+  assert.match(result.warnings.join(' '), /ยังไม่มีการประเมิน/);
+});
+
+test('Feature 12D acknowledgment is bound to the current user, draft, evidence, and comparison session', () => {
+  const profile = { role: 'editor', is_active: true };
+  const { draftReadinessSignature } = createAcademicDraftHelpers(profile);
+  const context = academicContext(2); const draft = evidenceReadyDraft(context, [0, 1]); const assessment = comparisonAssessmentFor(context, 0, 1, 'อาจขัดแย้งกัน', 'ตรวจสอบวันที่');
+  const initial = draftReadinessSignature(draft, context, [assessment]);
+  assert.notEqual(draftReadinessSignature({ ...draft, title: 'แก้ชื่อเรื่อง' }, context, [assessment]), initial);
+  assert.notEqual(draftReadinessSignature(draft, { ...context, evidence: [context.evidence[0]] }, [assessment]), initial);
+  assert.notEqual(draftReadinessSignature(draft, context, [{ ...assessment, relationship: 'แตกต่างกัน' }]), initial);
+  assert.notEqual(draftReadinessSignature(draft, context, [{ ...assessment, note: 'เปลี่ยนหมายเหตุ' }]), initial);
+  profile.role = 'reviewer';
+  assert.notEqual(draftReadinessSignature(draft, context, [assessment]), initial);
+  assert.match(productionHtml, /draftReadinessAcknowledgment = ''/);
+  assert.match(productionHtml, /if \(workspaceOwnerUid !== \(user\?\.uid \|\| null\)\)[\s\S]*draftReadinessAcknowledgment = ''/);
+  assert.match(productionHtml, /currentUserProfile\.role !== nextProfile\.role \|\| currentUserProfile\.is_active !== nextProfile\.is_active[\s\S]*draftReadinessAcknowledgment = ''/);
+});
+
+test('Feature 12D readiness and acknowledgments are memory-only with no Firestore, browser storage, analytics, or network path', () => {
+  const start = productionHtml.indexOf('function evaluateDraftReadiness(');
+  const end = productionHtml.indexOf('\n  function updateDraftReadinessTransferButton()', start);
+  assert.ok(start >= 0 && end > start);
+  const source = productionHtml.slice(start, end);
+  assert.doesNotMatch(source, /\b(?:setDoc|updateDoc|addDoc|writeBatch|logEvent|fetch|sendBeacon)\s*\(/);
+  assert.doesNotMatch(source, /(?:localStorage|sessionStorage|indexedDB)\.(?:setItem|put)\s*\(/i);
+  assert.match(productionHtml, /let draftReadinessAcknowledgment = ''/);
+  assert.match(productionHtml, /draftReadinessAcknowledgment = acknowledgment\.checked \? signature : ''/);
+  assert.match(productionHtml, /window\.addEventListener\('pagehide',[^\n]*draftReadinessAcknowledgment = ''/);
+});
+
+test('Feature 12D gates transfer on blocking checks and explicit conflict acknowledgment without saving or publishing', () => {
+  const start = productionHtml.indexOf('function confirmAcademicTransfer()');
+  const end = productionHtml.indexOf('\n  async function runAcademicDraftMethod', start);
+  const transfer = productionHtml.slice(start, end);
+  assert.match(transfer, /const readiness = renderDraftReadiness\(\)/);
+  assert.match(transfer, /readiness\.summary\.blocking\.length/);
+  assert.match(transfer, /readiness\.summary\.conflictCount && draftReadinessAcknowledgment !== readiness\.signature/);
+  assert.match(transfer, /startNewContent\('knowledge'\)/);
+  assert.doesNotMatch(transfer, /saveDraftToFirestore|submitForReview|approveContent|publishContent|writeBatch|setDoc|updateDoc/);
+  assert.match(productionHtml, /document\.getElementById\('confirmDraftTransfer'\)\.disabled = summary\.blocking\.length > 0 \|\| \(summary\.conflictCount > 0 && draftReadinessAcknowledgment !== signature\)/);
+});
+
+test('Feature 12D retains reviewed-evidence validation and existing authoring role/workflow controls', () => {
+  const { evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(1); const draft = evidenceReadyDraft(context);
+  context.evidence[0].review_status = 'extracted';
+  assert.equal(evaluateDraftReadiness(draft, context).status, 'ต้องแก้ไขก่อนดำเนินการต่อ');
+  assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
+  assert.match(productionHtml, /function authoringCanWrite\(\)/);
+  assert.match(productionHtml, /workflow_status: 'review'/);
+  assert.match(productionHtml, /เฉพาะผู้ดูแลระบบที่เผยแพร่เนื้อหาได้/);
 });
