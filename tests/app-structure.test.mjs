@@ -1409,11 +1409,15 @@ function createAcademicDraftHelpers(userProfile = { role: 'editor', is_active: t
   const start = productionHtml.indexOf('function academicProviderError(');
   const end = productionHtml.indexOf('\n  function showSourceForm(', start);
   assert.ok(start >= 0 && end > start);
-  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, academicCitationForEvidence, academicDraftInputError, evaluateDraftReadiness, draftReadinessSignature };`;
-  return new Function('DRAFTING_LIMITS', 'INGESTION_LIMITS', 'ACADEMIC_DRAFT_SECTIONS', 'auth', 'currentUserProfile', helperSource)(
+  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, applyKnowledgeTemplate, academicCitationForEvidence, academicDraftInputError, evaluateDraftReadiness, draftReadinessSignature };`;
+  const templatesStart = productionHtml.indexOf('const KNOWLEDGE_TEMPLATES = Object.freeze(');
+  const templatesEnd = productionHtml.indexOf('\n  });', templatesStart) + '\n  });'.length;
+  const templates = new Function(`${productionHtml.slice(templatesStart, templatesEnd)}; return KNOWLEDGE_TEMPLATES;`)();
+  return new Function('DRAFTING_LIMITS', 'INGESTION_LIMITS', 'ACADEMIC_DRAFT_SECTIONS', 'KNOWLEDGE_TEMPLATES', 'auth', 'currentUserProfile', helperSource)(
     { evidenceChars: 12000, responseChars: 20000, timeoutMs: 180000 },
     { selected: 20, contextChars: 30000 },
     ['บริบท', 'หลักการหรือสาระสำคัญ', 'ข้อกฎหมาย/แหล่งอ้างอิง', 'แนวทางปฏิบัติ', 'ข้อควรระวัง', 'ตัวอย่าง/กรณีประกอบ'],
+    templates,
     { currentUser: { uid: 'test-user' } },
     userProfile
   );
@@ -1989,4 +1993,62 @@ test('Feature 12D retains reviewed-evidence validation and existing authoring ro
   assert.match(productionHtml, /function authoringCanWrite\(\)/);
   assert.match(productionHtml, /workflow_status: 'review'/);
   assert.match(productionHtml, /เฉพาะผู้ดูแลระบบที่เผยแพร่เนื้อหาได้/);
+});
+
+test('Feature 12E exposes six deterministic Thai knowledge templates and their section structures', () => {
+  const { applyKnowledgeTemplate } = createAcademicDraftHelpers();
+  const expected = {
+    article: ['ชื่อเรื่อง', 'หลักการ/ความเป็นมา', 'สาระสำคัญ', 'แนวทางหรือข้อพิจารณา', 'แหล่งอ้างอิง'],
+    practice: ['เรื่อง', 'วัตถุประสงค์', 'หลักเกณฑ์', 'ขั้นตอนดำเนินการ', 'ข้อควรระวัง', 'แหล่งอ้างอิง'],
+    qa: ['คำถาม', 'คำตอบ', 'หลักเกณฑ์/เหตุผล', 'แหล่งอ้างอิง'],
+    checklist: ['เรื่อง', 'รายการตรวจสอบ', 'เงื่อนไข/ข้อควรระวัง', 'แหล่งอ้างอิง'],
+    case_study: ['ข้อเท็จจริง', 'ประเด็นพิจารณา', 'หลักเกณฑ์ที่เกี่ยวข้อง', 'การวิเคราะห์', 'ข้อสรุป', 'แหล่งอ้างอิง'],
+    legal_summary: ['ประเด็น', 'บทบัญญัติ/หลักเกณฑ์', 'สาระสำคัญ', 'ข้อพิจารณา', 'แหล่งอ้างอิง']
+  };
+  assert.match(productionHtml, /<label for="knowledgeTemplate">รูปแบบองค์ความรู้<\/label>/);
+  assert.match(productionHtml, /id="knowledgeTemplate"/);
+  for (const [templateId, headings] of Object.entries(expected)) {
+    const mapped = applyKnowledgeTemplate({ sections: [], claims: [] }, templateId);
+    assert.deepEqual(mapped.sections.map(section => section.heading), headings);
+    assert.ok(mapped.sections.every(section => section.text === ''));
+  }
+});
+
+test('Feature 12E switching templates preserves section text and claims and warns before changing populated drafts', () => {
+  const { applyKnowledgeTemplate } = createAcademicDraftHelpers();
+  const source = { title: 'ร่างที่ผู้ใช้เขียน', sections: [{ section_id: 's1', heading: 'คำถาม', text: 'ข้อความคำถาม' }, { section_id: 's2', heading: 'คำตอบ', text: 'ข้อความคำตอบ' }], claims: [{ claim_id: 'c1', section_id: 's2', text: 'ประเด็น', evidence_ids: ['EVD-1'] }] };
+  const changed = applyKnowledgeTemplate(source, 'qa');
+  assert.equal(changed.title, source.title);
+  assert.equal(changed.sections[0].text, 'ข้อความคำถาม');
+  assert.equal(changed.sections[1].text, 'ข้อความคำตอบ');
+  assert.equal(changed.claims[0].section_id, changed.sections[1].section_id);
+  assert.match(productionHtml, /window\.confirm\('การเปลี่ยนรูปแบบจะจัดหัวข้อใหม่/);
+  assert.match(productionHtml, /event\.target\.value = activeKnowledgeTemplate/);
+});
+
+test('Feature 12E templates preserve reviewed evidence citations and remain compatible with readiness', () => {
+  const { applyKnowledgeTemplate, evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(1); const original = evidenceReadyDraft(context);
+  for (const templateId of ['article', 'practice', 'qa', 'checklist', 'case_study', 'legal_summary']) {
+    const draft = applyKnowledgeTemplate(original, templateId);
+    draft.acceptedClaimIds = ['claim-1'];
+    assert.equal(draft.claims[0].evidence_ids[0], 'EVD-1');
+    assert.equal(evaluateDraftReadiness(draft, context).status, 'พร้อมดำเนินการต่อ');
+  }
+  const invalid = structuredClone(original); invalid.claims[0].evidence_ids = ['unknown'];
+  assert.equal(applyKnowledgeTemplate(invalid, 'qa').claims[0].evidence_ids[0], 'unknown');
+  assert.equal(evaluateDraftReadiness({ ...applyKnowledgeTemplate(invalid, 'qa'), acceptedClaimIds: ['claim-1'] }, context).status, 'ต้องแก้ไขก่อนดำเนินการต่อ');
+});
+
+test('Feature 12E template state is session-only and selection cannot invoke persistence or a provider', () => {
+  const start = productionHtml.indexOf("document.getElementById('knowledgeTemplate')?.addEventListener('change'");
+  const end = productionHtml.indexOf("document.getElementById('previewAiProviderRequest')", start);
+  const templateHandler = productionHtml.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.doesNotMatch(templateHandler, /fetch\s*\(|sendBeacon|setDoc|updateDoc|addDoc|writeBatch|logEvent|localStorage|sessionStorage|indexedDB|runAcademicDraftMethod|sendExternalAiRequest/);
+  assert.match(templateHandler, /invalidateDraftReadinessAcknowledgment\(\)/);
+  assert.match(productionHtml, /let activeKnowledgeTemplate = 'article'/);
+  assert.match(productionHtml, /draft = applyKnowledgeTemplate\(draft, activeKnowledgeTemplate\)/);
+  assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
+  assert.match(productionHtml, /นำร่างไปยังหน้าจัดทำเนื้อหา/);
 });
