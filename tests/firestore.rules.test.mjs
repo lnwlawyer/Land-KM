@@ -935,3 +935,141 @@ test('Feature 12A ingestion provenance is immutable and role boundaries remain u
     created_by: accounts.admin.email, ingestion_method: 'local_file', original_filename: 'law.docx', media_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', extractor: 'mammoth', extractor_version: '1.9.1'
   })));
 });
+
+function publishedEvidenceProjection(sourceId, sourceName, ingestionId, evidenceId, contentUpdatedAt, overrides = {}) {
+  return {
+    source_id: sourceId, source_name: sourceName, ingestion_id: ingestionId,
+    evidence_id: evidenceId, excerpt: 'ข้อความหลักฐานที่ผ่านการตรวจสอบ',
+    content_updated_at: contentUpdatedAt, ...overrides
+  };
+}
+
+async function seedPublishedEvidenceScenario({
+  contentId = 'CNT-PROJECTION', sourceId = 'SRC-PROJECTION', accessLevel = 'public',
+  contentAccess = 'internal', workflowStatus = 'published', reviewStatus = 'reviewed',
+  sourceReferenceId = sourceId, withProjection = true, stale = false
+} = {}) {
+  const updatedAt = new Date('2026-10-01T00:00:00Z');
+  const ingestionId = 'ING-PROJECTION';
+  const evidenceId = 'EVID-PROJECTION';
+  const canonicalSource = source(sourceId, accounts.editor.email, { access_level: accessLevel });
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await setDoc(doc(db, 'sources', sourceId), canonicalSource);
+    await setDoc(doc(db, 'sources', sourceId, 'ingestions', ingestionId), ingestionPayload(sourceId, ingestionId));
+    await setDoc(doc(db, 'sources', sourceId, 'ingestions', ingestionId, 'evidence', evidenceId), evidencePayload(sourceId, ingestionId, evidenceId, { review_status: reviewStatus }));
+    await setDoc(doc(db, 'contents', contentId), content({
+      content_id: contentId, workflow_status: workflowStatus, access_level: contentAccess,
+      source_ids: [sourceReferenceId], source_references: [{ source_id: sourceReferenceId, relation_type: 'primary' }], updated_at: updatedAt
+    }));
+    if (withProjection) await setDoc(doc(db, 'contents', contentId, 'publishedEvidence', sourceId), publishedEvidenceProjection(
+      sourceId, canonicalSource.title, ingestionId, evidenceId,
+      stale ? new Date('2026-09-30T00:00:00Z') : updatedAt
+    ));
+  });
+  return { contentId, sourceId, ingestionId, evidenceId, sourceName: canonicalSource.title, updatedAt };
+}
+
+test('Feature 13A atomically publishes content with reviewed published evidence and keeps raw evidence staff-only', async () => {
+  const seeded = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-PROJECTION-ATOMIC', sourceId: 'SRC-PROJECTION-ATOMIC',
+    workflowStatus: 'approved', withProjection: false
+  });
+  const adminDb = dbAs('admin');
+  const batch = writeBatch(adminDb);
+  const publicationTime = serverTimestamp();
+  batch.update(doc(adminDb, 'contents', seeded.contentId), {
+    workflow_status: 'published', published_at: publicationTime, updated_at: publicationTime
+  });
+  batch.set(doc(adminDb, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId),
+    publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, publicationTime, { locator: 'มาตรา 74' }));
+  await assertSucceeds(batch.commit());
+  const userDb = dbAs('user');
+  await assertSucceeds(getDoc(doc(userDb, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId)));
+  const publishedContent = await getDoc(doc(userDb, 'contents', seeded.contentId));
+  await assertFails(getDocs(query(
+    collection(userDb, 'contents', seeded.contentId, 'publishedEvidence'),
+    where('content_updated_at', '==', publishedContent.data().updated_at)
+  )));
+  await assertFails(getDoc(doc(dbAs('user'), 'sources', seeded.sourceId, 'ingestions', seeded.ingestionId, 'evidence', seeded.evidenceId)));
+});
+
+test('Feature 13A denies unauthorized, malformed, unreviewed, and unrelated projections', async () => {
+  const seeded = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-PROJECTION-DENY', sourceId: 'SRC-PROJECTION-DENY', withProjection: false
+  });
+  const projectionRef = (db, contentId = seeded.contentId) => doc(db, 'contents', contentId, 'publishedEvidence', seeded.sourceId);
+  const valid = publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, serverTimestamp());
+  await assertFails(setDoc(projectionRef(dbAs('user')), valid));
+  await assertFails(setDoc(projectionRef(dbAs('admin')), valid));
+
+  const adminDb = dbAs('admin');
+  const malformedBatch = writeBatch(adminDb);
+  const malformedTime = serverTimestamp();
+  malformedBatch.update(doc(adminDb, 'contents', seeded.contentId), { updated_at: malformedTime });
+  malformedBatch.set(projectionRef(adminDb), { ...publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, malformedTime), secret: 'extra' });
+  await assertFails(malformedBatch.commit());
+
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await updateDoc(doc(db, 'sources', seeded.sourceId, 'ingestions', seeded.ingestionId, 'evidence', seeded.evidenceId), { review_status: 'extracted' });
+  });
+  const unreviewedBatch = writeBatch(adminDb);
+  const unreviewedTime = serverTimestamp();
+  unreviewedBatch.update(doc(adminDb, 'contents', seeded.contentId), { updated_at: unreviewedTime });
+  unreviewedBatch.set(projectionRef(adminDb), publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, unreviewedTime));
+  await assertFails(unreviewedBatch.commit());
+
+  await env.withSecurityRulesDisabled(async context => {
+    const db = context.firestore();
+    await updateDoc(doc(db, 'sources', seeded.sourceId, 'ingestions', seeded.ingestionId, 'evidence', seeded.evidenceId), { review_status: 'reviewed' });
+  });
+  const unrelatedBatch = writeBatch(adminDb);
+  const unrelatedTime = serverTimestamp();
+  unrelatedBatch.update(doc(adminDb, 'contents', seeded.contentId), {
+    updated_at: unrelatedTime,
+    source_ids: ['SRC-UNRELATED'],
+    source_references: [{ source_id: 'SRC-UNRELATED', relation_type: 'primary' }]
+  });
+  unrelatedBatch.set(projectionRef(adminDb), publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, unrelatedTime));
+  await assertFails(unrelatedBatch.commit());
+});
+
+test('Feature 13A projections follow published parent and source access, and stale projections fail closed', async () => {
+  const publicRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-PUBLIC', sourceId: 'SRC-PROJECTION-PUBLIC', accessLevel: 'public', contentAccess: 'public' });
+  const internalRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-INTERNAL', sourceId: 'SRC-PROJECTION-INTERNAL', accessLevel: 'internal', contentAccess: 'internal' });
+  const draftRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-DRAFT', sourceId: 'SRC-PROJECTION-DRAFT', workflowStatus: 'draft' });
+  const privateRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-RESTRICTED', sourceId: 'SRC-PROJECTION-RESTRICTED', contentAccess: 'restricted' });
+  const privateSourceRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-SOURCE-RESTRICTED', sourceId: 'SRC-PROJECTION-SOURCE-RESTRICTED', accessLevel: 'restricted' });
+  const staleRecord = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-STALE', sourceId: 'SRC-PROJECTION-STALE', stale: true });
+  const userDb = dbAs('user');
+  const projectionRef = record => doc(userDb, 'contents', record.contentId, 'publishedEvidence', record.sourceId);
+  await assertSucceeds(getDoc(projectionRef(publicRecord)));
+  await assertSucceeds(getDoc(projectionRef(internalRecord)));
+  await assertFails(getDoc(projectionRef(draftRecord)));
+  await assertFails(getDoc(projectionRef(privateRecord)));
+  await assertFails(getDoc(projectionRef(privateSourceRecord)));
+  await assertFails(getDoc(projectionRef(staleRecord)));
+
+  const changedParent = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-CHANGED', sourceId: 'SRC-PROJECTION-CHANGED' });
+  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', changedParent.contentId), { updated_at: serverTimestamp() }));
+  await assertFails(getDoc(projectionRef(changedParent)));
+
+  const unpublished = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-UNPUBLISHED', sourceId: 'SRC-PROJECTION-UNPUBLISHED' });
+  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', unpublished.contentId), {
+    workflow_status: 'draft', updated_at: serverTimestamp()
+  }));
+  await assertFails(getDoc(projectionRef(unpublished)));
+
+  const sourceAccessChanged = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-ACCESS', sourceId: 'SRC-PROJECTION-ACCESS', accessLevel: 'public' });
+  await assertSucceeds(getDoc(projectionRef(sourceAccessChanged)));
+  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'sources', sourceAccessChanged.sourceId), { access_level: 'restricted', updated_at: serverTimestamp() }));
+  await assertFails(getDoc(projectionRef(sourceAccessChanged)));
+
+  const contentAccessChanged = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-CONTENT-ACCESS', sourceId: 'SRC-PROJECTION-CONTENT-ACCESS', contentAccess: 'public' });
+  await assertSucceeds(getDoc(projectionRef(contentAccessChanged)));
+  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', contentAccessChanged.contentId), {
+    access_level: 'restricted', updated_at: serverTimestamp()
+  }));
+  await assertFails(getDoc(projectionRef(contentAccessChanged)));
+});

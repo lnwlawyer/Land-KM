@@ -945,7 +945,7 @@ test('Feature 8 role-aware workflow and transition locks match current Firestore
   assert.match(productionHtml, /if \(currentUserProfile\?\.role !== 'admin'\) return window\.toast\('เฉพาะผู้ดูแลระบบที่เผยแพร่เนื้อหาได้'\)/);
   assert.match(productionHtml, /authoringWriteInFlight = 'approve'/);
   assert.match(productionHtml, /authoringWriteInFlight = 'publish'/);
-  assert.match(productionHtml, /เผยแพร่ “\$\{item\.title \|\| item\.content_id \|\| id\}” \?/);
+  assert.match(productionHtml, /window\.confirm\(confirmation\)/);
   assert.match(productionHtml, /published_at: serverTimestamp\(\)/);
   assert.match(productionHtml, /savedContentReadinessError\(item, detail\)/);
 });
@@ -2124,4 +2124,60 @@ test('Feature 12F matrix remains session-only, local, and separate from Authorin
   assert.match(productionHtml, /ดูหลักฐานฉบับเต็ม/);
   assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
   assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function confirmAcademicTransfer()'), productionHtml.indexOf('\n  async function runAcademicDraftMethod', productionHtml.indexOf('function confirmAcademicTransfer()'))), /saveDraftToFirestore|submitForReview|approveContent|publishContent/);
+});
+
+test('Feature 13A asks only over published content projections with deterministic Thai ranking', () => {
+  assert.match(productionHtml, /id="libraryQuestionForm"/);
+  assert.match(productionHtml, /ถามจากคลัง/);
+  assert.match(productionHtml, /ข้อมูลจากคลัง/);
+  assert.match(productionHtml, /ข้อความสรุปโดยระบบ/);
+  assert.match(productionHtml, /ข้อมูลในคลังไม่เพียงพอที่จะตอบคำถาม/);
+  const normalizeStart = productionHtml.indexOf('function normalizeSearchText(');
+  const normalizeEnd = productionHtml.indexOf('\n  function searchVariants(', normalizeStart);
+  const questionStart = productionHtml.indexOf('function libraryQuestionTokens(');
+  const questionEnd = productionHtml.indexOf('\n  function renderLibraryQuestionResults(', questionStart);
+  assert.ok(normalizeStart >= 0 && normalizeEnd > normalizeStart && questionStart >= 0 && questionEnd > questionStart);
+  const normalize = new Function(`${productionHtml.slice(normalizeStart, normalizeEnd)}; return normalizeSearchText;`)();
+  const { libraryQuestionTokens, libraryQuestionScore } = new Function('normalizeSearchText', `${productionHtml.slice(questionStart, questionEnd)}; return { libraryQuestionTokens, libraryQuestionScore };`)(normalize);
+  const tokens = libraryQuestionTokens('การจดทะเบียนสิทธิ');
+  assert.ok(tokens.length > 0);
+  const relevantPhrase = tokens.slice(0, 2).join(' '); const relevantScore = libraryQuestionScore(relevantPhrase, tokens, relevantPhrase);
+  const unrelatedScore = libraryQuestionScore('online lessons for staff training', tokens, 'land registration rights');
+  assert.ok(relevantScore > unrelatedScore);
+  const askStart = productionHtml.indexOf('async function askFromKnowledge(');
+  const askEnd = productionHtml.indexOf('\n  document.getElementById(\'libraryQuestionForm\')', askStart);
+  const ask = productionHtml.slice(askStart, askEnd);
+  assert.match(ask, /doc\(db, 'contents', contentId, 'publishedEvidence', sourceId\)/);
+  assert.match(ask, /Array\.isArray\(item\.source_ids\)/);
+  assert.doesNotMatch(ask, /collectionGroup|sources|recordSharedUsage|fetch\s*\(|sendBeacon|localStorage|sessionStorage|indexedDB/);
+  assert.match(productionHtml, /item\.workflow_status === 'published' && \['public', 'internal'\]/);
+});
+
+test('Feature 13A publication requires reviewed, referenced excerpts and confirms the exact bounded projections', () => {
+  const preparationStart = productionHtml.indexOf('async function preparePublishedEvidence(');
+  const publicationStart = productionHtml.indexOf('async function publishContent(');
+  const publicationEnd = productionHtml.indexOf('\n  function setFormValue(', publicationStart);
+  assert.ok(preparationStart >= 0 && publicationStart > preparationStart && publicationEnd > publicationStart);
+  const preparation = productionHtml.slice(preparationStart, publicationStart);
+  const publication = productionHtml.slice(publicationStart, publicationEnd);
+  assert.match(preparation, /canonicalSourceReferences\(item\.source_references/);
+  assert.match(preparation, /where\('review_status',\s*'==',\s*'reviewed'\)/);
+  assert.match(preparation, /evidence\.text\.length > 2000/);
+  assert.match(preparation, /window\.prompt/);
+  assert.match(publication, /window\.confirm\(confirmation\)/);
+  assert.match(publication, /excerpt:\s*evidence\.text/);
+  assert.match(publication, /content_updated_at:\s*publicationUpdatedAt/);
+  assert.match(publication, /batch\.set\(doc\(db, 'contents', id, 'publishedEvidence', source\.source_id/);
+  assert.match(publication, /const publicationUpdatedAt = serverTimestamp\(\)/);
+  assert.match(publication, /await batch\.commit\(\)/);
+});
+
+test('Feature 13A Questions are neither persisted nor automatically sent to AI or analytics', () => {
+  const start = productionHtml.indexOf('async function askFromKnowledge(');
+  const end = productionHtml.indexOf('\n  document.getElementById(\'libraryQuestionForm\')', start);
+  const source = productionHtml.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.doesNotMatch(source, /setDoc|updateDoc|addDoc|writeBatch|localStorage|sessionStorage|indexedDB|logEvent|recordSharedUsage|fetch\s*\(|createAiGatewayProvider/);
+  assert.match(source, /ranked\.sort/);
+  assert.match(source, /permission-denied/);
 });

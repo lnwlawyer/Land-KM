@@ -70,6 +70,51 @@ service cloud.firestore {
         );
     }
 
+    function publishedEvidenceParentChanged(contentId) {
+      let parentPath = /databases/$(database)/documents/contents/$(contentId);
+      return exists(parentPath)
+        && existsAfter(parentPath)
+        && get(parentPath).data.updated_at != getAfter(parentPath).data.updated_at
+        && getAfter(parentPath).data.workflow_status == 'published';
+    }
+
+    function validPublishedEvidence(contentId, data, projectionId, afterWrite) {
+      let contentPath = /databases/$(database)/documents/contents/$(contentId);
+      let parent = afterWrite ? getAfter(contentPath).data : get(contentPath).data;
+      let sourcePath = /databases/$(database)/documents/sources/$(data.source_id);
+      let ingestionPath = /databases/$(database)/documents/sources/$(data.source_id)/ingestions/$(data.ingestion_id);
+      let evidencePath = /databases/$(database)/documents/sources/$(data.source_id)/ingestions/$(data.ingestion_id)/evidence/$(data.evidence_id);
+      let evidence = get(evidencePath).data;
+      let ingestion = get(ingestionPath).data;
+      return data.keys().hasAll(['source_id', 'source_name', 'ingestion_id', 'evidence_id', 'excerpt', 'content_updated_at'])
+        && data.keys().hasOnly(['source_id', 'source_name', 'ingestion_id', 'evidence_id', 'excerpt', 'locator', 'content_updated_at'])
+        && data.source_id is string && data.source_id.matches('^SRC-[A-Za-z0-9_-]+$')
+        && data.source_name is string && data.source_name.size() > 0 && data.source_name.size() <= 300
+        && data.ingestion_id is string && data.ingestion_id.size() >= 8 && data.ingestion_id.size() <= 100
+        && data.evidence_id is string && data.evidence_id.size() >= 8 && data.evidence_id.size() <= 100
+        && data.excerpt is string && data.excerpt.size() > 0 && data.excerpt.size() <= 2000
+        && (!('locator' in data) || (data.locator is string && data.locator.size() <= 300))
+        && data.content_updated_at is timestamp
+        && parent.workflow_status == 'published'
+        && parent.access_level in ['public', 'internal']
+        && parent.updated_at == data.content_updated_at
+        && parent.source_ids is list && parent.source_ids.hasAny([data.source_id])
+        && exists(sourcePath)
+        && get(sourcePath).data.source_id == data.source_id
+        && get(sourcePath).data.title == data.source_name
+        && get(sourcePath).data.access_level in ['public', 'internal']
+        && exists(ingestionPath)
+        && ingestion.ingestion_id == data.ingestion_id
+        && ingestion.source_id == data.source_id
+        && ingestion.extraction_status == 'completed'
+        && exists(evidencePath)
+        && evidence.evidence_id == data.evidence_id
+        && evidence.source_id == data.source_id
+        && evidence.ingestion_id == data.ingestion_id
+        && evidence.review_status == 'reviewed'
+        && projectionId == data.source_id;
+    }
+
     function validSourceReference(reference) {
       return reference is map
         && reference.keys().hasAll(['source_id', 'relation_type'])
@@ -368,6 +413,21 @@ service cloud.firestore {
             ])));
 
       allow delete: if isAdmin();
+
+      match /publishedEvidence/{projectionId} {
+        allow get: if canReadContent(documentId)
+          && get(/databases/$(database)/documents/contents/$(documentId)).data.workflow_status == 'published'
+          && resource.data.content_updated_at == get(/databases/$(database)/documents/contents/$(documentId)).data.updated_at
+          && validPublishedEvidence(documentId, resource.data, projectionId, false);
+
+        allow list: if false;
+
+        allow create, update: if isAdmin()
+          && publishedEvidenceParentChanged(documentId)
+          && validPublishedEvidence(documentId, request.resource.data, projectionId, true);
+
+        allow delete: if isAdmin();
+      }
     }
 
     // ข้อมูลรายละเอียดของเนื้อหา

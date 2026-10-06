@@ -278,6 +278,7 @@
 
       <section class="view" id="searchView">
         <div class="search-header"><button type="button" class="btn" id="searchBack">← กลับหน้าก่อน</button><h1>ค้นหาความรู้</h1><p>ค้นหาองค์ความรู้ กฎหมาย คำพิพากษา แนววินิจฉัย คู่มือ บทเรียน และคำถาม–คำตอบ</p><form class="search" id="resultSearch"><label class="sr-only" for="resultInput">คำค้นหา</label><input id="resultInput" value="" placeholder="ค้นหาชื่อเรื่อง เลขที่เอกสาร หมวด หรือคำสำคัญ…"><button class="btn primary" type="submit">ค้นหา</button><button class="btn" id="clearSearch" type="button" hidden>ล้างคำค้น</button></form></div>
+        <div class="side-card" aria-labelledby="libraryQuestionHeading"><h2 id="libraryQuestionHeading">ถามจากคลัง</h2><p>ค้นจากเนื้อหาที่เผยแพร่และข้อความหลักฐานที่ผู้ดูแลเลือกไว้ · สรุปผลด้วยการจัดอันดับและดึงข้อความแบบกำหนดผลแน่นอน ไม่ใช่การให้เหตุผลโดย AI</p><form id="libraryQuestionForm" class="search" style="max-width:none;border:1px solid var(--line);box-shadow:none"><label class="sr-only" for="libraryQuestionInput">คำถามจากคลัง</label><input id="libraryQuestionInput" maxlength="500" placeholder="พิมพ์คำถามจากองค์ความรู้ที่เผยแพร่"><button class="btn primary" type="submit">ถามจากคลัง</button></form><div id="libraryQuestionResults" class="search-state" role="status" aria-live="polite" hidden></div></div>
         <div class="results-layout"><aside class="filters" style="display:block;position:static;height:auto"><h3>ตัวกรอง <span class="filter-count" id="filterCount">0</span></h3><div class="filter" style="padding-top:0;border:0"><b>หมวดเนื้อหา</b><div class="doc-meta" id="categoryFilterSummary">เลือกได้หลายหมวด</div><div class="category-picker"><label class="sr-only" for="categorySearch">ค้นหาหมวดเนื้อหา</label><input class="category-search" id="categorySearch" aria-label="ค้นหาหมวดเนื้อหา" placeholder="⌕ พิมพ์ค้นหาหมวด เช่น จำนอง"><div class="doc-meta" style="margin-bottom:6px">หมวดที่ใช้บ่อย</div><div class="popular-cats" id="popularCats"></div><div class="selected-wrap" id="selectedCats"></div><div class="category-box" id="categoryBox"></div></div></div><div class="filter"><b>ประเภทความรู้</b><div id="realTypeFilters"></div></div><div class="filter"><b>ปีที่ปรับปรุง</b><div id="realYearFilters"></div></div><div class="filter"><b>สถานะ</b><div id="realStatusFilters"></div></div><div class="filter-actions"><button class="btn" id="clearFilters" type="button" style="flex:1">ล้างทั้งหมด</button><button class="btn primary" id="applyFilters" type="button" style="flex:1">แสดงผล</button></div></aside>
           <div><div class="results-head"><b>เรียงตามความเกี่ยวข้อง</b><select class="select" aria-label="เรียงผลการค้นหา"><option>เกี่ยวข้องมากที่สุด</option><option>ใหม่ที่สุด</option><option>เปิดอ่านมากที่สุด</option></select></div>
             <div class="doc-meta" id="resultsSummary" role="status" aria-live="polite"></div><div id="searchResultList" aria-busy="false"></div>
@@ -2976,6 +2977,108 @@
     renderRealFilterControls();
     applyRealFilters();
   }
+
+  function libraryQuestionTokens(value) {
+    const normalized = normalizeSearchText(value);
+    try {
+      if (Intl.Segmenter) {
+        const words = [...new Intl.Segmenter('th', { granularity: 'word' }).segment(normalized)]
+          .filter(part => part.isWordLike).map(part => part.segment).filter(token => token.length > 1);
+        if (words.length) return [...new Set(words)];
+      }
+    } catch (_) {}
+    const compact = normalized.replace(/\s+/g, '');
+    return [...new Set(Array.from({ length: Math.max(0, compact.length - 1) }, (_, index) => compact.slice(index, index + 2)).filter(Boolean))];
+  }
+
+  function libraryQuestionScore(value, tokens, queryText) {
+    const normalized = normalizeSearchText(value);
+    const matched = tokens.filter(token => normalized.includes(token)).length;
+    return matched + (normalized.includes(normalizeSearchText(queryText)) ? 3 : 0);
+  }
+
+  function libraryQuestionCandidates(queryText) {
+    const tokens = libraryQuestionTokens(queryText);
+    if (!tokens.length) return [];
+    return contentItems
+      .filter(item => item.workflow_status === 'published' && ['public', 'internal'].includes(item.access_level))
+      .map(item => {
+        const contentText = [item.title, item.summary, item.keywords, item.reference_no, item.legal_principle, item.decision_issue]
+          .flat().filter(Boolean).join(' ');
+        return { item, score: libraryQuestionScore(contentText, tokens, queryText) };
+      })
+      .filter(entry => entry.score > 0)
+      .sort((a, b) => b.score - a.score || String(a.item.title || '').localeCompare(String(b.item.title || ''), 'th'))
+      .slice(0, 8);
+  }
+
+  function renderLibraryQuestionResults(queryText, matches, insufficient = false) {
+    const target = document.getElementById('libraryQuestionResults');
+    target.replaceChildren();
+    target.hidden = false;
+    if (insufficient || !matches.length) {
+      target.textContent = 'ข้อมูลในคลังไม่เพียงพอที่จะตอบคำถาม';
+      return;
+    }
+    const summary = document.createElement('p');
+    summary.textContent = 'ข้อความสรุปโดยระบบ: เรียงข้อความที่เกี่ยวข้องจากองค์ความรู้ที่เผยแพร่ โดยไม่อนุมานข้อสรุปทางกฎหมาย';
+    target.appendChild(summary);
+    matches.forEach(({ item, projection }) => {
+      const article = document.createElement('article');
+      article.className = 'side-card';
+      const state = document.createElement('span'); state.className = 'tag'; state.textContent = 'ข้อมูลจากคลัง'; article.appendChild(state);
+      const heading = document.createElement('h3'); heading.textContent = item.title || item.content_id || 'องค์ความรู้'; article.appendChild(heading);
+      const excerpt = document.createElement('blockquote'); excerpt.textContent = projection.excerpt; article.appendChild(excerpt);
+      const source = document.createElement('p'); source.textContent = `แหล่งข้อมูล: ${projection.source_name}${projection.locator ? ` · ตำแหน่ง: ${projection.locator}` : ''}`; article.appendChild(source);
+      const open = document.createElement('button'); open.type = 'button'; open.className = 'btn'; open.textContent = 'เปิดอ่านองค์ความรู้'; open.onclick = () => void openContentFromFirestore(item); article.appendChild(open);
+      target.appendChild(article);
+    });
+  }
+
+  async function askFromKnowledge(rawQuestion) {
+    const question = String(rawQuestion || '').trim().slice(0, 500);
+    const target = document.getElementById('libraryQuestionResults');
+    if (!question) { target.hidden = false; target.textContent = 'กรุณาพิมพ์คำถาม'; return; }
+    target.hidden = false;
+    target.textContent = 'กำลังค้นข้อความหลักฐานในองค์ความรู้ที่เข้าถึงได้…';
+    try {
+      const candidates = libraryQuestionCandidates(question);
+      const tokens = libraryQuestionTokens(question);
+      const ranked = [];
+      for (const { item, score: contentScore } of candidates) {
+        const contentId = item.content_id || item.id;
+        if (!item.updated_at || !contentId) continue;
+        try {
+          const referencedSourceIds = [...new Set(Array.isArray(item.source_ids) ? item.source_ids : [])].slice(0, 5);
+          for (const sourceId of referencedSourceIds) {
+            try {
+              const snapshot = await getDoc(doc(db, 'contents', contentId, 'publishedEvidence', sourceId));
+              if (!snapshot.exists()) continue;
+              const projection = snapshot.data();
+              if (projection.source_id !== sourceId || projection.content_updated_at?.seconds !== item.updated_at.seconds
+                || projection.content_updated_at?.nanoseconds !== item.updated_at.nanoseconds) continue;
+              const passageScore = libraryQuestionScore(projection.excerpt, tokens, question);
+              if (passageScore > 0) ranked.push({ item, projection, score: passageScore + contentScore });
+            } catch (error) {
+              if (error?.code !== 'permission-denied') throw error;
+            }
+          }
+        } catch (error) {
+          if (error?.code !== 'permission-denied') throw error;
+        }
+      }
+      ranked.sort((a, b) => b.score - a.score || String(a.item.title || '').localeCompare(String(b.item.title || ''), 'th'));
+      renderLibraryQuestionResults(question, ranked.slice(0, 6), ranked.length === 0);
+    } catch (error) {
+      console.warn('Grounded knowledge search failed:', error?.code || 'unavailable');
+      renderLibraryQuestionResults(question, [], true);
+    }
+  }
+
+  document.getElementById('libraryQuestionForm').onsubmit = event => {
+    event.preventDefault();
+    void askFromKnowledge(document.getElementById('libraryQuestionInput').value);
+  };
 
   document.getElementById('heroSearch').onsubmit = event => {
     event.preventDefault();
@@ -7211,12 +7314,61 @@
     }
   }
 
+  async function preparePublishedEvidence(item) {
+    const references = canonicalSourceReferences(item.source_references || []);
+    const candidates = [];
+    for (const reference of references) {
+      const sourceSnapshot = await getDoc(doc(db, 'sources', reference.source_id));
+      if (!sourceSnapshot.exists()) continue;
+      const source = sourceSnapshot.data();
+      if (!['public', 'internal'].includes(source.access_level) || !source.title) continue;
+      const ingestions = await getDocs(query(collection(db, 'sources', reference.source_id, 'ingestions'), orderBy('created_at', 'desc'), limit(5)));
+      for (const ingestionSnapshot of ingestions.docs) {
+        const ingestion = ingestionSnapshot.data();
+        if (ingestion.extraction_status !== 'completed') continue;
+        const evidenceSnapshot = await getDocs(query(
+          collection(db, 'sources', reference.source_id, 'ingestions', ingestionSnapshot.id, 'evidence'),
+          where('review_status', '==', 'reviewed'),
+          limit(5)
+        ));
+        evidenceSnapshot.docs.forEach(entry => {
+          const evidence = entry.data();
+          if (evidence.source_id !== reference.source_id || evidence.ingestion_id !== ingestionSnapshot.id
+            || evidence.evidence_id !== entry.id || typeof evidence.text !== 'string'
+            || evidence.text.length === 0 || evidence.text.length > 2000) return;
+          if (candidates.length < 10) candidates.push({ source, ingestion, evidence });
+        });
+        if (candidates.length >= 10) break;
+      }
+      if (candidates.length >= 10) break;
+    }
+    return candidates;
+  }
+
+  function selectPublishedEvidence(candidates) {
+    const options = candidates.map((entry, index) => {
+      const locator = entry.evidence.locator || entry.evidence.heading || '';
+      return `${index + 1}. ${entry.source.title}${locator ? ` · ${locator}` : ''}\n${entry.evidence.text}`;
+    }).join('\n\n');
+    if (!candidates.length) return [];
+    const selection = window.prompt(`เลือกข้อความหลักฐานที่จะแสดงพร้อมองค์ความรู้ (เลือกได้ไม่เกิน 1 รายการต่อแหล่ง และไม่เกิน 5 รายการ คั่นด้วยจุลภาค)\nข้อความที่เลือกจะเปิดให้ผู้มีสิทธิอ่านเนื้อหานี้เห็น\n\n${options}`, '1');
+    if (selection === null) return null;
+    const indexes = [...new Set(selection.split(',').map(value => Number(value.trim()) - 1))];
+    if (indexes.some(index => !Number.isInteger(index) || index < 0 || index >= candidates.length) || indexes.length > 5) {
+      throw new Error('กรุณาเลือกรายการที่แสดงไม่เกิน 5 รายการ');
+    }
+    const selectedSourceIds = indexes.map(index => candidates[index].source.source_id);
+    if (new Set(selectedSourceIds).size !== selectedSourceIds.length) {
+      throw new Error('กรุณาเลือกไม่เกิน 1 รายการต่อแหล่งข้อมูล และรวมไม่เกิน 5 รายการ');
+    }
+    return indexes.map(index => candidates[index]);
+  }
+
   async function publishContent(id, button = null) {
     const item = contentItems.find(entry => entry.id === id);
     if (!item || item.workflow_status !== 'approved') return window.toast('ต้องอนุมัติเนื้อหาก่อนเผยแพร่');
     if (currentUserProfile?.role !== 'admin') return window.toast('เฉพาะผู้ดูแลระบบที่เผยแพร่เนื้อหาได้');
     if (authoringWriteInFlight) return;
-    if (!window.confirm(`เผยแพร่ “${item.title || item.content_id || id}” ?`)) return;
     authoringWriteInFlight = 'publish';
     if (button) { button.disabled = true; button.textContent = 'กำลังเผยแพร่…'; }
     try {
@@ -7228,14 +7380,38 @@
         window.toast(message);
         return;
       }
+      const projectionCandidates = await preparePublishedEvidence(item);
+      const selectedProjections = selectPublishedEvidence(projectionCandidates);
+      if (selectedProjections === null) return;
+      const projectionPreview = selectedProjections.map((entry, index) =>
+        `${index + 1}. ${entry.source.title}${entry.evidence.locator || entry.evidence.heading ? ` · ${entry.evidence.locator || entry.evidence.heading}` : ''}\n${entry.evidence.text}`
+      ).join('\n\n');
+      const confirmation = selectedProjections.length
+        ? `ข้อความหลักฐานต่อไปนี้จะเผยแพร่ให้ผู้มีสิทธิอ่านองค์ความรู้นี้\n\n${projectionPreview}\n\nยืนยันเผยแพร่เนื้อหาและข้อความหลักฐานที่เลือกหรือไม่?`
+        : 'ไม่มีข้อความหลักฐานที่เลือกเผยแพร่พร้อมเนื้อหานี้ เนื้อหาจะเผยแพร่ตามปกติ แต่จะไม่มีหลักฐานรองรับใน ถามจากคลัง ยืนยันหรือไม่?';
+      if (!window.confirm(confirmation)) return;
       await ensureBaselineVersion(id);
       const batch = writeBatch(db);
+      const publicationUpdatedAt = serverTimestamp();
       batch.set(doc(db, 'contents', id), {
         workflow_status: 'published',
         published_by: auth.currentUser.email,
         published_at: serverTimestamp(),
-        updated_at: serverTimestamp()
+        updated_at: publicationUpdatedAt
       }, { merge: true });
+      selectedProjections.forEach(({ source, ingestion, evidence }) => {
+        const projection = {
+          source_id: source.source_id,
+          source_name: source.title,
+          ingestion_id: ingestion.ingestion_id,
+          evidence_id: evidence.evidence_id,
+          excerpt: evidence.text,
+          content_updated_at: publicationUpdatedAt
+        };
+        const locator = evidence.locator || evidence.heading;
+        if (locator) projection.locator = locator;
+        batch.set(doc(db, 'contents', id, 'publishedEvidence', source.source_id), projection);
+      });
       if (item.source_gap_id) {
         batch.set(doc(db, 'knowledgeGaps', item.source_gap_id), {
           status: 'resolved',
