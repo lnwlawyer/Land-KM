@@ -1409,7 +1409,7 @@ function createAcademicDraftHelpers(userProfile = { role: 'editor', is_active: t
   const start = productionHtml.indexOf('function academicProviderError(');
   const end = productionHtml.indexOf('\n  function showSourceForm(', start);
   assert.ok(start >= 0 && end > start);
-  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, applyKnowledgeTemplate, academicCitationForEvidence, academicDraftInputError, evaluateDraftReadiness, draftReadinessSignature };`;
+  const helperSource = `${productionHtml.slice(start, end)}; return { validateAcademicDraftResponse, createMockAcademicProvider, buildManualAcademicOutline, applyKnowledgeTemplate, buildClaimEvidenceMatrix, academicCitationForEvidence, academicDraftInputError, evaluateDraftReadiness, draftReadinessSignature };`;
   const templatesStart = productionHtml.indexOf('const KNOWLEDGE_TEMPLATES = Object.freeze(');
   const templatesEnd = productionHtml.indexOf('\n  });', templatesStart) + '\n  });'.length;
   const templates = new Function(`${productionHtml.slice(templatesStart, templatesEnd)}; return KNOWLEDGE_TEMPLATES;`)();
@@ -2051,4 +2051,77 @@ test('Feature 12E template state is session-only and selection cannot invoke per
   assert.match(productionHtml, /draft = applyKnowledgeTemplate\(draft, activeKnowledgeTemplate\)/);
   assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
   assert.match(productionHtml, /นำร่างไปยังหน้าจัดทำเนื้อหา/);
+});
+
+test('Feature 12F renders a reviewer-friendly claim-to-evidence matrix with validated reviewed evidence and source provenance', () => {
+  const { buildClaimEvidenceMatrix } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B'; context.evidence[1].locator = 'มาตรา 9';
+  const draft = evidenceReadyDraft(context, [0, 1]);
+  const rows = buildClaimEvidenceMatrix(draft, context);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].status, 'มีหลักฐานหลายแหล่ง');
+  assert.equal(rows[0].citedEvidence.length, 2);
+  assert.deepEqual(rows[0].citedEvidence.map(item => item.sourceTitle), ['ต้นทาง A', 'ต้นทาง B']);
+  assert.ok(rows[0].citedEvidence.every(item => item.eligible && item.reviewStatus === 'ตรวจสอบแล้ว'));
+  for (const label of ['ตารางตรวจความเชื่อมโยงข้อสรุปกับหลักฐาน', 'ข้อสรุป/ประเด็น', 'สถานะหลักฐาน', 'หลักฐานที่อ้างอิง', 'แหล่งข้อมูล', 'สถานะการตรวจสอบ', 'ข้อสังเกต']) assert.ok(productionHtml.includes(label));
+  assert.match(productionHtml, /id="draftClaimEvidenceMatrixRows"/);
+  assert.match(productionHtml, /renderDraftClaimEvidenceMatrix\(\)/);
+  assert.match(productionHtml, /draftEvidenceDetails/);
+});
+
+test('Feature 12F does not count unsupported, invalid, unreviewed, or out-of-context citations as support', () => {
+  const { buildClaimEvidenceMatrix } = createAcademicDraftHelpers();
+  const context = academicContext(1); const draft = evidenceReadyDraft(context);
+  const unsupported = structuredClone(draft); unsupported.claims[0].support_status = 'unsupported'; unsupported.claims[0].evidence_ids = []; unsupported.claims[0].support_excerpts = [];
+  assert.equal(buildClaimEvidenceMatrix(unsupported, context)[0].status, 'ไม่มีหลักฐานรองรับ');
+  const invalid = structuredClone(draft); invalid.claims[0].support_excerpts = ['คำอ้างที่ไม่อยู่ในหลักฐาน'];
+  assert.equal(buildClaimEvidenceMatrix(invalid, context)[0].status, 'การอ้างอิงไม่สมบูรณ์');
+  const unknown = structuredClone(draft); unknown.claims[0].evidence_ids = ['OUTSIDE'];
+  assert.equal(buildClaimEvidenceMatrix(unknown, context)[0].status, 'การอ้างอิงไม่สมบูรณ์');
+  context.evidence[0].review_status = 'extracted';
+  const unreviewed = buildClaimEvidenceMatrix(draft, context)[0];
+  assert.equal(unreviewed.status, 'การอ้างอิงไม่สมบูรณ์');
+  assert.equal(unreviewed.citedEvidence[0].eligible, false);
+  assert.match(unreviewed.observations.join(' '), /ไม่นับเป็นหลักฐานรองรับ/);
+});
+
+test('Feature 12F surfaces all four human comparison states and keeps notes separate from evidence', () => {
+  const { buildClaimEvidenceMatrix } = createAcademicDraftHelpers();
+  const context = academicContext(2); context.sources.push({ source_id: 'SRC-B', title: 'ต้นทาง B' }); context.evidence[1].source_id = 'SRC-B';
+  const draft = evidenceReadyDraft(context, [0, 1]);
+  for (const relationship of ['สอดคล้องกัน', 'แตกต่างกัน', 'อาจขัดแย้งกัน', 'ยังสรุปไม่ได้']) {
+    const note = 'บันทึกผู้ใช้ซึ่งไม่ใช่หลักฐาน';
+    const row = buildClaimEvidenceMatrix(draft, context, [comparisonAssessmentFor(context, 0, 1, relationship, note)])[0];
+    assert.ok(row.observations.includes(`การประเมินโดยผู้ใช้: ${relationship}`));
+    assert.ok(row.observations.includes(`หมายเหตุจากผู้ใช้ (ไม่ใช่หลักฐาน): ${note}`));
+    assert.equal(row.citedEvidence.some(item => item.excerpt.includes(note)), false);
+    assert.equal(row.status, ['อาจขัดแย้งกัน', 'ยังสรุปไม่ได้'].includes(relationship) ? 'มีประเด็นที่ควรตรวจสอบ' : 'มีหลักฐานหลายแหล่ง');
+  }
+});
+
+test('Feature 12F complements unchanged Feature 12D readiness and all six Feature 12E templates', () => {
+  const { buildClaimEvidenceMatrix, applyKnowledgeTemplate, evaluateDraftReadiness } = createAcademicDraftHelpers();
+  const context = academicContext(1); const draft = evidenceReadyDraft(context);
+  const before = evaluateDraftReadiness(draft, context).status;
+  for (const templateId of ['article', 'practice', 'qa', 'checklist', 'case_study', 'legal_summary']) {
+    const templated = applyKnowledgeTemplate(draft, templateId); templated.acceptedClaimIds = ['claim-1'];
+    assert.equal(buildClaimEvidenceMatrix(templated, context)[0].status, 'มีหลักฐานรองรับ');
+    assert.equal(evaluateDraftReadiness(templated, context).status, before);
+  }
+  const readinessStart = productionHtml.indexOf('function evaluateDraftReadiness(');
+  const readinessEnd = productionHtml.indexOf('\n  function draftReadinessSignature(', readinessStart);
+  assert.ok(readinessStart >= 0 && readinessEnd > readinessStart);
+  assert.doesNotMatch(productionHtml.slice(readinessStart, readinessEnd), /buildClaimEvidenceMatrix/);
+});
+
+test('Feature 12F matrix remains session-only, local, and separate from Authoring workflow actions', () => {
+  const start = productionHtml.indexOf('function buildClaimEvidenceMatrix(');
+  const end = productionHtml.indexOf('\n  function academicCitationForEvidence(', start);
+  const helper = productionHtml.slice(start, end);
+  assert.ok(start >= 0 && end > start);
+  assert.doesNotMatch(helper, /fetch\s*\(|sendBeacon|setDoc|updateDoc|addDoc|writeBatch|logEvent|localStorage|sessionStorage|indexedDB/);
+  assert.match(productionHtml, /function renderDraftClaimEvidenceMatrix\(\)/);
+  assert.match(productionHtml, /ดูหลักฐานฉบับเต็ม/);
+  assert.match(productionHtml, /function confirmAcademicTransfer\(\)[\s\S]*startNewContent\('knowledge'\)/);
+  assert.doesNotMatch(productionHtml.slice(productionHtml.indexOf('function confirmAcademicTransfer()'), productionHtml.indexOf('\n  async function runAcademicDraftMethod', productionHtml.indexOf('function confirmAcademicTransfer()'))), /saveDraftToFirestore|submitForReview|approveContent|publishContent/);
 });
