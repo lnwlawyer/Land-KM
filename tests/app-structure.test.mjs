@@ -2620,3 +2620,55 @@ test('Feature 13A Questions are neither persisted nor automatically sent to AI o
   assert.match(source, /ranked\.sort/);
   assert.match(source, /permission-denied/);
 });
+
+test('PWA manifest, install icons, and production Hosting links are complete', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../public/manifest.webmanifest', import.meta.url), 'utf8'));
+  assert.match(productionHtml, /<link rel="manifest" href="\/manifest\.webmanifest">/);
+  assert.match(productionHtml, /<title>Land-KM — คลังความรู้งานทะเบียนที่ดิน<\/title>/);
+  assert.match(productionHtml, /apple-mobile-web-app-capable/);
+  assert.match(productionHtml, /viewport-fit=cover/);
+  assert.equal(manifest.name, 'Land-KM');
+  assert.equal(manifest.short_name, 'Land-KM');
+  assert.equal(manifest.lang, 'th');
+  assert.equal(manifest.start_url, '/');
+  assert.equal(manifest.scope, '/');
+  assert.equal(manifest.display, 'standalone');
+  assert.ok(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'any'));
+  assert.ok(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'maskable'));
+  assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'maskable'));
+  assert.equal(firebaseConfig.hosting.public, 'public');
+
+  for (const size of [192, 512]) {
+    for (const suffix of ['', '-maskable']) {
+      const icon = await readFile(new URL(`../public/icons/icon-${size}${suffix}.png`, import.meta.url));
+      assert.equal(icon.readUInt32BE(0), 0x89504e47);
+      assert.equal(icon.readUInt32BE(16), size);
+      assert.equal(icon.readUInt32BE(20), size);
+    }
+  }
+});
+
+test('PWA service worker is online-only, navigation network-first, and does not cache requests', async () => {
+  const worker = await readFile(new URL('../public/sw.js', import.meta.url), 'utf8');
+  assert.match(productionHtml, /serviceWorker\.register\('\/sw\.js',\s*\{\s*scope:\s*'\/'\s*\}\)/);
+  assert.match(worker, /request\.mode !== 'navigate'/);
+  assert.match(worker, /new URL\(request\.url\)\.origin !== self\.location\.origin/);
+  assert.match(worker, /respondWith\(fetch\(request\)\.catch/);
+  assert.match(worker, /self\.skipWaiting\(\)/);
+  assert.match(worker, /self\.clients\.claim\(\)/);
+  assert.doesNotMatch(worker, /\bcaches\b|CacheStorage|indexedDB|localStorage|sessionStorage|firebase|firestore|Authorization/i);
+  assert.match(worker, /Cache-Control': 'no-store'/);
+});
+
+test('PWA install UX is conditional and preserves existing Google sign-in', () => {
+  assert.match(productionHtml, /id="pwaInstallButton"[^>]*hidden>ติดตั้ง Land-KM/);
+  assert.match(productionHtml, /addEventListener\('beforeinstallprompt'/);
+  assert.match(productionHtml, /installButton\.hidden = !installPrompt/);
+  assert.match(productionHtml, /addEventListener\('appinstalled'/);
+  assert.match(productionHtml, /navigator\.standalone === true/);
+  assert.match(productionHtml, /เพิ่มไปยังหน้าจอโฮม/);
+  assert.match(productionHtml, /signInWithPopup\(auth, provider\)/);
+  assert.doesNotMatch(productionHtml, /signInWithRedirect\(auth/);
+  assert.match(productionHtml, /window\.addEventListener\('offline'.*showSystemBanner/);
+});

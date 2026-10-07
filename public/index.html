@@ -2,8 +2,16 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Land KM — ต้นแบบหน้าจอปรับปรุง</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#087f73">
+  <meta name="description" content="คลังความรู้และแนวทางปฏิบัติงานทะเบียนที่ดิน Land-KM">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Land-KM">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>Land-KM — คลังความรู้งานทะเบียนที่ดิน</title>
   <style>
     :root{--ink:#17233b;--muted:#667085;--line:#e3e8ef;--soft:#f5f8fb;--brand:#087f73;--brand2:#0ba88f;--white:#fff;--warn:#b54708}
     *{box-sizing:border-box}[hidden]{display:none!important} body{margin:0;font-family:"Noto Sans Thai","Tahoma",sans-serif;background:#f5f7fa;color:var(--ink)}
@@ -141,7 +149,8 @@
     .ingestion-workspace{display:grid;gap:14px}.ingestion-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.ingestion-form .field{min-width:0}.ingestion-form textarea{width:100%;min-height:220px;resize:vertical}.ingestion-list,.evidence-list{display:grid;gap:10px}.ingestion-card,.evidence-card,.grounding-preview{min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff;overflow-wrap:anywhere}.evidence-card pre,.grounding-preview pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit;line-height:1.65;margin:10px 0}.evidence-controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.evidence-card:focus-within{outline:2px solid var(--brand);outline-offset:2px}.import-method-tabs{display:flex;flex-wrap:wrap;gap:8px;grid-column:1/-1}.import-method-tabs [aria-selected=true]{outline:2px solid var(--brand);outline-offset:2px}.import-method-panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;grid-column:1/-1}.import-method-panel[hidden]{display:none}.import-preview{display:grid;gap:10px;min-width:0}.import-preview h3{margin:0}.import-preview[hidden]{display:none}.import-preview .source-actions{display:flex;flex-wrap:wrap;gap:8px}.import-preview .source-actions .btn{min-height:44px}.import-preview [role=status]{overflow-wrap:anywhere}
     @media(max-width:700px){.ingestion-form,.import-method-panel{grid-template-columns:minmax(0,1fr)}.ingestion-card,.evidence-card,.grounding-preview{padding:12px}.ingestion-workspace .source-actions,.import-preview .source-actions{display:grid;grid-template-columns:minmax(0,1fr)}.import-method-tabs{display:grid;grid-template-columns:minmax(0,1fr)}.import-method-tabs .btn{width:100%;min-height:44px}.ingestion-form input[type=file]{max-width:100%}}
   </style>
-<style id="groundedAcademicDraftStyles">.draft-workspace{display:grid;gap:16px;margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}.draft-workspace[hidden]{display:none}.draft-workspace section{min-width:0}.draft-workspace h3{margin:12px 0 8px}.draft-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.draft-claims,.draft-sections{display:grid;gap:10px}.draft-claim{min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere}.draft-claim textarea,.draft-workspace textarea,.draft-workspace input{box-sizing:border-box;width:100%;max-width:100%;min-width:0}.draft-claim textarea,.draft-workspace textarea{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}.draft-supported{border-inline-start:5px solid #19765d}.draft-partial{border-inline-start:5px solid #9a6a00;background:#fffaf0}.draft-unsupported{border-inline-start:5px solid #a43b35;background:#fff6f5}.draft-citation,.draft-warning,.draft-edit-warning{overflow-wrap:anywhere;word-break:break-word}.draft-warning{padding:10px;border:1px solid #c8a75b;border-radius:8px;background:#fff8e6}.draft-edit-warning{font-weight:700;color:#793e08}.draft-workspace .source-actions{display:flex;flex-wrap:wrap;gap:8px}.draft-workspace pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit}.draft-workspace details{min-width:0}@media(max-width:700px){.draft-workspace{padding:12px}.draft-workspace .source-actions{display:grid;grid-template-columns:minmax(0,1fr)}.draft-workspace .source-actions .btn{width:100%;min-height:44px;white-space:normal}}.provider-panel,.gateway-preview{display:grid;gap:12px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff}.provider-panel[hidden],.gateway-preview[hidden]{display:none}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.provider-grid .field{min-width:0}.gateway-preview pre{max-height:360px;overflow:auto}@media(max-width:700px){.provider-panel,.gateway-preview{padding:12px}.provider-grid{grid-template-columns:minmax(0,1fr)}.gateway-preview pre{max-height:280px}}</style></head>
+<style id="groundedAcademicDraftStyles">.draft-workspace{display:grid;gap:16px;margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:0}.draft-workspace[hidden]{display:none}.draft-workspace section{min-width:0}.draft-workspace h3{margin:12px 0 8px}.draft-controls{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.draft-claims,.draft-sections{display:grid;gap:10px}.draft-claim{min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;overflow-wrap:anywhere}.draft-claim textarea,.draft-workspace textarea,.draft-workspace input{box-sizing:border-box;width:100%;max-width:100%;min-width:0}.draft-claim textarea,.draft-workspace textarea{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}.draft-supported{border-inline-start:5px solid #19765d}.draft-partial{border-inline-start:5px solid #9a6a00;background:#fffaf0}.draft-unsupported{border-inline-start:5px solid #a43b35;background:#fff6f5}.draft-citation,.draft-warning,.draft-edit-warning{overflow-wrap:anywhere;word-break:break-word}.draft-warning{padding:10px;border:1px solid #c8a75b;border-radius:8px;background:#fff8e6}.draft-edit-warning{font-weight:700;color:#793e08}.draft-workspace .source-actions{display:flex;flex-wrap:wrap;gap:8px}.draft-workspace pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit}.draft-workspace details{min-width:0}@media(max-width:700px){.draft-workspace{padding:12px}.draft-workspace .source-actions{display:grid;grid-template-columns:minmax(0,1fr)}.draft-workspace .source-actions .btn{width:100%;min-height:44px;white-space:normal}}.provider-panel,.gateway-preview{display:grid;gap:12px;min-width:0;padding:14px;border:1px solid var(--line);border-radius:10px;background:#fff}.provider-panel[hidden],.gateway-preview[hidden]{display:none}.provider-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.provider-grid .field{min-width:0}.gateway-preview pre{max-height:360px;overflow:auto}@media(max-width:700px){.provider-panel,.gateway-preview{padding:12px}.provider-grid{grid-template-columns:minmax(0,1fr)}.gateway-preview pre{max-height:280px}}</style>
+<style id="pwaStyles">@supports(padding:env(safe-area-inset-top)){.topbar{padding-top:env(safe-area-inset-top);padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right))}}#pwaIosInstallHelp{margin:8px 16px;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:13px}#pwaInstallButton,#pwaIosHelpButton{white-space:nowrap}@media(max-width:700px){#pwaInstallButton,#pwaIosHelpButton{min-height:42px}.top-actions{gap:5px}}</style></head>
 <body>
 <script>
   (() => {
@@ -255,7 +264,7 @@
     <div class="account"><div class="avatar" id="userAvatar">P</div><div><b id="userName">ผู้ดูแลระบบ</b><small id="userEmail">ยังไม่ได้เข้าสู่ระบบ</small></div></div>
   </aside>
   <main>
-    <header class="topbar"><div><button class="iconbtn mobile-menu">☰</button> <span class="crumb">ระบบจัดการความรู้ › <b id="pageName">หน้าแรก</b></span></div><div class="top-actions"><span class="tag orange" id="firebaseStatus">กำลังเชื่อม Firebase…</span><button class="iconbtn">🔔</button><button class="btn primary" id="propose">＋ เสนอองค์ความรู้</button><button class="btn" id="signOutButton">ออกจากระบบ</button></div></header>
+    <header class="topbar"><div><button class="iconbtn mobile-menu">☰</button> <span class="crumb">ระบบจัดการความรู้ › <b id="pageName">หน้าแรก</b></span></div><div class="top-actions"><span class="tag orange" id="firebaseStatus">กำลังเชื่อม Firebase…</span><button class="btn pwa-install" id="pwaInstallButton" type="button" hidden>ติดตั้ง Land-KM</button><button class="btn pwa-install" id="pwaIosHelpButton" type="button" aria-expanded="false" aria-controls="pwaIosInstallHelp" hidden>วิธีเพิ่มลงหน้าจอ</button><button class="iconbtn">🔔</button><button class="btn primary" id="propose">＋ เสนอองค์ความรู้</button><button class="btn" id="signOutButton">ออกจากระบบ</button></div></header>
     <div class="system-banner" id="systemBanner" role="status" hidden><span id="systemBannerText"></span><button type="button" id="systemRetryButton" hidden>ลองใหม่</button></div>
     <div class="page">
       <section class="view active" id="home" aria-labelledby="dashboardTitle">
@@ -9515,6 +9524,54 @@
       setLoading(false);
     }
   });
+</script>
+<script>
+  (() => {
+    const installButton = document.getElementById('pwaInstallButton');
+    const iosHelpButton = document.getElementById('pwaIosHelpButton');
+    const iosHelp = document.createElement('p');
+    iosHelp.id = 'pwaIosInstallHelp';
+    iosHelp.textContent = 'ใน Safari แตะปุ่มแชร์ แล้วเลือก “เพิ่มไปยังหน้าจอโฮม”';
+    iosHelp.hidden = true;
+    document.querySelector('.topbar')?.insertAdjacentElement('afterend', iosHelp);
+    let installPrompt = null;
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const isAppleMobile = /iPad|iPhone|iPod/.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+    const isIosSafari = isAppleMobile && /Safari/.test(navigator.userAgent) && !/CriOS|FxiOS|EdgiOS|OPiOS/.test(navigator.userAgent);
+    const updateInstallControls = () => {
+      if (isStandalone()) {
+        installButton.hidden = true;
+        iosHelpButton.hidden = true;
+        return;
+      }
+      installButton.hidden = !installPrompt;
+      iosHelpButton.hidden = !isIosSafari;
+    };
+    window.addEventListener('beforeinstallprompt', event => {
+      event.preventDefault();
+      installPrompt = event;
+      updateInstallControls();
+    });
+    installButton.addEventListener('click', async () => {
+      if (!installPrompt) return;
+      const prompt = installPrompt;
+      installPrompt = null;
+      updateInstallControls();
+      try { await prompt.prompt(); await prompt.userChoice; }
+      catch (_) { /* Browser cancellation or unsupported prompt leaves the app usable. */ }
+    });
+    iosHelpButton.addEventListener('click', () => {
+      const open = iosHelp.hidden;
+      iosHelp.hidden = !open;
+      iosHelpButton.setAttribute('aria-expanded', String(open));
+    });
+    window.addEventListener('appinstalled', () => { installPrompt = null; updateInstallControls(); });
+    window.matchMedia('(display-mode: standalone)').addEventListener?.('change', updateInstallControls);
+    updateInstallControls();
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname))) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {}), { once: true });
+    }
+  })();
 </script>
 </body>
 </html>
