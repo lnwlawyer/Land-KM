@@ -1,11 +1,55 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import { inflateSync } from 'node:zlib';
 
 const productionHtmlUrl = new URL('../public/index.html', import.meta.url);
 const productionHtml = await readFile(productionHtmlUrl, 'utf8');
 const firestoreRules = await readFile(new URL('../firestore.rules', import.meta.url), 'utf8');
 const firebaseConfig = JSON.parse(await readFile(new URL('../firebase.json', import.meta.url), 'utf8'));
+
+function readPngDimensionsAndValidate(bytes) {
+  assert.equal(bytes.toString('hex', 0, 8), '89504e470d0a1a0a');
+  const crc32 = data => {
+    let crc = 0xffffffff;
+    for (const byte of data) {
+      crc ^= byte;
+      for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ ((crc & 1) ? 0xedb88320 : 0);
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+  };
+  let offset = 8;
+  let header;
+  const imageData = [];
+  let sawEnd = false;
+  while (offset < bytes.length) {
+    const length = bytes.readUInt32BE(offset);
+    const type = bytes.toString('ascii', offset + 4, offset + 8);
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    assert.ok(dataEnd + 4 <= bytes.length, `truncated PNG ${type} chunk`);
+    assert.equal(bytes.readUInt32BE(dataEnd), crc32(bytes.subarray(offset + 4, dataEnd)), `invalid PNG ${type} checksum`);
+    if (type === 'IHDR') header = bytes.subarray(dataStart, dataEnd);
+    if (type === 'IDAT') imageData.push(bytes.subarray(dataStart, dataEnd));
+    if (type === 'IEND') { sawEnd = true; assert.equal(dataEnd + 4, bytes.length); break; }
+    offset = dataEnd + 4;
+  }
+  assert.ok(header, 'PNG must have an IHDR chunk');
+  assert.ok(sawEnd, 'PNG must have an IEND chunk');
+  assert.ok(imageData.length, 'PNG must have image data');
+  const width = header.readUInt32BE(0);
+  const height = header.readUInt32BE(4);
+  const bitDepth = header[8];
+  const channels = ({ 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 })[header[9]];
+  assert.equal(bitDepth, 8, 'PWA icons use 8-bit PNG channels');
+  assert.ok(channels, 'PNG must use a supported color type');
+  assert.equal(header[12], 0, 'PWA PNGs must use non-interlaced encoding');
+  const decoded = inflateSync(Buffer.concat(imageData));
+  const rowBytes = width * channels;
+  assert.equal(decoded.length, (rowBytes + 1) * height, 'PNG image stream dimensions must decode completely');
+  for (let y = 0; y < height; y++) assert.ok(decoded[y * (rowBytes + 1)] <= 4, 'PNG row filter must be valid');
+  return { width, height };
+}
 
 test('usageStats fallback query has a declared Firestore composite index', async () => {
   const loadUsageStatsStart = productionHtml.indexOf('async function loadUsageStats()');
@@ -2633,20 +2677,35 @@ test('PWA manifest, install icons, and production Hosting links are complete', a
   assert.equal(manifest.start_url, '/');
   assert.equal(manifest.scope, '/');
   assert.equal(manifest.display, 'standalone');
-  assert.ok(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'any'));
-  assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'any'));
-  assert.ok(manifest.icons.some(icon => icon.sizes === '192x192' && icon.purpose === 'maskable'));
-  assert.ok(manifest.icons.some(icon => icon.sizes === '512x512' && icon.purpose === 'maskable'));
+  assert.deepEqual(manifest.icons, [
+    { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icons/icon-192-maskable.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+  ]);
   assert.equal(firebaseConfig.hosting.public, 'public');
+  assert.ok(manifest.icons.every(icon => icon.src.startsWith('/icons/') && !/^https?:/i.test(icon.src)));
 
-  for (const size of [192, 512]) {
-    for (const suffix of ['', '-maskable']) {
-      const icon = await readFile(new URL(`../public/icons/icon-${size}${suffix}.png`, import.meta.url));
-      assert.equal(icon.readUInt32BE(0), 0x89504e47);
-      assert.equal(icon.readUInt32BE(16), size);
-      assert.equal(icon.readUInt32BE(20), size);
-    }
+  const iconBytes = new Map();
+  for (const icon of manifest.icons) {
+    const bytes = await readFile(new URL(`../public${icon.src}`, import.meta.url));
+    iconBytes.set(icon.src, bytes);
+    const dimensions = readPngDimensionsAndValidate(bytes);
+    assert.deepEqual(dimensions, {
+      width: Number(icon.sizes.split('x')[0]),
+      height: Number(icon.sizes.split('x')[1])
+    }, `${icon.src} must match manifest dimensions`);
   }
+  assert.ok(!iconBytes.get('/icons/icon-192.png').equals(iconBytes.get('/icons/icon-192-maskable.png')));
+  assert.ok(!iconBytes.get('/icons/icon-512.png').equals(iconBytes.get('/icons/icon-512-maskable.png')));
+  const masterBytes = await readFile(new URL('../public/icons/land-km-icon-source.png', import.meta.url));
+  assert.deepEqual(readPngDimensionsAndValidate(masterBytes), { width: 512, height: 512 });
+  assert.ok(iconBytes.get('/icons/icon-512.png').equals(masterBytes), '512 any icon preserves the supplied master PNG exactly');
+
+  assert.match(productionHtml, /<link rel="apple-touch-icon" sizes="180x180" href="\/icons\/apple-touch-icon\.png">/);
+  const appleIcon = await readFile(new URL('../public/icons/apple-touch-icon.png', import.meta.url));
+  assert.deepEqual(readPngDimensionsAndValidate(appleIcon), { width: 180, height: 180 });
+  assert.match(productionHtml, /<link rel="icon" href="\/icons\/icon-192\.png" type="image\/png" sizes="192x192">/);
 });
 
 test('PWA service worker is online-only, navigation network-first, and does not cache requests', async () => {
