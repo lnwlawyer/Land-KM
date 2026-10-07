@@ -1122,6 +1122,69 @@ test('Feature 14A Admin withdrawal atomically records lifecycle history and hide
   await assertFails(getDoc(doc(dbAs('user'), 'sources', seeded.sourceId, 'ingestions', seeded.ingestionId, 'evidence', seeded.evidenceId)));
 });
 
+test('Feature 15 Admin archive and restore use atomic lifecycle history and keep archived content unreadable to viewers', async () => {
+  await assertFails(commitLifecycleBatch('editor', 'CNT-DRAFT', {
+    nextStatus: 'archived', action: 'archive', reason: 'editor cannot archive'
+  }));
+  await assertFails(commitLifecycleBatch('reviewer', 'CNT-DRAFT', {
+    nextStatus: 'archived', action: 'archive', reason: 'reviewer cannot archive'
+  }));
+  await assertFails(commitLifecycleBatch('user', 'CNT-DRAFT', {
+    nextStatus: 'archived', action: 'archive', reason: 'viewer cannot archive'
+  }));
+  await assertFails(commitLifecycleBatch('inactiveAdmin', 'CNT-DRAFT', {
+    nextStatus: 'archived', action: 'archive', reason: 'inactive admin cannot archive'
+  }));
+  await assertFails(commitLifecycleBatch('admin', 'CNT-PUBLISHED', {
+    nextStatus: 'archived', action: 'archive', reason: 'must withdraw first'
+  }));
+  assert.equal((await getDoc(doc(dbAs('admin'), 'contents', 'CNT-PUBLISHED'))).data().workflow_status, 'published');
+  await assertSucceeds(getDoc(doc(dbAs('user'), 'contents', 'CNT-PUBLISHED')));
+
+  const { db: adminDb, versionId } = await commitLifecycleBatch('admin', 'CNT-DRAFT', {
+    nextStatus: 'archived', action: 'archive', reason: 'ไม่ใช้เนื้อหาฉบับนี้แล้ว'
+  });
+  assert.equal((await getDoc(doc(adminDb, 'contents', 'CNT-DRAFT'))).data().workflow_status, 'archived');
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', 'CNT-DRAFT')));
+  await assertFails(getDocs(query(collection(dbAs('user'), 'contents'), where('workflow_status', '==', 'archived'))));
+  await assertSucceeds(getDoc(doc(dbAs('admin'), 'contentVersions', versionId)));
+  const archiveEvent = (await getDoc(doc(adminDb, 'contentVersions', versionId))).data();
+  assert.equal(archiveEvent.action, 'archive');
+  assert.equal(archiveEvent.lifecycle_from, 'draft');
+  assert.equal(archiveEvent.lifecycle_to, 'archived');
+  assert.equal(archiveEvent.change_reason, 'ไม่ใช้เนื้อหาฉบับนี้แล้ว');
+  assert.equal(archiveEvent.editor_email, accounts.admin.email);
+
+  for (const role of ['editor', 'reviewer', 'user', 'inactiveAdmin']) {
+    await assertFails(commitLifecycleBatch(role, 'CNT-DRAFT', {
+      nextStatus: 'draft', action: 'restore', reason: `${role} cannot restore archived content`
+    }));
+  }
+  await assertFails(commitLifecycleBatch('admin', 'CNT-DRAFT', {
+    nextStatus: 'approved', action: 'restore', reason: 'archived restore must return to draft'
+  }));
+  assert.equal((await getDoc(doc(adminDb, 'contents', 'CNT-DRAFT'))).data().workflow_status, 'archived');
+  const restored = await commitLifecycleBatch('admin', 'CNT-DRAFT', {
+    nextStatus: 'draft', action: 'restore', reason: 'นำกลับมาใช้เพื่อปรับปรุง'
+  });
+  assert.equal((await getDoc(doc(adminDb, 'contents', 'CNT-DRAFT'))).data().workflow_status, 'draft');
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', 'CNT-DRAFT')));
+  assert.equal((await getDoc(doc(adminDb, 'contentVersions', restored.versionId))).data().lifecycle_to, 'draft');
+  assert.equal((await getDoc(doc(adminDb, 'contentVersions', versionId))).data().action, 'archive');
+
+  const withProjection = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-ARCHIVE-PROJECTION', sourceId: 'SRC-ARCHIVE-PROJECTION'
+  });
+  await commitLifecycleBatch('admin', withProjection.contentId, {
+    nextStatus: 'draft', action: 'withdraw', reason: 'ถอนก่อนเก็บเข้าคลัง'
+  });
+  await commitLifecycleBatch('admin', withProjection.contentId, {
+    nextStatus: 'archived', action: 'archive', reason: 'ไม่ใช้ฉบับนี้แล้ว'
+  });
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', withProjection.contentId)));
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', withProjection.contentId, 'publishedEvidence', withProjection.sourceId)));
+});
+
 test('Feature 14A non-Admin withdrawal and invalid history fail without changing published state', async () => {
   const seeded = await seedPublishedEvidenceScenario({
     contentId: 'CNT-F14A-DENY', sourceId: 'SRC-F14A-DENY'

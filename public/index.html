@@ -865,7 +865,7 @@
     tbody.querySelector('.manage-filter-empty')?.remove();
     let visibleCount = 0;
     tbody.querySelectorAll('tr[data-content-row]').forEach(row => {
-      const visible = activeManageFilter === 'all'
+      const visible = (activeManageFilter === 'all' && row.dataset.status !== 'archived')
         || row.dataset.status === activeManageFilter
         || (activeManageFilter === 'due' && row.dataset.reviewDue === 'true');
       row.hidden = !visible;
@@ -881,7 +881,26 @@
 
   function setupManageTabs() {
     const filters = ['all', 'draft', 'review', 'published', 'due'];
-    document.querySelectorAll('#manageView > .tabs button').forEach((button, index) => {
+    const tabs = document.querySelector('#manageView > .tabs');
+    if (!tabs) return;
+    let archivedTab = tabs.querySelector('[data-manage-filter="archived"]');
+    if (!archivedTab) {
+      archivedTab = document.createElement('button');
+      archivedTab.type = 'button';
+      archivedTab.textContent = 'เก็บถาวร';
+      archivedTab.dataset.manageFilter = 'archived';
+      archivedTab.onclick = () => {
+        activeManageFilter = 'archived';
+        setupManageTabs();
+        applyManageFilter();
+      };
+      tabs.appendChild(archivedTab);
+    }
+    archivedTab.hidden = currentUserProfile?.role !== 'admin';
+    if (archivedTab.hidden && activeManageFilter === 'archived') activeManageFilter = 'all';
+    archivedTab.classList.toggle('active', activeManageFilter === 'archived');
+    archivedTab.setAttribute('aria-selected', String(activeManageFilter === 'archived'));
+    [...tabs.querySelectorAll('button')].filter(button => button !== archivedTab).forEach((button, index) => {
       const filter = filters[index] || 'all';
       button.dataset.manageFilter = filter;
       button.classList.toggle('active', filter === activeManageFilter);
@@ -2068,6 +2087,7 @@
       items.forEach(item => {
         const row = document.createElement('tr');
         row.dataset.contentRow = 'true';
+        row.dataset.contentId = item.id;
         row.dataset.status = item.workflow_status || '';
         row.dataset.reviewDue = String(Boolean(
           item.review_due
@@ -2075,7 +2095,7 @@
           && item.workflow_status !== 'archived'
         ));
         const updated = item.updated_at?.toDate ? item.updated_at.toDate().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'เมื่อสักครู่';
-        row.innerHTML = `<td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td></td><td><span class="tag orange"></span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn version-history">ประวัติฉบับ</button><button class="btn preview-content">ดูตัวอย่าง</button><button class="btn edit-content">แก้ไข</button><button class="btn withdraw-content" hidden>ถอนจากการเผยแพร่</button><button class="btn primary approve-content" hidden>อนุมัติ</button><button class="btn primary publish-content" hidden>เผยแพร่</button></div></td>`;
+        row.innerHTML = `<td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td></td><td><span class="tag orange"></span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn version-history">ประวัติฉบับ</button><button class="btn preview-content">ดูตัวอย่าง</button><button class="btn edit-content">แก้ไข</button><button class="btn withdraw-content" hidden>ถอนจากการเผยแพร่</button><button class="btn archive-content" hidden>เก็บถาวร</button><button class="btn restore-archived-content" hidden>นำกลับมาใช้งาน</button><button class="btn primary approve-content" hidden>อนุมัติ</button><button class="btn primary publish-content" hidden>เผยแพร่</button></div></td>`;
         row.querySelector('b').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
         row.querySelector('small').textContent = getCategoryDisplay(item.category_id).text;
         row.children[1].textContent = typeLabels[item.content_type] || item.content_type || '-';
@@ -2088,13 +2108,19 @@
         const previewButton = row.querySelector('.preview-content');
         previewButton.hidden = !['admin', 'reviewer'].includes(role) && !(role === 'editor' && (ownsItem || item.workflow_status === 'published'));
         previewButton.onclick = () => previewSavedContent(item);
-        const canEditItem = role === 'admin' || (role === 'editor' && ownsItem && ['draft', 'review'].includes(item.workflow_status));
+        const canEditItem = (role === 'admin' && item.workflow_status !== 'archived') || (role === 'editor' && ownsItem && ['draft', 'review'].includes(item.workflow_status));
         const editButton = row.querySelector('.edit-content');
         editButton.hidden = !canEditItem;
         editButton.onclick = () => editContent(item.id);
         const withdrawButton = row.querySelector('.withdraw-content');
         withdrawButton.hidden = !(role === 'admin' && item.workflow_status === 'published');
         withdrawButton.onclick = () => withdrawPublishedContent(item.id);
+        const archiveButton = row.querySelector('.archive-content');
+        archiveButton.hidden = !(role === 'admin' && ['draft', 'review', 'approved'].includes(item.workflow_status));
+        archiveButton.onclick = () => void archiveContent(item.id, archiveButton);
+        const restoreArchivedButton = row.querySelector('.restore-archived-content');
+        restoreArchivedButton.hidden = !(role === 'admin' && item.workflow_status === 'archived');
+        restoreArchivedButton.onclick = () => void restoreArchivedContent(item.id, restoreArchivedButton);
         const approveButton = row.querySelector('.approve-content');
         if (item.workflow_status === 'review' && (role === 'admin' || role === 'reviewer')) {
           approveButton.hidden = false;
@@ -7465,6 +7491,73 @@
     }
   }
 
+  async function archiveContent(id, button = null) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (currentUserProfile?.role !== 'admin' || !item) return window.toast('เก็บถาวรได้เฉพาะผู้ดูแลระบบ');
+    if (item.workflow_status === 'published') return window.toast('เนื้อหานี้กำลังเผยแพร่ กรุณาถอนจากการเผยแพร่ก่อนเก็บถาวร');
+    if (!['draft', 'review', 'approved'].includes(item.workflow_status)) return window.toast('เก็บถาวรได้เฉพาะเนื้อหาที่ยังไม่เผยแพร่และยังไม่อยู่ในคลัง');
+    if (!window.confirm(`เก็บ “${item.title || item.content_id || id}” เข้าคลังหรือไม่? เนื้อหาจะไม่ปรากฏในรายการใช้งาน ค้นหา หรือถามจากคลัง แต่ข้อมูลและประวัติจะยังคงอยู่ และสามารถนำกลับมาใช้ได้`)) {
+      window.toast('ยกเลิกการเก็บถาวรแล้ว');
+      return false;
+    }
+    const reason = window.prompt('ระบุเหตุผลสั้น ๆ สำหรับการเก็บถาวร (3–300 ตัวอักษร)')?.trim() || '';
+    if (reason.length < 3 || reason.length > 300) return window.toast('กรุณาระบุเหตุผล 3–300 ตัวอักษร เนื้อหายังไม่เปลี่ยนแปลง');
+    if (authoringWriteInFlight) return false;
+    authoringWriteInFlight = 'archive';
+    if (button) { button.disabled = true; button.textContent = 'กำลังเก็บถาวร…'; }
+    try {
+      const lifecycle = await commitLifecycleTransition({ id, expectedStatus: item.workflow_status, nextStatus: 'archived', action: 'archive', reason });
+      item.workflow_status = 'archived';
+      item.last_lifecycle_version_id = lifecycle.versionId;
+      const row = [...document.querySelectorAll('#manageView tr[data-content-row]')].find(entry => entry.dataset.contentId === id);
+      if (row) row.dataset.status = 'archived';
+      applyManageFilter();
+      await loadContents();
+      window.toast('เก็บเนื้อหาเข้าคลังแล้ว ข้อมูลและประวัติยังคงอยู่');
+      return true;
+    } catch (error) {
+      console.error('Archive content failed:', error);
+      window.toast('เก็บเนื้อหาเข้าคลังไม่สำเร็จ ข้อมูลเดิมยังคงอยู่');
+      return false;
+    } finally {
+      authoringWriteInFlight = '';
+      if (button) { button.disabled = false; button.textContent = 'เก็บถาวร'; }
+    }
+  }
+
+  async function restoreArchivedContent(id, button = null) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (currentUserProfile?.role !== 'admin' || !item || item.workflow_status !== 'archived') return window.toast('นำกลับมาใช้งานได้เฉพาะผู้ดูแลระบบและเนื้อหาที่เก็บถาวร');
+    if (!window.confirm(`นำ “${item.title || item.content_id || id}” กลับมาใช้งานเป็นฉบับร่างหรือไม่? การคืนคลังจะไม่เผยแพร่เนื้อหาโดยอัตโนมัติ`)) {
+      window.toast('ยกเลิกการนำกลับมาใช้งานแล้ว');
+      return false;
+    }
+    const reason = window.prompt('ระบุเหตุผลสั้น ๆ สำหรับการนำกลับมาใช้งาน (3–300 ตัวอักษร)')?.trim() || '';
+    if (reason.length < 3 || reason.length > 300) return window.toast('กรุณาระบุเหตุผล 3–300 ตัวอักษร เนื้อหายังคงอยู่ในคลัง');
+    if (authoringWriteInFlight) return false;
+    authoringWriteInFlight = 'restore-archive';
+    if (button) { button.disabled = true; button.textContent = 'กำลังนำกลับ…'; }
+    try {
+      const lifecycle = await commitLifecycleTransition({ id, expectedStatus: 'archived', nextStatus: 'draft', action: 'restore', reason });
+      item.workflow_status = 'draft';
+      item.last_lifecycle_version_id = lifecycle.versionId;
+      activeManageFilter = 'all';
+      const row = [...document.querySelectorAll('#manageView tr[data-content-row]')].find(entry => entry.dataset.contentId === id);
+      if (row) row.dataset.status = 'draft';
+      applyManageFilter();
+      await loadContents();
+      window.toast('นำเนื้อหากลับมาใช้งานเป็นฉบับร่างแล้ว ต้องส่งตรวจและเผยแพร่ตามขั้นตอน');
+      return true;
+    } catch (error) {
+      console.error('Restore archived content failed:', error);
+      window.toast('นำเนื้อหากลับมาใช้งานไม่สำเร็จ เนื้อหายังคงอยู่ในคลัง');
+      return false;
+    } finally {
+      authoringWriteInFlight = '';
+      if (button) { button.disabled = false; button.textContent = 'นำกลับมาใช้งาน'; }
+    }
+  }
+
   async function preparePublishedEvidence(item) {
     const references = canonicalSourceReferences(item.source_references || []);
     const candidates = [];
@@ -7609,6 +7702,7 @@
   async function editContent(id) {
     let item = contentItems.find(entry => entry.id === id);
     if (!item) return window.toast('ไม่พบข้อมูลที่ต้องการแก้ไข');
+    if (item.workflow_status === 'archived') return window.toast('เนื้อหาอยู่ในคลัง กรุณานำกลับมาใช้งานก่อนแก้ไข');
     if (item.workflow_status === 'published') {
       if (currentUserProfile?.role !== 'admin') return window.toast('เฉพาะผู้ดูแลระบบที่เริ่มแก้ไขเนื้อหาซึ่งเผยแพร่แล้วได้');
       const withdrawn = await withdrawPublishedContent(id, { forRevision: true });
@@ -8800,9 +8894,10 @@
       const currentStatus = currentContent.data().workflow_status;
       const snapshotStatus = contentData.workflow_status || currentStatus;
       const restoringPublished = snapshotStatus === 'published';
-      const restoredStatus = restoringPublished ? 'draft' : snapshotStatus;
-      const confirmation = restoringPublished
-        ? `ฉบับ ${version.version_number} เคยเผยแพร่แล้ว การย้อนกลับจะคืนข้อมูลเป็นฉบับร่าง และต้องส่งตรวจ อนุมัติ และเผยแพร่ใหม่ ยืนยันหรือไม่?`
+      const restoringArchived = currentStatus === 'archived';
+      const restoredStatus = restoringPublished || restoringArchived ? 'draft' : snapshotStatus;
+      const confirmation = restoringPublished || restoringArchived
+        ? `ฉบับ ${version.version_number} เคยเผยแพร่หรือรายการอยู่ในคลัง การย้อนกลับจะคืนข้อมูลเป็นฉบับร่าง และต้องส่งตรวจ อนุมัติ และเผยแพร่ใหม่ ยืนยันหรือไม่?`
         : `ยืนยันย้อนกลับเป็นฉบับ ${version.version_number} หรือไม่? ระบบจะบันทึกการย้อนกลับไว้ในประวัติ`;
       if (!confirm(confirmation)) return;
       await ensureBaselineVersion(activeVersionContentId);

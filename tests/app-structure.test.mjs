@@ -1018,9 +1018,91 @@ test('Feature 14A commits lifecycle transitions with history and replaces timest
   const restoreEnd = productionHtml.indexOf('\n  document.getElementById(\'refreshGapDashboard\')', restoreStart);
   const restore = productionHtml.slice(restoreStart, restoreEnd);
   assert.match(restore, /const snapshotStatus = contentData\.workflow_status \|\| currentStatus/);
-  assert.match(restore, /const restoredStatus = restoringPublished \? 'draft' : snapshotStatus/);
+  assert.match(restore, /const restoredStatus = restoringPublished \|\| restoringArchived \? 'draft' : snapshotStatus/);
   assert.match(restore, /action: 'restore'/);
   assert.match(restore, /commitLifecycleTransition\(/);
+});
+
+test('Admin archive is reversible, role-gated, audited, and never publishes on restore', async () => {
+  const listStart = productionHtml.indexOf('async function loadContents(reset = true)');
+  const listEnd = productionHtml.indexOf('\n  function renderContentReports', listStart);
+  const list = productionHtml.slice(listStart, listEnd);
+  assert.match(list, /button class="btn archive-content" hidden>เก็บถาวร/);
+  assert.match(list, /button class="btn restore-archived-content" hidden>นำกลับมาใช้งาน/);
+  assert.match(list, /archiveButton\.hidden = !\(role === 'admin' && \['draft', 'review', 'approved'\]\.includes\(item\.workflow_status\)\)/);
+  assert.match(list, /restoreArchivedButton\.hidden = !\(role === 'admin' && item\.workflow_status === 'archived'\)/);
+  const filterStart = productionHtml.indexOf('function applyManageFilter()');
+  const filterEnd = productionHtml.indexOf('\n  function resetLegacyPresentation', filterStart);
+  const filters = productionHtml.slice(filterStart, filterEnd);
+  assert.match(filters, /activeManageFilter === 'all' && row\.dataset\.status !== 'archived'/);
+  assert.match(filters, /archivedTab\.hidden = currentUserProfile\?\.role !== 'admin'/);
+  assert.match(filters, /const filters = \['all', 'draft', 'review', 'published', 'due'\]/);
+
+  const lifecycleStart = productionHtml.indexOf('async function commitLifecycleTransition(');
+  const lifecycleEnd = productionHtml.indexOf('\n  async function approveContent', lifecycleStart);
+  const lifecycle = productionHtml.slice(lifecycleStart, lifecycleEnd);
+  assert.match(lifecycle, /transaction\.set\(contentRef, after/);
+  assert.match(lifecycle, /transaction\.set\(doc\(db, 'contentVersions', versionId\)/);
+  assert.match(lifecycle, /runTransaction\(db, async transaction/);
+
+  function harness(name, status, role, { confirmed = true, reason = 'ลดเนื้อหาที่ล้าสมัย', fail = false } = {}) {
+    const item = { id: 'CNT-ARCHIVE-1', title: 'เนื้อหาทดสอบ', workflow_status: status };
+    const toasts = []; const transitions = [];
+    const start = productionHtml.indexOf(`async function ${name}(`);
+    const endMarker = name === 'archiveContent' ? '\n  async function restoreArchivedContent' : '\n  async function preparePublishedEvidence';
+    const end = productionHtml.indexOf(endMarker, start);
+    assert.ok(start >= 0 && end > start);
+    const fn = new Function('contentItems', 'currentUserProfile', 'window', 'commitLifecycleTransition', 'loadContents', 'console', 'document', 'applyManageFilter',
+      `let authoringWriteInFlight = ''; let activeManageFilter = 'archived'; ${productionHtml.slice(start, end)}; return { ${name}, get activeManageFilter() { return activeManageFilter; } };`)(
+      [item], { role }, { confirm: () => confirmed, prompt: () => reason, toast: message => toasts.push(message) }, async transition => {
+        transitions.push(transition);
+        if (fail) throw new Error('synthetic write failure');
+        return { versionId: 'CNT-ARCHIVE-1_V000001' };
+      }, async () => {}, { error() {} }, { querySelectorAll: () => [] }, () => {}
+    );
+    return { item, toasts, transitions, fn: fn[name], get activeManageFilter() { return fn.activeManageFilter; } };
+  }
+
+  const published = harness('archiveContent', 'published', 'admin');
+  await published.fn('CNT-ARCHIVE-1');
+  assert.equal(published.transitions.length, 0);
+  assert.match(published.toasts.at(-1), /กรุณาถอนจากการเผยแพร่ก่อนเก็บถาวร/);
+
+  const cancelled = harness('archiveContent', 'draft', 'admin', { confirmed: false });
+  await cancelled.fn('CNT-ARCHIVE-1');
+  assert.equal(cancelled.transitions.length, 0);
+  assert.match(cancelled.toasts.at(-1), /ยกเลิก/);
+
+  const success = harness('archiveContent', 'review', 'admin');
+  await success.fn('CNT-ARCHIVE-1');
+  assert.deepEqual(success.transitions.map(({ expectedStatus, nextStatus, action, reason }) => ({ expectedStatus, nextStatus, action, reason })), [
+    { expectedStatus: 'review', nextStatus: 'archived', action: 'archive', reason: 'ลดเนื้อหาที่ล้าสมัย' }
+  ]);
+  assert.equal(success.item.workflow_status, 'archived');
+  assert.match(success.toasts.at(-1), /ยังคงอยู่/);
+
+  const deniedWrite = harness('archiveContent', 'approved', 'admin', { fail: true });
+  await deniedWrite.fn('CNT-ARCHIVE-1');
+  assert.equal(deniedWrite.item.workflow_status, 'approved');
+  assert.match(deniedWrite.toasts.at(-1), /ไม่สำเร็จ/);
+
+  const editor = harness('archiveContent', 'draft', 'editor');
+  await editor.fn('CNT-ARCHIVE-1');
+  assert.equal(editor.transitions.length, 0);
+  assert.match(editor.toasts.at(-1), /เฉพาะผู้ดูแลระบบ/);
+
+  const restored = harness('restoreArchivedContent', 'archived', 'admin');
+  await restored.fn('CNT-ARCHIVE-1');
+  assert.deepEqual(restored.transitions.map(({ expectedStatus, nextStatus, action }) => ({ expectedStatus, nextStatus, action })), [
+    { expectedStatus: 'archived', nextStatus: 'draft', action: 'restore' }
+  ]);
+  assert.equal(restored.item.workflow_status, 'draft');
+  assert.equal(restored.activeManageFilter, 'all');
+  assert.match(restored.toasts.at(-1), /ฉบับร่าง/);
+
+  const restore = productionHtml.slice(productionHtml.indexOf('async function restoreContentVersion('), productionHtml.indexOf('\n  document.getElementById(\'refreshGapDashboard\')', productionHtml.indexOf('async function restoreContentVersion(')));
+  assert.match(restore, /const restoringArchived = currentStatus === 'archived'/);
+  assert.match(restore, /restoringPublished \|\| restoringArchived \? 'draft' : snapshotStatus/);
 });
 
 test('Feature 8 reviewer/admin management list integrates Preview and existing workflow actions', () => {

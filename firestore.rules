@@ -772,9 +772,13 @@ function validLifecycleVersion(versionId, data) {
     (data.action == 'withdraw' && isAdmin() && data.lifecycle_from == 'published' && data.lifecycle_to == 'draft')
     || ((data.action == 'publish' || data.action == 'republish') && isAdmin() && data.lifecycle_from == 'approved' && data.lifecycle_to == 'published')
     || (data.action == 'approve' && (isAdmin() || isReviewer()) && data.lifecycle_from == 'review' && data.lifecycle_to == 'approved')
+    || (data.action == 'archive' && isAdmin()
+      && data.lifecycle_from in ['draft', 'review', 'approved']
+      && data.lifecycle_to == 'archived')
     || (data.action == 'restore' && isAdmin()
-      && data.lifecycle_from in ['draft', 'review', 'approved', 'published', 'archived']
-      && data.lifecycle_to in ['draft', 'review', 'approved', 'archived'])
+      && ((data.lifecycle_from == 'archived' && data.lifecycle_to == 'draft')
+        || (data.lifecycle_from in ['draft', 'review', 'approved', 'published']
+          && data.lifecycle_to in ['draft', 'review', 'approved', 'archived'])))
     || ((data.action == 'submit_review' || data.action == 'revision_submit' || data.action == 'create_and_submit')
       && (isAdmin() || isEditor())
       && data.lifecycle_from in ['none', 'draft']
