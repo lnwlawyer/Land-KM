@@ -6256,15 +6256,24 @@
     return '';
   }
 
+  function reportAcademicDraftOpenFeedback(message) {
+    document.getElementById('draftWorkspaceStatus').textContent = message;
+    const evidenceStatus = document.getElementById('evidenceStatus');
+    if (evidenceStatus) {
+      evidenceStatus.textContent = message;
+      evidenceStatus.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }
+
   function openAcademicDraftWorkspace() {
     draftReadinessAcknowledgment = '';
     document.getElementById('draftEvidenceReadiness').hidden = true;
     const status = document.getElementById('draftWorkspaceStatus');
-    if (!['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role) || currentUserProfile?.is_active !== true) { status.textContent = 'พื้นที่นี้สำหรับเจ้าหน้าที่ที่ใช้งานอยู่เท่านั้น'; return; }
+    if (!['admin', 'editor', 'reviewer'].includes(currentUserProfile?.role) || currentUserProfile?.is_active !== true) { reportAcademicDraftOpenFeedback('พื้นที่นี้สำหรับเจ้าหน้าที่ที่ใช้งานอยู่เท่านั้น'); return; }
     try { activeGroundingContext = getComparisonContext(); }
-    catch (error) { status.textContent = error.message; return; }
+    catch (error) { reportAcademicDraftOpenFeedback(error?.message || 'เปิดพื้นที่จัดทำร่างไม่สำเร็จ กรุณาตรวจบริบทหลักฐานแล้วลองใหม่'); return; }
     const error = academicDraftInputError(activeGroundingContext);
-    if (error) { status.textContent = error; return; }
+    if (error) { reportAcademicDraftOpenFeedback(error); return; }
     const workspace = document.getElementById('academicDraftWorkspace'); workspace.hidden = false;
     const context = activeGroundingContext;
     ensureHumanComparisonWorkspace();

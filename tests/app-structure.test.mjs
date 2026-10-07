@@ -1467,6 +1467,94 @@ function createAcademicDraftHelpers(userProfile = { role: 'editor', is_active: t
   );
 }
 
+function createAcademicDraftOpenHarness(context) {
+  const nodes = new Map();
+  const makeNode = id => ({
+    id, hidden: id === 'academicDraftWorkspace', textContent: '', value: '', children: [], dataset: {},
+    handlers: {},
+    replaceChildren(...children) { this.children = children; },
+    append(...children) { this.children.push(...children); },
+    appendChild(child) { this.children.push(child); },
+    addEventListener(type, handler) { this.handlers[type] = handler; },
+    scrollIntoView() { this.scrolledIntoView = true; },
+    cloneNode() { return makeNode(id); }
+  });
+  const document = {
+    getElementById(id) {
+      if (!nodes.has(id)) nodes.set(id, makeNode(id));
+      return nodes.get(id);
+    },
+    createElement(tag) { const node = makeNode(tag); node.tagName = tag; return node; }
+  };
+  for (const id of ['academicDraftWorkspace', 'draftEvidenceReadiness', 'draftWorkspaceStatus', 'evidenceStatus']) document.getElementById(id);
+  class TestOption {
+    constructor(text, value) { this.text = text; this.value = value; }
+    cloneNode() { return new TestOption(this.text, this.value); }
+  }
+  const inputStart = productionHtml.indexOf('function academicDraftInputError(');
+  const inputEnd = productionHtml.indexOf('\n  function openAcademicDraftWorkspace(', inputStart);
+  const openStart = inputEnd + 3;
+  const openEnd = productionHtml.indexOf('\n  function renderAcademicDraft(', openStart);
+  assert.ok(inputStart >= 0 && inputEnd > inputStart && openEnd > openStart);
+  const open = new Function(
+    'document', 'DRAFTING_LIMITS', 'INGESTION_LIMITS', 'GROUNDED_DRAFT_INSTRUCTIONS',
+    'currentUserProfile', 'getComparisonContext', 'ensureHumanComparisonWorkspace',
+    'comparisonSourceLabel', 'comparisonEvidenceKey', 'updateComparisonEvidencePreview',
+    'renderHumanComparisonAssessments', 'Option', 'draftReadinessAcknowledgment',
+    `${productionHtml.slice(inputStart, inputEnd)}\n${productionHtml.slice(openStart, openEnd)}; return openAcademicDraftWorkspace;`
+  )(
+    document,
+    { evidenceChars: 12000 },
+    { selected: 20, contextChars: 30000 },
+    'คำสั่งสำหรับร่าง',
+    { role: 'editor', is_active: true },
+    () => { if (context instanceof Error) throw context; return context; },
+    () => {},
+    item => item.evidence_id,
+    item => item.evidence_id,
+    () => {},
+    () => {},
+    TestOption,
+    ''
+  );
+  const button = document.getElementById('openAcademicDrafting');
+  const listenerStart = productionHtml.indexOf("document.getElementById('openAcademicDrafting')?.addEventListener('click', openAcademicDraftWorkspace);");
+  assert.ok(listenerStart >= 0, 'drafting button click listener is registered');
+  const listenerLine = productionHtml.slice(listenerStart, productionHtml.indexOf('\n', listenerStart));
+  new Function('document', 'openAcademicDraftWorkspace', listenerLine)(document, open);
+  return { nodes, click: () => button.handlers.click() };
+}
+
+test('Feature 12B drafting button opens the existing workspace and reports missing context visibly', () => {
+  assert.equal([...productionHtml.matchAll(/id="openAcademicDrafting"/g)].length, 1);
+  assert.match(productionHtml, /document\.getElementById\('openAcademicDrafting'\)\?\.addEventListener\('click', openAcademicDraftWorkspace\)/);
+  for (const id of ['knowledgeTemplate', 'draftMethod', 'runDraftMethod', 'draftEvidenceReadiness', 'draftClaimEvidenceMatrix']) {
+    assert.match(productionHtml, new RegExp(`id="${id}"`));
+  }
+
+  const validContext = {
+    sources: [{ source_id: 'SRC-DRAFT-01', title: 'ตัวอย่างแหล่งข้อมูล' }],
+    evidence: [{ source_id: 'SRC-DRAFT-01', ingestion_id: 'ING-DRAFT-01', evidence_id: 'EVD-DRAFT-01', locator: 'มาตรา 1', text: 'หลักฐานที่ผ่านการตรวจทาน', review_status: 'reviewed' }]
+  };
+  const valid = createAcademicDraftOpenHarness(validContext);
+  valid.click();
+  assert.equal(valid.nodes.get('academicDraftWorkspace').hidden, false);
+  assert.equal(valid.nodes.get('draftEvidenceCards').children.length, 1);
+  assert.equal(valid.nodes.get('draftEvidenceItems').children.length, 1);
+  assert.equal(valid.nodes.get('draftWorkspaceStatus').textContent.length > 0, true);
+
+  const missing = createAcademicDraftOpenHarness(null);
+  missing.click();
+  assert.equal(missing.nodes.get('academicDraftWorkspace').hidden, true);
+  assert.equal(missing.nodes.get('evidenceStatus').textContent, 'กรุณาสร้างบริบทจากหลักฐานที่ผ่านการตรวจทานแล้วก่อน');
+  assert.equal(missing.nodes.get('evidenceStatus').scrolledIntoView, true);
+
+  const comparisonFailure = createAcademicDraftOpenHarness(new Error('หลักฐานเปรียบเทียบเกินขีดจำกัด'));
+  comparisonFailure.click();
+  assert.equal(comparisonFailure.nodes.get('evidenceStatus').textContent, 'หลักฐานเปรียบเทียบเกินขีดจำกัด');
+  assert.equal(comparisonFailure.nodes.get('evidenceStatus').scrolledIntoView, true);
+});
+
 function createEvidenceComparisonHelpers() {
   const start = productionHtml.indexOf('function comparisonEvidenceKey(');
   const end = productionHtml.indexOf('\n  function getComparisonContext(', start);
