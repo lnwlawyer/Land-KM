@@ -2075,7 +2075,7 @@
           && item.workflow_status !== 'archived'
         ));
         const updated = item.updated_at?.toDate ? item.updated_at.toDate().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'เมื่อสักครู่';
-        row.innerHTML = `<td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td></td><td><span class="tag orange"></span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn version-history">ประวัติฉบับ</button><button class="btn preview-content">ดูตัวอย่าง</button><button class="btn edit-content">แก้ไข</button><button class="btn primary approve-content" hidden>อนุมัติ</button><button class="btn primary publish-content" hidden>เผยแพร่</button></div></td>`;
+        row.innerHTML = `<td><b></b><br><small class="doc-meta"></small></td><td></td><td></td><td></td><td><span class="tag orange"></span></td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn version-history">ประวัติฉบับ</button><button class="btn preview-content">ดูตัวอย่าง</button><button class="btn edit-content">แก้ไข</button><button class="btn withdraw-content" hidden>ถอนจากการเผยแพร่</button><button class="btn primary approve-content" hidden>อนุมัติ</button><button class="btn primary publish-content" hidden>เผยแพร่</button></div></td>`;
         row.querySelector('b').textContent = item.title || '(ไม่มีชื่อเรื่อง)';
         row.querySelector('small').textContent = getCategoryDisplay(item.category_id).text;
         row.children[1].textContent = typeLabels[item.content_type] || item.content_type || '-';
@@ -2092,6 +2092,9 @@
         const editButton = row.querySelector('.edit-content');
         editButton.hidden = !canEditItem;
         editButton.onclick = () => editContent(item.id);
+        const withdrawButton = row.querySelector('.withdraw-content');
+        withdrawButton.hidden = !(role === 'admin' && item.workflow_status === 'published');
+        withdrawButton.onclick = () => withdrawPublishedContent(item.id);
         const approveButton = row.querySelector('.approve-content');
         if (item.workflow_status === 'review' && (role === 'admin' || role === 'reviewer')) {
           approveButton.hidden = false;
@@ -7277,6 +7280,56 @@
     }
   }
 
+  async function commitLifecycleTransition({ id, expectedStatus, nextStatus, action, reason, contentPatch = {}, writeRelated = null }) {
+    const history = expectedStatus === '__missing__' ? [] : await getContentVersions(id);
+    const existingMax = history.reduce((max, version) => Math.max(max, Number(version.version_number || 0)), 0);
+    const contentRef = doc(db, 'contents', id);
+    const counterRef = doc(db, 'versionCounters', id);
+    const actor = auth.currentUser?.email;
+    if (!actor) throw new Error('LIFECYCLE_AUTH_REQUIRED');
+    return runTransaction(db, async transaction => {
+      const [contentSnapshot, counterSnapshot] = await Promise.all([
+        transaction.get(contentRef), transaction.get(counterRef)
+      ]);
+      const before = contentSnapshot.exists() ? contentSnapshot.data() : null;
+      if ((expectedStatus === '__missing__' && before)
+        || (expectedStatus !== '__missing__' && (!before || before.workflow_status !== expectedStatus))) {
+        throw new Error('LIFECYCLE_STALE_STATE');
+      }
+      const currentCounter = counterSnapshot.exists() ? Number(counterSnapshot.data().next_version || 0) : 0;
+      const versionNumber = Math.max(currentCounter, existingMax) + 1;
+      const versionId = `${id}_V${String(versionNumber).padStart(6, '0')}`;
+      const timestamp = serverTimestamp();
+      const resolvedPatch = typeof contentPatch === 'function' ? contentPatch({ before, timestamp }) : contentPatch;
+      const after = {
+        ...(before || {}), ...resolvedPatch, workflow_status: nextStatus,
+        updated_at: timestamp, last_lifecycle_version_id: versionId
+      };
+      transaction.set(counterRef, {
+        content_id: id, next_version: versionNumber, updated_by: actor, updated_at: timestamp
+      }, { merge: true });
+      transaction.set(contentRef, after, { merge: true });
+      transaction.set(doc(db, 'contentVersions', versionId), {
+        version_id: versionId,
+        version_number: versionNumber,
+        content_id: id,
+        content_type: after.content_type || '',
+        title: after.title || '',
+        created_by: after.created_by || actor,
+        editor_email: actor,
+        action,
+        change_reason: reason || action,
+        schema_version: 2,
+        snapshot_status: 'lifecycle',
+        lifecycle_from: expectedStatus === '__missing__' ? 'none' : expectedStatus,
+        lifecycle_to: nextStatus,
+        created_at: timestamp
+      });
+      if (writeRelated) writeRelated(transaction, { before, after, timestamp, versionId });
+      return { versionId, versionNumber };
+    });
+  }
+
   async function approveContent(id, button = null) {
     const item = contentItems.find(entry => entry.id === id);
     if (!item || item.workflow_status !== 'review') return window.toast('รายการนี้ไม่อยู่ในสถานะรอตรวจสอบ');
@@ -7294,13 +7347,13 @@
         return;
       }
       await ensureBaselineVersion(id);
-      await setDoc(doc(db, 'contents', id), {
-        workflow_status: 'approved',
+      await commitLifecycleTransition({
+        id, expectedStatus: 'review', nextStatus: 'approved', action: 'approve', reason: 'อนุมัติเนื้อหา',
+        contentPatch: {
         approved_by: auth.currentUser.email,
         approved_at: serverTimestamp(),
-        updated_at: serverTimestamp()
-      }, { merge: true });
-      await createContentVersion(id, 'approve', 'อนุมัติเนื้อหา');
+        }
+      });
       await loadContents();
       window.toast(`อนุมัติเนื้อหาแล้ว • ${item.content_id || id}`);
       if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show(authoringPreviewReturnView, authoringPreviewReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
@@ -7311,6 +7364,40 @@
     } finally {
       authoringWriteInFlight = '';
       if (button) { button.disabled = false; button.textContent = 'อนุมัติเนื้อหา'; }
+    }
+  }
+
+  async function withdrawPublishedContent(id, { forRevision = false } = {}) {
+    const item = contentItems.find(entry => entry.id === id);
+    if (currentUserProfile?.role !== 'admin' || !item || item.workflow_status !== 'published') {
+      window.toast('ถอนการเผยแพร่ได้เฉพาะผู้ดูแลระบบและเนื้อหาที่เผยแพร่แล้ว');
+      return false;
+    }
+    const confirmation = forRevision
+      ? 'แก้ไขเนื้อหาที่เผยแพร่แล้ว? การถอนจากการเผยแพร่จะทำให้ผู้ใช้ทั่วไปค้นหา อ่าน และถามจากคลังไม่ได้ชั่วคราว ยืนยันเพื่อถอนและแก้ไขหรือไม่?'
+      : 'ถอนเนื้อหานี้จากการเผยแพร่หรือไม่? ผู้ใช้ทั่วไปจะค้นหา อ่าน และถามจากคลังไม่ได้ แต่ข้อมูลจะไม่ถูกลบ';
+    if (!window.confirm(confirmation)) return false;
+    const reason = window.prompt('ระบุเหตุผลสั้น ๆ สำหรับการถอนจากการเผยแพร่ (ไม่เกิน 300 ตัวอักษร)')?.trim() || '';
+    if (reason.length < 3 || reason.length > 300) {
+      window.toast('กรุณาระบุเหตุผลตั้งแต่ 3 ถึง 300 ตัวอักษร การเผยแพร่ยังไม่เปลี่ยนแปลง');
+      return false;
+    }
+    if (authoringWriteInFlight) return false;
+    authoringWriteInFlight = 'withdraw';
+    try {
+      const lifecycle = await commitLifecycleTransition({
+        id, expectedStatus: 'published', nextStatus: 'draft', action: 'withdraw', reason
+      });
+      Object.assign(item, { workflow_status: 'draft', last_lifecycle_version_id: lifecycle.versionId });
+      await loadContents();
+      window.toast('ถอนจากการเผยแพร่แล้ว เนื้อหายังคงอยู่ในฉบับร่าง');
+      return true;
+    } catch (error) {
+      console.error('Withdraw content failed:', error);
+      window.toast('ถอนจากการเผยแพร่ไม่สำเร็จ ข้อมูลเดิมยังคงอยู่');
+      return false;
+    } finally {
+      authoringWriteInFlight = '';
     }
   }
 
@@ -7391,39 +7478,44 @@
         : 'ไม่มีข้อความหลักฐานที่เลือกเผยแพร่พร้อมเนื้อหานี้ เนื้อหาจะเผยแพร่ตามปกติ แต่จะไม่มีหลักฐานรองรับใน ถามจากคลัง ยืนยันหรือไม่?';
       if (!window.confirm(confirmation)) return;
       await ensureBaselineVersion(id);
-      const batch = writeBatch(db);
-      const publicationUpdatedAt = serverTimestamp();
-      batch.set(doc(db, 'contents', id), {
-        workflow_status: 'published',
-        published_by: auth.currentUser.email,
-        published_at: serverTimestamp(),
-        updated_at: publicationUpdatedAt
-      }, { merge: true });
-      selectedProjections.forEach(({ source, ingestion, evidence }) => {
-        const projection = {
-          source_id: source.source_id,
-          source_name: source.title,
-          ingestion_id: ingestion.ingestion_id,
-          evidence_id: evidence.evidence_id,
-          excerpt: evidence.text,
-          content_updated_at: publicationUpdatedAt
-        };
-        const locator = evidence.locator || evidence.heading;
-        if (locator) projection.locator = locator;
-        batch.set(doc(db, 'contents', id, 'publishedEvidence', source.source_id), projection);
-      });
-      if (item.source_gap_id) {
-        batch.set(doc(db, 'knowledgeGaps', item.source_gap_id), {
+      const selectedSourceIds = new Set(selectedProjections.map(entry => entry.source.source_id));
+      const previousSourceIds = [...new Set([...(item.published_evidence_source_ids || item.source_ids || []), ...(item.source_references || []).map(reference => reference.source_id)])];
+      await commitLifecycleTransition({
+        id, expectedStatus: 'approved', nextStatus: 'published',
+        action: item.published_at ? 'republish' : 'publish',
+        reason: item.published_at ? 'เผยแพร่เนื้อหาซ้ำ' : 'เผยแพร่เนื้อหา',
+        contentPatch: {
+          published_by: auth.currentUser.email,
+          published_at: serverTimestamp(),
+          published_evidence_source_ids: [...selectedSourceIds]
+        },
+        writeRelated: (transaction, { timestamp }) => {
+          previousSourceIds.filter(sourceId => !selectedSourceIds.has(sourceId)).forEach(sourceId =>
+            transaction.delete(doc(db, 'contents', id, 'publishedEvidence', sourceId))
+          );
+          selectedProjections.forEach(({ source, ingestion, evidence }) => {
+            const projection = {
+              source_id: source.source_id,
+              source_name: source.title,
+              ingestion_id: ingestion.ingestion_id,
+              evidence_id: evidence.evidence_id,
+              excerpt: evidence.text,
+              content_updated_at: timestamp
+            };
+            const locator = evidence.locator || evidence.heading;
+            if (locator) projection.locator = locator;
+            transaction.set(doc(db, 'contents', id, 'publishedEvidence', source.source_id), projection);
+          });
+          if (item.source_gap_id) transaction.set(doc(db, 'knowledgeGaps', item.source_gap_id), {
           status: 'resolved',
           linked_content_id: item.content_id || id,
           resolution_note: `เผยแพร่เนื้อหาแล้ว: ${item.title || item.content_id || id}`,
           resolved_at: serverTimestamp(),
           updated_by: auth.currentUser.email,
           updated_at: serverTimestamp()
-        }, { merge: true });
-      }
-      await batch.commit();
-      await createContentVersion(id, 'publish', 'เผยแพร่เนื้อหา');
+          }, { merge: true });
+        }
+      });
       await loadContents();
       window.toast(`เผยแพร่เนื้อหาแล้ว • ${item.content_id || id}`);
       if (document.getElementById('authoringPreviewView').classList.contains('active')) window.show(authoringPreviewReturnView, authoringPreviewReturnView === 'governanceView' ? 'ศูนย์ควบคุมคุณภาพองค์ความรู้' : 'จัดการเนื้อหา');
@@ -7451,8 +7543,15 @@
   }
 
   async function editContent(id) {
-    const item = contentItems.find(entry => entry.id === id);
+    let item = contentItems.find(entry => entry.id === id);
     if (!item) return window.toast('ไม่พบข้อมูลที่ต้องการแก้ไข');
+    if (item.workflow_status === 'published') {
+      if (currentUserProfile?.role !== 'admin') return window.toast('เฉพาะผู้ดูแลระบบที่เริ่มแก้ไขเนื้อหาซึ่งเผยแพร่แล้วได้');
+      const withdrawn = await withdrawPublishedContent(id, { forRevision: true });
+      if (!withdrawn) return;
+      item = contentItems.find(entry => entry.id === id);
+      if (!item || item.workflow_status !== 'draft') return window.toast('ถอนเพื่อแก้ไขแล้ว แต่โหลดฉบับร่างไม่สำเร็จ กรุณาโหลดรายการอีกครั้ง');
+    }
     const editorOwnsItem = String(item.created_by || '').toLowerCase() === String(auth.currentUser?.email || '').toLowerCase();
     if (currentUserProfile?.role !== 'admin' && !(currentUserProfile?.role === 'editor' && editorOwnsItem && ['draft', 'review'].includes(item.workflow_status))) {
       return window.toast('บัญชีนี้ไม่มีสิทธิแก้ไขรายการนี้');
@@ -7670,10 +7769,10 @@
     batch.set(doc(db, 'files', fileId), payload, { merge: true });
   }
 
-  function queueContentBundle(batch, contentId, payload, detailPayloads, isNew) {
+  function queueContentBundle(batch, contentId, payload, detailPayloads, isNew, includeContent = true) {
     const references = canonicalSourceReferences(payload.source_references || []);
     const contentPayload = { ...payload, source_references: references, source_ids: references.map(reference => reference.source_id) };
-    batch.set(doc(db, 'contents', contentId), contentPayload, { merge: true });
+    if (includeContent) batch.set(doc(db, 'contents', contentId), contentPayload, { merge: true });
     const entries = [
       ['laws', detailPayloads.law],
       ['guides', detailPayloads.guide],
@@ -8000,16 +8099,23 @@
       };
       if (activeKnowledgeGapForContentId) payload.source_gap_id = activeKnowledgeGapForContentId;
       if (isNew) payload.created_at = serverTimestamp();
-      const batch = writeBatch(db);
-      queueContentBundle(batch, contentId, payload, {
-        law: lawPayload,
-        guide: guidePayload,
-        lesson: lessonPayload,
-        question: questionPayload
-      }, isNew);
-      queueKnowledgeGapLink(batch, contentId);
-      await batch.commit();
-      await createContentVersion(contentId, isNew ? 'create_and_submit' : 'submit_review', changeReason);
+      await commitLifecycleTransition({
+        id: contentId,
+        expectedStatus: isNew ? '__missing__' : 'draft',
+        nextStatus: 'review',
+        action: isNew ? 'create_and_submit' : (existingContent?.published_at ? 'revision_submit' : 'submit_review'),
+        reason: changeReason,
+        contentPatch: payload,
+        writeRelated: transaction => {
+          queueContentBundle(transaction, contentId, payload, {
+            law: lawPayload,
+            guide: guidePayload,
+            lesson: lessonPayload,
+            question: questionPayload
+          }, isNew, false);
+          queueKnowledgeGapLink(transaction, contentId);
+        }
+      });
       captureAuthoringBaseline();
       await loadContents();
       finishContentCreation();
@@ -8544,7 +8650,9 @@
 
   async function showVersionDiff(index) {
     const current = activeContentVersions[index];
-    const previous = activeContentVersions[index + 1];
+    if (!current || (current.snapshot_status && current.snapshot_status !== 'complete')) return;
+    const previous = activeContentVersions.slice(index + 1)
+      .find(version => !version.snapshot_status || version.snapshot_status === 'complete');
     const target = document.getElementById('versionDiff');
     target.innerHTML = '<div class="empty-note">กำลังโหลดข้อมูลเปรียบเทียบ…</div>';
     let currentSnapshot;
@@ -8580,7 +8688,7 @@
     activeVersionContentId = contentId;
     const content = contentItems.find(item => item.id === contentId) || {};
     activeContentVersions = (await getContentVersions(contentId))
-      .filter(version => !version.snapshot_status || version.snapshot_status === 'complete');
+      .filter(version => !version.snapshot_status || version.snapshot_status === 'complete' || version.snapshot_status === 'lifecycle');
     document.getElementById('versionHistoryTitle').textContent = `ประวัติฉบับ: ${content.title || contentId}`;
     document.getElementById('versionHistoryCount').textContent = `${activeContentVersions.length} ฉบับ`;
     const tbody = document.getElementById('versionHistoryTable');
@@ -8593,10 +8701,16 @@
       row.children[1].textContent = version.created_at?.toDate ? version.created_at.toDate().toLocaleString('th-TH') : '-';
       row.children[2].textContent = version.editor_email || '-';
       row.children[3].textContent = version.change_reason || '-';
-      row.querySelector('.compare-version').onclick = () => showVersionDiff(index);
+      const restorable = !version.snapshot_status || version.snapshot_status === 'complete';
+      const compare = row.querySelector('.compare-version');
+      compare.hidden = !restorable;
+      compare.onclick = () => { if (restorable) void showVersionDiff(index); };
       const restore = row.querySelector('.restore-version');
-      restore.hidden = currentUserProfile?.role !== 'admin';
-      restore.onclick = () => restoreContentVersion(version);
+      restore.hidden = currentUserProfile?.role !== 'admin' || !restorable;
+      restore.onclick = () => { if (restorable) void restoreContentVersion(version); };
+      if (version.snapshot_status === 'lifecycle') {
+        row.children[3].textContent = `${version.lifecycle_from || '?'} → ${version.lifecycle_to || '?'} · ${version.change_reason || ''}`;
+      }
       tbody.appendChild(row);
     });
     if (!activeContentVersions.length) tbody.innerHTML = '<tr><td colspan="5" class="doc-meta">ยังไม่มีประวัติฉบับ ระบบจะเริ่มเก็บเมื่อมีการบันทึกครั้งถัดไป</td></tr>';
@@ -8613,13 +8727,22 @@
 
   async function restoreContentVersion(version) {
     if (currentUserProfile?.role !== 'admin') return window.toast('เฉพาะผู้ดูแลระบบเท่านั้นที่ย้อนกลับฉบับได้');
-    if (!confirm(`ยืนยันย้อนกลับเป็นฉบับ ${version.version_number} ระบบจะสร้างฉบับประวัติใหม่ก่อนดำเนินการ`)) return;
     try {
-      await ensureBaselineVersion(activeVersionContentId);
-      await createContentVersion(activeVersionContentId, 'before_restore', `สำรองก่อนย้อนกลับเป็นฉบับ ${version.version_number}`);
       const snapshot = await loadVersionSnapshot(version);
       if (!snapshot?.content) throw new Error('VERSION_SNAPSHOT_INCOMPLETE');
       const { id: contentDocId, ...contentData } = snapshot.content;
+      const currentContent = await getDoc(doc(db, 'contents', activeVersionContentId));
+      if (!currentContent.exists()) throw new Error('RESTORE_CONTENT_MISSING');
+      const currentStatus = currentContent.data().workflow_status;
+      const snapshotStatus = contentData.workflow_status || currentStatus;
+      const restoringPublished = snapshotStatus === 'published';
+      const restoredStatus = restoringPublished ? 'draft' : snapshotStatus;
+      const confirmation = restoringPublished
+        ? `ฉบับ ${version.version_number} เคยเผยแพร่แล้ว การย้อนกลับจะคืนข้อมูลเป็นฉบับร่าง และต้องส่งตรวจ อนุมัติ และเผยแพร่ใหม่ ยืนยันหรือไม่?`
+        : `ยืนยันย้อนกลับเป็นฉบับ ${version.version_number} หรือไม่? ระบบจะบันทึกการย้อนกลับไว้ในประวัติ`;
+      if (!confirm(confirmation)) return;
+      await ensureBaselineVersion(activeVersionContentId);
+      await createContentVersion(activeVersionContentId, 'before_restore', `สำรองก่อนย้อนกลับเป็นฉบับ ${version.version_number}`);
       const detailCollections = { law: 'laws', guide: 'guides', lesson: 'lessons', qa: 'questions' };
       const detailCollection = detailCollections[contentData.content_type];
       const [currentUnits, currentAnswers, currentFiles, currentDetail] = await Promise.all([
@@ -8635,19 +8758,31 @@
         + currentFiles.docs.length + (snapshot.files || []).length;
       if (operationCount > 450) throw new Error('RESTORE_BATCH_TOO_LARGE');
 
-      const batch = writeBatch(db);
-      batch.set(doc(db, 'contents', activeVersionContentId), { ...contentData, restored_from_version: version.version_number, restored_by: auth.currentUser.email, restored_at: serverTimestamp(), updated_at: serverTimestamp() });
-      if (detailCollection && snapshot.detail) {
-        const { id: detailId, ...detailData } = snapshot.detail;
-        batch.set(doc(db, detailCollection, activeVersionContentId), detailData);
-      } else if (detailCollection && currentDetail?.exists()) {
-        batch.delete(currentDetail.ref);
-      }
-      if (contentData.content_type === 'lesson') queueRelatedReplacement(batch, currentUnits.docs, 'lessonUnits', snapshot.lesson_units);
-      if (contentData.content_type === 'qa') queueRelatedReplacement(batch, currentAnswers.docs, 'answers', snapshot.answers);
-      queueRelatedReplacement(batch, currentFiles.docs, 'files', snapshot.files);
-      await batch.commit();
-      await createContentVersion(activeVersionContentId, 'restore', `ย้อนกลับจากฉบับ ${version.version_number}`);
+      const { workflow_status: ignoredWorkflowStatus, ...restoredContentData } = contentData;
+      await commitLifecycleTransition({
+        id: activeVersionContentId,
+        expectedStatus: currentStatus,
+        nextStatus: restoredStatus,
+        action: 'restore',
+        reason: `ย้อนกลับจากฉบับ ${version.version_number}`,
+        contentPatch: {
+          ...restoredContentData,
+          restored_from_version: version.version_number,
+          restored_by: auth.currentUser.email,
+          restored_at: serverTimestamp()
+        },
+        writeRelated: transaction => {
+          if (detailCollection && snapshot.detail) {
+            const { id: detailId, ...detailData } = snapshot.detail;
+            transaction.set(doc(db, detailCollection, activeVersionContentId), detailData);
+          } else if (detailCollection && currentDetail?.exists()) {
+            transaction.delete(currentDetail.ref);
+          }
+          if (contentData.content_type === 'lesson') queueRelatedReplacement(transaction, currentUnits.docs, 'lessonUnits', snapshot.lesson_units);
+          if (contentData.content_type === 'qa') queueRelatedReplacement(transaction, currentAnswers.docs, 'answers', snapshot.answers);
+          queueRelatedReplacement(transaction, currentFiles.docs, 'files', snapshot.files);
+        }
+      });
       await loadContents();
       await openVersionHistory(activeVersionContentId);
       window.toast(`ย้อนกลับเป็นฉบับ ${version.version_number} แล้ว`);

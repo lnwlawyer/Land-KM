@@ -946,7 +946,7 @@ test('Feature 8 role-aware workflow and transition locks match current Firestore
   assert.match(productionHtml, /authoringWriteInFlight = 'approve'/);
   assert.match(productionHtml, /authoringWriteInFlight = 'publish'/);
   assert.match(productionHtml, /window\.confirm\(confirmation\)/);
-  assert.match(productionHtml, /published_at: serverTimestamp\(\)/);
+  assert.match(productionHtml, /published_at: timestamp|published_at: serverTimestamp\(\)/);
   assert.match(productionHtml, /savedContentReadinessError\(item, detail\)/);
 });
 
@@ -965,8 +965,9 @@ test('Feature 8 Save, submit, approve, and publish reuse existing persistence an
   assert.match(save, /captureAuthoringBaseline\(\)/);
   assert.match(save, /บันทึกไม่สำเร็จ ข้อมูลยังอยู่ในแบบฟอร์ม/);
   assert.match(submit, /authoringWriteInFlight = 'submit'/);
-  assert.match(submit, /queueContentBundle\(batch, contentId/);
-  assert.match(submit, /createContentVersion\(contentId, isNew \? 'create_and_submit' : 'submit_review'/);
+  assert.match(submit, /commitLifecycleTransition\(/);
+  assert.match(submit, /queueContentBundle\(transaction, contentId/);
+  assert.match(submit, /isNew \? 'create_and_submit' : \(existingContent\?\.published_at \? 'revision_submit' : 'submit_review'\)/);
   assert.match(submit, /ส่งตรวจไม่สำเร็จ ข้อมูลยังอยู่ในแบบฟอร์ม/);
   assert.match(bundle, /doc\(db, 'contents', contentId\)/);
   assert.match(bundle, /doc\(db, 'questions', contentId\)/);
@@ -977,6 +978,49 @@ test('Feature 8 Save, submit, approve, and publish reuse existing persistence an
   assert.match(productionHtml, /transaction\.set\(versionRef/);
   assert.match(productionHtml, /function restoreContentVersion\(version\)/);
   assert.match(productionHtml, /restore\.hidden = currentUserProfile\?\.role !== 'admin'/);
+});
+
+test('Feature 14A requires explicit Admin withdrawal before opening a published revision form', () => {
+  const editStart = productionHtml.indexOf('async function editContent(id)');
+  const editEnd = productionHtml.indexOf('\n  function setFormValue', editStart);
+  const edit = productionHtml.slice(editStart, editEnd);
+  const withdrawStart = productionHtml.indexOf('async function withdrawPublishedContent(');
+  const withdrawEnd = productionHtml.indexOf('\n  async function preparePublishedEvidence', withdrawStart);
+  const withdraw = productionHtml.slice(withdrawStart, withdrawEnd);
+  assert.match(edit, /item\.workflow_status === 'published'[\s\S]*?role !== 'admin'[\s\S]*?withdrawPublishedContent\(id, \{ forRevision: true \}\)/);
+  assert.match(withdraw, /window\.confirm\(confirmation\)/);
+  assert.match(withdraw, /window\.prompt\(/);
+  assert.match(withdraw, /expectedStatus: 'published', nextStatus: 'draft', action: 'withdraw', reason/);
+  assert.match(edit, /if \(!withdrawn\) return/);
+  assert.match(withdraw, /ข้อมูลเดิมยังคงอยู่/);
+  assert.match(productionHtml, /button class="btn withdraw-content" hidden>ถอนจากการเผยแพร่/);
+  assert.match(productionHtml, /withdrawButton\.hidden = !\(role === 'admin' && item\.workflow_status === 'published'\)/);
+});
+
+test('Feature 14A commits lifecycle transitions with history and replaces timestamp-bound evidence projections atomically', () => {
+  const start = productionHtml.indexOf('async function commitLifecycleTransition(');
+  const end = productionHtml.indexOf('\n  async function approveContent', start);
+  const helper = productionHtml.slice(start, end);
+  const publicationStart = productionHtml.indexOf('async function publishContent(');
+  const publicationEnd = productionHtml.indexOf('\n  function setFormValue', publicationStart);
+  const publication = productionHtml.slice(publicationStart, publicationEnd);
+  assert.match(helper, /runTransaction\(db, async transaction/);
+  assert.match(helper, /transaction\.set\(doc\(db, 'contentVersions', versionId\)/);
+  assert.match(helper, /snapshot_status: 'lifecycle'/);
+  assert.match(helper, /lifecycle_from:[\s\S]*lifecycle_to:/);
+  assert.match(helper, /last_lifecycle_version_id: versionId/);
+  assert.match(publication, /action: item\.published_at \? 'republish' : 'publish'/);
+  assert.match(publication, /transaction\.delete\(doc\(db, 'contents', id, 'publishedEvidence', sourceId\)\)/);
+  assert.match(publication, /content_updated_at: timestamp/);
+  assert.match(publication, /transaction\.set\(doc\(db, 'contents', id, 'publishedEvidence', source\.source_id\)/);
+  assert.match(firestoreRules, /validLifecycleVersion\(versionId, request\.resource\.data\)/);
+  const restoreStart = productionHtml.indexOf('async function restoreContentVersion(');
+  const restoreEnd = productionHtml.indexOf('\n  document.getElementById(\'refreshGapDashboard\')', restoreStart);
+  const restore = productionHtml.slice(restoreStart, restoreEnd);
+  assert.match(restore, /const snapshotStatus = contentData\.workflow_status \|\| currentStatus/);
+  assert.match(restore, /const restoredStatus = restoringPublished \? 'draft' : snapshotStatus/);
+  assert.match(restore, /action: 'restore'/);
+  assert.match(restore, /commitLifecycleTransition\(/);
 });
 
 test('Feature 8 reviewer/admin management list integrates Preview and existing workflow actions', () => {
@@ -2166,10 +2210,10 @@ test('Feature 13A publication requires reviewed, referenced excerpts and confirm
   assert.match(preparation, /window\.prompt/);
   assert.match(publication, /window\.confirm\(confirmation\)/);
   assert.match(publication, /excerpt:\s*evidence\.text/);
-  assert.match(publication, /content_updated_at:\s*publicationUpdatedAt/);
-  assert.match(publication, /batch\.set\(doc\(db, 'contents', id, 'publishedEvidence', source\.source_id/);
-  assert.match(publication, /const publicationUpdatedAt = serverTimestamp\(\)/);
-  assert.match(publication, /await batch\.commit\(\)/);
+  assert.match(publication, /content_updated_at:\s*timestamp/);
+  assert.match(publication, /transaction\.set\(doc\(db, 'contents', id, 'publishedEvidence', source\.source_id/);
+  assert.match(publication, /commitLifecycleTransition\(/);
+  assert.match(publication, /expectedStatus: 'approved', nextStatus: 'published'/);
 });
 
 test('Feature 13A Questions are neither persisted nor automatically sent to AI or analytics', () => {

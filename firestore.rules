@@ -353,6 +353,16 @@ service cloud.firestore {
     }
 
     // เนื้อหาหลักและ Workflow
+    function hasLifecycleEventAfter(versionId, contentId, fromStatus, toStatus) {
+      let eventPath = /databases/$(database)/documents/contentVersions/$(versionId);
+      return versionId is string
+        && existsAfter(eventPath)
+        && getAfter(eventPath).data.snapshot_status == 'lifecycle'
+        && getAfter(eventPath).data.content_id == contentId
+        && getAfter(eventPath).data.lifecycle_from == fromStatus
+        && getAfter(eventPath).data.lifecycle_to == toStatus;
+    }
+
     match /contents/{documentId} {
       // การเปิดเอกสารรายชิ้นตรวจสิทธิจากเอกสารเป้าหมายได้โดยตรง
       allow get: if canReadContent(documentId);
@@ -379,10 +389,14 @@ service cloud.firestore {
             == request.auth.token.email
           && request.resource.data.workflow_status
             in ['draft', 'review']
-        ));
+        ))
+        && (request.resource.data.workflow_status == 'draft'
+          || hasLifecycleEventAfter(request.resource.data.last_lifecycle_version_id, documentId, 'none', request.resource.data.workflow_status));
 
       allow update: if validSourceRelationships(request.resource.data)
-        && (isAdmin()
+        && ((isAdmin()
+          && (resource.data.workflow_status == request.resource.data.workflow_status
+            || hasLifecycleEventAfter(request.resource.data.last_lifecycle_version_id, documentId, resource.data.workflow_status, request.resource.data.workflow_status)))
         || (
           isEditor()
           && resource.data.created_by
@@ -397,6 +411,8 @@ service cloud.firestore {
             == resource.data.content_type
           && request.resource.data.workflow_status
             in ['draft', 'review']
+          && (resource.data.workflow_status == request.resource.data.workflow_status
+            || hasLifecycleEventAfter(request.resource.data.last_lifecycle_version_id, documentId, resource.data.workflow_status, request.resource.data.workflow_status))
         )
         || (
           isReviewer()
@@ -409,8 +425,10 @@ service cloud.firestore {
               'workflow_status',
               'approved_by',
               'approved_at',
-              'updated_at'
-            ])));
+              'updated_at',
+              'last_lifecycle_version_id'
+            ])
+          && hasLifecycleEventAfter(request.resource.data.last_lifecycle_version_id, documentId, resource.data.workflow_status, request.resource.data.workflow_status)));
 
       allow delete: if isAdmin();
 
@@ -745,6 +763,55 @@ match /versionCounters/{contentId} {
 }
 
 // ประวัติฉบับแบบแก้ไขไม่ได้
+function validLifecycleVersion(versionId, data) {
+  let contentPath = /databases/$(database)/documents/contents/$(data.content_id);
+  let counterPath = /databases/$(database)/documents/versionCounters/$(data.content_id);
+  let beforeStatus = exists(contentPath) ? get(contentPath).data.workflow_status : 'none';
+  let afterContent = getAfter(contentPath).data;
+  let authorizedAction =
+    (data.action == 'withdraw' && isAdmin() && data.lifecycle_from == 'published' && data.lifecycle_to == 'draft')
+    || ((data.action == 'publish' || data.action == 'republish') && isAdmin() && data.lifecycle_from == 'approved' && data.lifecycle_to == 'published')
+    || (data.action == 'approve' && (isAdmin() || isReviewer()) && data.lifecycle_from == 'review' && data.lifecycle_to == 'approved')
+    || (data.action == 'restore' && isAdmin()
+      && data.lifecycle_from in ['draft', 'review', 'approved', 'published', 'archived']
+      && data.lifecycle_to in ['draft', 'review', 'approved', 'archived'])
+    || ((data.action == 'submit_review' || data.action == 'revision_submit' || data.action == 'create_and_submit')
+      && (isAdmin() || isEditor())
+      && data.lifecycle_from in ['none', 'draft']
+      && data.lifecycle_to == 'review'
+      && (isAdmin() || afterContent.created_by == request.auth.token.email));
+  return data.keys().hasAll([
+      'version_id', 'version_number', 'content_id', 'content_type', 'title', 'created_by',
+      'editor_email', 'action', 'change_reason', 'schema_version', 'snapshot_status',
+      'lifecycle_from', 'lifecycle_to', 'created_at'
+    ])
+    && data.keys().hasOnly([
+      'version_id', 'version_number', 'content_id', 'content_type', 'title', 'created_by',
+      'editor_email', 'action', 'change_reason', 'schema_version', 'snapshot_status',
+      'lifecycle_from', 'lifecycle_to', 'created_at'
+    ])
+    && data.snapshot_status == 'lifecycle'
+    && data.schema_version == 2
+    && data.version_id == versionId
+    && data.content_id is string
+    && data.version_number is int
+    && data.version_number > 0
+    && data.version_number == getAfter(counterPath).data.next_version
+    && data.editor_email == request.auth.token.email
+    && data.created_by == afterContent.created_by
+    && data.content_type == afterContent.content_type
+    && data.title == afterContent.title
+    && afterContent.last_lifecycle_version_id == versionId
+    && data.change_reason is string
+    && data.change_reason.size() >= 3
+    && data.change_reason.size() <= 300
+    && data.created_at is timestamp
+    && existsAfter(contentPath)
+    && beforeStatus == data.lifecycle_from
+    && afterContent.workflow_status == data.lifecycle_to
+    && authorizedAction;
+}
+
 match /contentVersions/{versionId} {
   allow read: if isAdmin()
     || isReviewer()
@@ -753,7 +820,8 @@ match /contentVersions/{versionId} {
       && resource.data.created_by == request.auth.token.email
     );
 
-  allow create: if (
+  allow create: if validLifecycleVersion(versionId, request.resource.data)
+    || (
       isAdmin()
       || (
         isEditor()

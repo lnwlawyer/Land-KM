@@ -46,6 +46,40 @@ function dbAs(name) {
   }).firestore();
 }
 
+async function commitLifecycleBatch(role, contentId, { nextStatus, action, reason, contentPatch = {}, relatedWrites = null, eventOverrides = {} }) {
+  const db = dbAs(role);
+  const contentRef = doc(db, 'contents', contentId);
+  const counterRef = doc(db, 'versionCounters', contentId);
+  const [contentSnapshot, counterSnapshot] = await Promise.all([getDoc(contentRef), getDoc(counterRef)]);
+  const before = contentSnapshot.data();
+  const actor = accounts[role].email;
+  const versionNumber = Number(counterSnapshot.data()?.next_version || 0) + 1;
+  const versionId = `${contentId}_V${String(versionNumber).padStart(6, '0')}`;
+  const timestamp = serverTimestamp();
+  const batch = writeBatch(db);
+  batch.update(contentRef, {
+    ...contentPatch,
+    workflow_status: nextStatus,
+    updated_at: timestamp,
+    last_lifecycle_version_id: versionId
+  });
+  batch.set(counterRef, {
+    content_id: contentId, next_version: versionNumber,
+    updated_by: actor, updated_at: timestamp
+  }, { merge: true });
+  batch.set(doc(db, 'contentVersions', versionId), {
+    version_id: versionId, version_number: versionNumber, content_id: contentId,
+    content_type: before.content_type, title: contentPatch.title || before.title,
+    created_by: before.created_by, editor_email: actor, action, change_reason: reason,
+    schema_version: 2, snapshot_status: 'lifecycle',
+    lifecycle_from: before.workflow_status, lifecycle_to: nextStatus, created_at: timestamp,
+    ...eventOverrides
+  });
+  if (relatedWrites) relatedWrites(batch, { before, timestamp, versionId, db });
+  await batch.commit();
+  return { db, versionId, versionNumber };
+}
+
 function content(overrides = {}) {
   return {
     content_id: 'CNT-TEST-001',
@@ -223,8 +257,8 @@ test('ผู้เขียนแก้เนื้อหาที่เผย�
   }));
 });
 
-test('ผู้ตรวจสอบอนุมัติรายการ review ได้เฉพาะฟิลด์ Workflow', async () => {
-  await assertSucceeds(updateDoc(doc(dbAs('reviewer'), 'contents', 'CNT-REVIEW'), {
+test('ผู้ตรวจสอบเปลี่ยนสถานะ review โดยไม่มีรายการประวัติแบบ atomic ไม่ได้', async () => {
+  await assertFails(updateDoc(doc(dbAs('reviewer'), 'contents', 'CNT-REVIEW'), {
     workflow_status: 'approved',
     approved_by: accounts.reviewer.email,
     approved_at: serverTimestamp(),
@@ -242,8 +276,8 @@ test('ผู้ตรวจสอบแก้ชื่อเรื่องร�
   }));
 });
 
-test('ผู้ดูแลเผยแพร่และลบเนื้อหาได้', async () => {
-  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', 'CNT-REVIEW'), {
+test('Admin lifecycle status changes require matching atomic history', async () => {
+  await assertFails(updateDoc(doc(dbAs('admin'), 'contents', 'CNT-REVIEW'), {
     workflow_status: 'published',
     updated_at: serverTimestamp()
   }));
@@ -695,11 +729,10 @@ test('source relationships preserve Editor ownership and Reviewer workflow-only 
   })));
   const reviewerDb = dbAs('reviewer');
   await assertFails(updateDoc(doc(reviewerDb, 'contents', 'CNT-REVIEW'), sourceRelationships([{ source_id: 'SRC-review00001', relation_type: 'primary' }])));
-  const approved = doc(reviewerDb, 'contents', 'CNT-REVIEW');
-  await assertSucceeds(updateDoc(approved, {
-    workflow_status: 'approved', approved_by: accounts.reviewer.email,
-    approved_at: serverTimestamp(), updated_at: serverTimestamp()
-  }));
+  await commitLifecycleBatch('reviewer', 'CNT-REVIEW', {
+    nextStatus: 'approved', action: 'approve', reason: 'อนุมัติหลังตรวจสอบ',
+    contentPatch: { approved_by: accounts.reviewer.email, approved_at: serverTimestamp() }
+  });
   await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', 'CNT-OTHER-DRAFT'), sourceRelationships([{ source_id: 'SRC-admin00001', relation_type: 'primary' }])));
 });
 
@@ -975,15 +1008,14 @@ test('Feature 13A atomically publishes content with reviewed published evidence 
     contentId: 'CNT-PROJECTION-ATOMIC', sourceId: 'SRC-PROJECTION-ATOMIC',
     workflowStatus: 'approved', withProjection: false
   });
-  const adminDb = dbAs('admin');
-  const batch = writeBatch(adminDb);
-  const publicationTime = serverTimestamp();
-  batch.update(doc(adminDb, 'contents', seeded.contentId), {
-    workflow_status: 'published', published_at: publicationTime, updated_at: publicationTime
+  await commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'published', action: 'publish', reason: 'เผยแพร่หลังตรวจสอบ',
+    contentPatch: { published_by: accounts.admin.email, published_at: serverTimestamp() },
+    relatedWrites: (batch, { timestamp, db }) => batch.set(
+      doc(db, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId),
+      publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, timestamp, { locator: 'มาตรา 74' })
+    )
   });
-  batch.set(doc(adminDb, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId),
-    publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, publicationTime, { locator: 'มาตรา 74' }));
-  await assertSucceeds(batch.commit());
   const userDb = dbAs('user');
   await assertSucceeds(getDoc(doc(userDb, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId)));
   const publishedContent = await getDoc(doc(userDb, 'contents', seeded.contentId));
@@ -1056,9 +1088,9 @@ test('Feature 13A projections follow published parent and source access, and sta
   await assertFails(getDoc(projectionRef(changedParent)));
 
   const unpublished = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-UNPUBLISHED', sourceId: 'SRC-PROJECTION-UNPUBLISHED' });
-  await assertSucceeds(updateDoc(doc(dbAs('admin'), 'contents', unpublished.contentId), {
-    workflow_status: 'draft', updated_at: serverTimestamp()
-  }));
+  await commitLifecycleBatch('admin', unpublished.contentId, {
+    nextStatus: 'draft', action: 'withdraw', reason: 'ทดสอบถอนเผยแพร่'
+  });
   await assertFails(getDoc(projectionRef(unpublished)));
 
   const sourceAccessChanged = await seedPublishedEvidenceScenario({ contentId: 'CNT-PROJECTION-ACCESS', sourceId: 'SRC-PROJECTION-ACCESS', accessLevel: 'public' });
@@ -1072,4 +1104,82 @@ test('Feature 13A projections follow published parent and source access, and sta
     access_level: 'restricted', updated_at: serverTimestamp()
   }));
   await assertFails(getDoc(projectionRef(contentAccessChanged)));
+});
+
+test('Feature 14A Admin withdrawal atomically records lifecycle history and hides content and its evidence projection', async () => {
+  const seeded = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-F14A-WITHDRAW', sourceId: 'SRC-F14A-WITHDRAW'
+  });
+  const { db: adminDb, versionId } = await commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'draft', action: 'withdraw', reason: 'แก้ไขเนื้อหาที่ล้าสมัย'
+  });
+  const event = await getDoc(doc(adminDb, 'contentVersions', versionId));
+  assert.equal(event.data().action, 'withdraw');
+  assert.equal(event.data().lifecycle_from, 'published');
+  assert.equal(event.data().lifecycle_to, 'draft');
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', seeded.contentId)));
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId)));
+  await assertFails(getDoc(doc(dbAs('user'), 'sources', seeded.sourceId, 'ingestions', seeded.ingestionId, 'evidence', seeded.evidenceId)));
+});
+
+test('Feature 14A non-Admin withdrawal and invalid history fail without changing published state', async () => {
+  const seeded = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-F14A-DENY', sourceId: 'SRC-F14A-DENY'
+  });
+  await assertFails(updateDoc(doc(dbAs('editor'), 'contents', seeded.contentId), {
+    workflow_status: 'draft', updated_at: serverTimestamp()
+  }));
+  await assertFails(commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'draft', action: 'withdraw', reason: 'withdraw for test',
+    eventOverrides: { change_reason: 'x' }
+  }));
+  await assertFails(commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'published', action: 'restore', reason: 'bypass publication safeguards'
+  }));
+  const contentSnapshot = await getDoc(doc(dbAs('admin'), 'contents', seeded.contentId));
+  assert.equal(contentSnapshot.data().workflow_status, 'published');
+  await assertSucceeds(getDoc(doc(dbAs('user'), 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId)));
+});
+
+test('Feature 14A supports revision through review, approval, and atomic republication with current evidence', async () => {
+  const seeded = await seedPublishedEvidenceScenario({
+    contentId: 'CNT-F14A-REPUBLISH', sourceId: 'SRC-F14A-REPUBLISH'
+  });
+  await commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'draft', action: 'withdraw', reason: 'ถอนเพื่อแก้ไข'
+  });
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', seeded.contentId)));
+  await commitLifecycleBatch('editor', seeded.contentId, {
+    nextStatus: 'review', action: 'revision_submit', reason: 'ปรับปรุงแนวทางล่าสุด',
+    contentPatch: { title: 'ฉบับแก้ไขเพื่อทดสอบ' }
+  });
+  await commitLifecycleBatch('reviewer', seeded.contentId, {
+    nextStatus: 'approved', action: 'approve', reason: 'ตรวจสอบและอนุมัติ',
+    contentPatch: { approved_by: accounts.reviewer.email, approved_at: serverTimestamp() }
+  });
+  const { versionId } = await commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'published', action: 'republish', reason: 'เผยแพร่ฉบับแก้ไข',
+    contentPatch: { published_by: accounts.admin.email, published_at: serverTimestamp() },
+    relatedWrites: (batch, { timestamp, db }) => batch.set(
+      doc(db, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId),
+      publishedEvidenceProjection(seeded.sourceId, seeded.sourceName, seeded.ingestionId, seeded.evidenceId, timestamp, { excerpt: 'หลักฐานฉบับปัจจุบัน' })
+    )
+  });
+  const adminDb = dbAs('admin');
+  const currentContent = await getDoc(doc(adminDb, 'contents', seeded.contentId));
+  const currentProjection = await getDoc(doc(adminDb, 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId));
+  assert.equal(currentContent.data().workflow_status, 'published');
+  assert.deepEqual(currentProjection.data().content_updated_at, currentContent.data().updated_at);
+  assert.equal(currentProjection.data().excerpt, 'หลักฐานฉบับปัจจุบัน');
+  const userProjection = await getDoc(doc(dbAs('user'), 'contents', seeded.contentId, 'publishedEvidence', seeded.sourceId));
+  assert.equal(userProjection.data().excerpt, 'หลักฐานฉบับปัจจุบัน');
+  const event = await getDoc(doc(adminDb, 'contentVersions', versionId));
+  assert.equal(event.data().action, 'republish');
+  assert.equal(event.data().lifecycle_from, 'approved');
+  assert.equal(event.data().lifecycle_to, 'published');
+  assert.equal(event.data().change_reason, 'เผยแพร่ฉบับแก้ไข');
+  await commitLifecycleBatch('admin', seeded.contentId, {
+    nextStatus: 'draft', action: 'restore', reason: 'คืนข้อมูลเพื่อแก้ไขต่อ'
+  });
+  await assertFails(getDoc(doc(dbAs('user'), 'contents', seeded.contentId)));
 });
