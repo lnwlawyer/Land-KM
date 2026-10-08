@@ -34,7 +34,15 @@ const showRecovery = reason => {
 const isAppUnavailable = () => {
   const shell = document.getElementById('appShell');
   const gate = document.getElementById('authGate');
-  const visible = element => element && !element.hidden && getComputedStyle(element).display !== 'none';
+  const visible = element => {
+    if (!element || !element.isConnected) return false;
+    for (let node = element; node && node.nodeType === 1; node = node.parentElement) {
+      if (node.hidden) return false;
+      const style = getComputedStyle(node);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.visibility === 'collapse') return false;
+    }
+    return true;
+  };
   return !visible(shell) && !visible(gate);
 };
 window.addEventListener('error', event => {

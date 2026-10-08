@@ -5,11 +5,11 @@ import { runInNewContext } from 'node:vm';
 
 const source = readFileSync(new URL('../public/startup-recovery.js', import.meta.url), 'utf8');
 
-function runScenario({ shellVisible, gateVisible }) {
+function runScenario({ shellVisible, gateVisible, ancestorHidden = false }) {
   const listeners = new Map();
   const elements = new Map();
   const createElement = tag => ({
-    tag, hidden:false, style:{}, dataset:{}, children:[],
+    tag, hidden:false, isConnected:true, nodeType:1, parentElement:null, style:{}, dataset:{}, children:[],
     attributes:{}, setAttribute(name,value){this.attributes[name]=value;}, focus(){this.focused=true;}, addEventListener(name, fn){this['on'+name]=fn;},
     append(...nodes){this.children.push(...nodes);},
     textContent:'', type:''
@@ -17,6 +17,8 @@ function runScenario({ shellVisible, gateVisible }) {
   const body = createElement('body');
   const shell = createElement('div'); shell.hidden = !shellVisible;
   const gate = createElement('div'); gate.hidden = !gateVisible;
+  shell.parentElement = body; gate.parentElement = body;
+  body.hidden = ancestorHidden;
   elements.set('appShell',shell); elements.set('authGate',gate);
   const document = {
     body, createElement, getElementById:id=>elements.get(id),
@@ -57,4 +59,10 @@ test('blank startup reveals accessible recovery and retry action',()=>{
   assert.equal(panel.children[1].textContent,'ลองโหลดใหม่');
   panel.children[1].onclick();
   assert.equal(listeners.get('reloaded'),true);
+});
+
+test('hidden ancestor is not mistaken for visible application',()=>{
+  const {panel,listeners}=runScenario({shellVisible:true,gateVisible:false,ancestorHidden:true});
+  listeners.get('timeout')();
+  assert.equal(panel.hidden,false);
 });
