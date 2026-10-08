@@ -13,7 +13,8 @@ retry.textContent = 'ลองโหลดใหม่';
 retry.style.cssText = 'background:#087f73;color:white;border:0;border-radius:8px;padding:9px 18px;cursor:pointer';
 retry.addEventListener('click', () => window.location.reload());
 root.append(message, retry);
-document.body.append(root);
+if (document.body) document.body.append(root);
+else document.addEventListener('DOMContentLoaded', () => document.body.append(root), { once:true });
 
 let recovered = false;
 const showRecovery = () => {
