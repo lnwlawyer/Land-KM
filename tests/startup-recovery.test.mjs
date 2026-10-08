@@ -74,3 +74,13 @@ test('late errors do not revive startup warning after app is ready',()=>{
   listeners.get('unhandledrejection')();
   assert.equal(panel.hidden,true);
 });
+
+test('recovery message can be dismissed without reloading the page',()=>{
+  const {panel,listeners}=runScenario({shellVisible:false,gateVisible:false});
+  listeners.get('timeout')();
+  assert.equal(panel.hidden,false);
+  assert.equal(panel.children[2].textContent,'ปิดข้อความ');
+  panel.children[2].onclick();
+  assert.equal(panel.hidden,true);
+  assert.equal(listeners.has('reloaded'),false);
+});
