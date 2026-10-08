@@ -10,7 +10,7 @@ function runScenario({ shellVisible, gateVisible }) {
   const elements = new Map();
   const createElement = tag => ({
     tag, hidden:false, style:{}, dataset:{}, children:[],
-    setAttribute(){}, addEventListener(name, fn){this['on'+name]=fn;},
+    attributes:{}, setAttribute(name,value){this.attributes[name]=value;}, focus(){this.focused=true;}, addEventListener(name, fn){this['on'+name]=fn;},
     append(...nodes){this.children.push(...nodes);},
     textContent:'', type:''
   });
@@ -50,6 +50,9 @@ test('blank startup reveals accessible recovery and retry action',()=>{
   const {panel,listeners}=runScenario({shellVisible:false,gateVisible:false});
   listeners.get('timeout')();
   assert.equal(panel.hidden,false);
+  assert.equal(panel.attributes.role,'alert');
+  assert.equal(panel.attributes['aria-live'],'assertive');
+  assert.equal(panel.children[1].focused,true);
   assert.equal(panel.dataset.reason,'timeout');
   assert.equal(panel.children[1].textContent,'ลองโหลดใหม่');
   panel.children[1].onclick();
