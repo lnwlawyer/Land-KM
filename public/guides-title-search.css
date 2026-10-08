@@ -9,3 +9,6 @@
 
 #guidesView .guide-title-search .guide-reset-all{min-height:42px;white-space:nowrap}
 #guidesView .guide-title-search .guide-reset-all[hidden]{display:none!important}
+
+#guidesView .panel > .doc[role="link"]{cursor:pointer}
+#guidesView .panel > .doc[role="link"]:focus-visible{outline:3px solid var(--brand,#087f73);outline-offset:2px;border-radius:10px}
