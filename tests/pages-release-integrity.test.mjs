@@ -201,3 +201,11 @@ test('Pages release includes reading layout exactly once',()=>{
     assert.match(css,/@media print/);
   });
 });
+
+test('Guide category and media type filtering supports grouped category metadata',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/knownTypes = new Set/);
+  assert.match(source,/segments\.findIndex\(segment => knownTypes\.has\(segment\)\)/);
+  assert.match(source,/categorySegments\.includes\(name\)/);
+  assert.doesNotMatch(source,/metadata\.split\('•'\)\[0\]/);
+});
