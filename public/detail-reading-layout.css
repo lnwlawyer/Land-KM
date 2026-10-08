@@ -1,0 +1,15 @@
+/* Reading-first layout for published document details. No data or DOM mutation. */
+#detailView .detail-wrap{align-items:start}
+#detailView .detail{min-width:0;overflow-wrap:anywhere}
+#detailView .detail h1{line-height:1.4;letter-spacing:0;overflow-wrap:anywhere}
+#detailView .detail-meta{display:flex;flex-wrap:wrap;gap:8px 16px;line-height:1.7}
+#detailView .detail .callout{line-height:1.85;overflow-wrap:anywhere}
+#detailView #dynamicDetailBody{font-size:clamp(15px,1.15vw,17px);line-height:1.85;overflow-wrap:anywhere}
+#detailView #dynamicDetailBody p,#detailView #dynamicDetailBody li{line-height:1.85}
+#detailView #dynamicDetailBody img,#detailView #dynamicDetailBody iframe,#detailView #dynamicDetailBody video{max-width:100%}
+#detailView #dynamicDetailBody table{display:block;max-width:100%;overflow-x:auto}
+#detailView .side-card{overflow-wrap:anywhere}
+#detailView .side-card button{max-width:100%}
+#detailView .detail button:focus-visible,#detailView .side-card button:focus-visible{outline:3px solid var(--brand,#087f73);outline-offset:2px}
+@media(max-width:800px){#detailView .detail-wrap{display:block}#detailView .detail-wrap>.detail{margin-bottom:18px}#detailView .detail h1{font-size:clamp(22px,5vw,30px)}#detailView .detail{padding:clamp(14px,3vw,24px)}}
+@media print{#detailView .detail-wrap{display:block}#detailView .side-card,#detailView .comments,#detailView #back{display:none!important}#detailView .detail{border:0;box-shadow:none;padding:0}#detailView #dynamicDetailBody{font-size:12pt;line-height:1.6}}
