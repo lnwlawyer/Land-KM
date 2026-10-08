@@ -1,6 +1,6 @@
 // Prepare a project-site artifact without modifying production source files.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, relative, isAbsolute } from 'node:path';
 
 const dir = resolve(process.argv[2] || '_site');
 const prefix = '/Land-KM/';
@@ -32,7 +32,10 @@ for (const [field, value] of Object.entries({ id: manifest.id, start_url: manife
 }
 for (const icon of manifest.icons || []) {
   if (!icon.src.startsWith(prefix)) throw new Error('Icon outside Pages scope: ' + icon.src);
-  if (!existsSync(join(dir, icon.src.slice(prefix.length)))) throw new Error('Missing manifest icon: ' + icon.src);
+  const iconPath = resolve(dir, icon.src.slice(prefix.length));
+  const relativeIconPath = relative(dir, iconPath);
+  if (!relativeIconPath || relativeIconPath === '..' || relativeIconPath.startsWith('../') || relativeIconPath.startsWith('..\\\\') || isAbsolute(relativeIconPath)) throw new Error('Unsafe manifest icon path: ' + icon.src);
+  if (!existsSync(iconPath)) throw new Error('Missing manifest icon: ' + icon.src);
 }
 if (html.includes('src="/startup-recovery.js"')) throw new Error('Unscoped recovery script URL');
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
