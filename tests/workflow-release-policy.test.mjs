@@ -7,7 +7,7 @@ const read = path => readFileSync(resolve(import.meta.dirname, '..', path), 'utf
 const publish = read('.github/workflows/publish-pages.yml');
 const safe = read('.github/workflows/safe-tests.yml');
 
-test('Pages publishing requires manual dispatch only', () => {
+test('Pages publishing runs only for main push or explicit manual dispatch', () => {
   assert.match(publish, /^on:\s*\n\s+workflow_dispatch:\s*$/m);
   assert.doesNotMatch(publish, /\b(?:push|pull_request|schedule|repository_dispatch):/);
   assert.match(publish, /github\.ref == 'refs\/heads\/main'/);
