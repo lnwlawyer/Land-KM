@@ -183,3 +183,9 @@ test('Guide rows are keyboard accessible without hijacking nested controls',()=>
   assert.match(source,/event\.target !== row/);
   assert.match(source,/row\.click\(\)/);
 });
+
+test('Guide filter feedback shows visible count and reset for empty matches',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/count\.textContent = 'พบ ' \+ visible/);
+  assert.match(source,/clear\.addEventListener\('click', \(\) => reset\.click\(\)\)/);
+});

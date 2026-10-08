@@ -12,3 +12,6 @@
 
 #guidesView .panel > .doc[role="link"]{cursor:pointer}
 #guidesView .panel > .doc[role="link"]:focus-visible{outline:3px solid var(--brand,#087f73);outline-offset:2px;border-radius:10px}
+
+#guidesView #guideTitleSearchEmpty{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#guidesView #guideTitleSearchEmpty .btn{min-height:42px}
