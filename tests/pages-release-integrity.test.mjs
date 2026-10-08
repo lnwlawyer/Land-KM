@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, cpSync, rmSync, unlinkSync, readFileSync } from 'node:fs';
+import { mkdtempSync, cpSync, rmSync, unlinkSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -37,5 +37,17 @@ test('release preparation is idempotent and retains recovery loader',()=>{
     assert.equal(prepare(dir).status,0);
     const html=readFileSync(join(dir,'index.html'),'utf8');
     assert.equal(html.split('src="/Land-KM/startup-recovery.js"').length-1,1);
+  });
+});
+
+test('release preparation refuses a missing icon referenced by the manifest',()=>{
+  artifact(dir=>{
+    const path=join(dir,'manifest.webmanifest');
+    const manifest=JSON.parse(readFileSync(path,'utf8'));
+    manifest.icons.push({src:'/icons/missing-release-icon.png',sizes:'64x64',type:'image/png'});
+    writeFileSync(path,JSON.stringify(manifest));
+    const result=prepare(dir);
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/Missing manifest icon/);
   });
 });

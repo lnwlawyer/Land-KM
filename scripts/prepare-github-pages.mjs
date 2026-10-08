@@ -25,7 +25,15 @@ manifest.id = prefix;
 manifest.start_url = prefix;
 manifest.scope = prefix;
 for (const icon of manifest.icons || []) {
-  if (icon.src.startsWith('/')) icon.src = prefix + icon.src.slice(1);
+  if (icon.src.startsWith('/') && !icon.src.startsWith(prefix)) icon.src = prefix + icon.src.slice(1);
 }
+for (const [field, value] of Object.entries({ id: manifest.id, start_url: manifest.start_url, scope: manifest.scope })) {
+  if (value !== prefix) throw new Error('Invalid Pages manifest ' + field);
+}
+for (const icon of manifest.icons || []) {
+  if (!icon.src.startsWith(prefix)) throw new Error('Icon outside Pages scope: ' + icon.src);
+  if (!existsSync(join(dir, icon.src.slice(prefix.length)))) throw new Error('Missing manifest icon: ' + icon.src);
+}
+if (html.includes('src="/startup-recovery.js"')) throw new Error('Unscoped recovery script URL');
 writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
 console.log('GitHub Pages artifact prepared for ' + prefix);
