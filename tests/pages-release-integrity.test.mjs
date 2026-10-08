@@ -51,3 +51,15 @@ test('release preparation refuses a missing icon referenced by the manifest',()=
     assert.match(result.stderr,/Missing manifest icon/);
   });
 });
+
+test('release preparation rejects path traversal in manifest icons',()=>{
+  artifact(dir=>{
+    const path=join(dir,'manifest.webmanifest');
+    const manifest=JSON.parse(readFileSync(path,'utf8'));
+    manifest.icons.push({src:'/Land-KM/icons/../../outside.png',sizes:'64x64',type:'image/png'});
+    writeFileSync(path,JSON.stringify(manifest));
+    const result=prepare(dir);
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/Unsafe manifest icon path/);
+  });
+});
