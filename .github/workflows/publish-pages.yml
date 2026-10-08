@@ -29,6 +29,8 @@ jobs:
       - run: npm ci
       - name: Verify Pages artifact build
         run: node --test tests/github-pages.test.mjs
+      - name: Verify production Pages safety and artifact
+        run: node --test tests/pages-production-smoke.test.mjs
       - name: Run app tests
         run: npm run test:app
       - name: Run emulator rules tests

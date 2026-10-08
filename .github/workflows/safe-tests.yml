@@ -24,5 +24,6 @@ jobs:
       - run: npm ci
       - run: node scripts/check-safe-project.mjs
       - run: node --test tests/project-safety.test.mjs
+      - run: node --test tests/pages-production-smoke.test.mjs
       - run: npm run test:app
       - run: npm run test:rules
