@@ -8,10 +8,11 @@ import { spawnSync } from 'node:child_process';
 const root = new URL('../', import.meta.url);
 const read = path => readFileSync(new URL(path, root), 'utf8');
 
-test('Pages workflow publishes only by manual dispatch on main with no Firebase deploy', () => {
+test('Pages workflow publishes on main push or manual dispatch with no Firebase deploy', () => {
   const workflow = read('.github/workflows/publish-pages.yml');
   assert.match(workflow, /workflow_dispatch:/);
-  assert.doesNotMatch(workflow, /^  push:/m);
+  assert.match(workflow, /^  push:\\s*\\n    branches:\\s*\\n      - main\\s*$/m);
+  assert.doesNotMatch(workflow, /^  pull_request:/m);
   assert.match(workflow, /github\.ref == 'refs\/heads\/main'/);
   assert.match(workflow, /actions\/deploy-pages@/);
   assert.match(workflow, /npm run test:app/);
