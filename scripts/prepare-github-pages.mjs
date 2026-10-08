@@ -5,7 +5,7 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 const dir = resolve(process.argv[2] || '_site');
 const prefix = '/Land-KM/';
 const htmlPath = join(dir, 'index.html');
-for (const required of ['index.html', 'manifest.webmanifest', 'sw.js', 'startup-recovery.js', 'icons/icon-192.png', 'icons/apple-touch-icon.png']) {
+for (const required of ['index.html', 'manifest.webmanifest', 'sw.js', 'startup-recovery.js', 'ux-accessibility.css', 'icons/icon-192.png', 'icons/apple-touch-icon.png']) {
   if (!existsSync(join(dir, required))) throw new Error('Missing Pages release asset: ' + required);
 }
 const manifestPath = join(dir, 'manifest.webmanifest');
@@ -14,6 +14,9 @@ for (const name of ['manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-t
   html = html.replaceAll(`"/${name}"`, `"${prefix}${name}"`);
 }
 html = html.replaceAll("'/sw.js'", "'/Land-KM/sw.js'").replaceAll('"/sw.js"', '"/Land-KM/sw.js"');
+if (!html.includes('href="/Land-KM/ux-accessibility.css"')) {
+  html = html.replace('</head>', '  <link rel="stylesheet" href="/Land-KM/ux-accessibility.css">\n</head>');
+}
 if (!html.includes('src="/Land-KM/startup-recovery.js"')) {
   html = html.replace('</head>', '  <script defer src="/Land-KM/startup-recovery.js"></script>\n</head>');
 }
