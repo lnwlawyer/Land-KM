@@ -91,3 +91,16 @@ test('Pages release includes homepage shortcuts exactly once',()=>{
     assert.match(js,/target\.click\(\)/);
   });
 });
+
+test('Pages release includes collapsible mobile search filters once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const js=readFileSync(join(dir,'search-filter-mobile.js'),'utf8');
+    assert.equal(html.split('src="/Land-KM/search-filter-mobile.js"').length-1,1);
+    assert.equal(html.split('href="/Land-KM/search-filter-mobile.css"').length-1,1);
+    assert.match(js,/aria-expanded/);
+    assert.match(js,/applyFilters/);
+  });
+});
