@@ -4,7 +4,7 @@ import { invoke, handle, github } from '../tools/land-km-deploy-mcp.mjs';
 
 test('MCP server exposes exactly three scoped tools', async () => {
   const response = await handle({ jsonrpc:'2.0', id:1, method:'tools/list' });
-  assert.deepEqual(response.result.tools.map(tool => tool.name), ['deploy_land_km','get_deploy_status','get_deploy_logs']);
+  assert.deepEqual(response.result.tools.map(tool => tool.name), ['deploy_land_km','get_deploy_status','verify_live_site','get_deploy_logs']);
 });
 test('Deployment dispatch only targets approved workflow and main', async () => {
   const calls=[];
@@ -41,4 +41,18 @@ test('MCP errors are returned as tool errors without leaking details',async()=>{
   const result=await handle({jsonrpc:'2.0',id:4,method:'tools/call',params:{name:'deploy_land_km',arguments:{ref:'feature'}}},async()=>{throw new Error('should not dispatch')});
   assert.equal(result.result.isError,true);
   assert.match(result.result.content[0].text,/Unexpected argument/);
+});
+
+test('Live verification checks only public fixed URLs and validates manifest scope', async () => {
+  const visited=[];
+  const siteFetch=async url=>{
+    visited.push(url);
+    return {ok:true,status:200,headers:{get:()=> 'text/html'},json:async()=>({id:'/Land-KM/',start_url:'/Land-KM/',scope:'/Land-KM/'})};
+  };
+  const result=await invoke('verify_live_site',{},async()=>{throw Error('GitHub API must not be called')},siteFetch);
+  assert.equal(result.healthy,true);
+  assert.deepEqual(visited,['https://lnwlawyer.github.io/Land-KM/','https://lnwlawyer.github.io/Land-KM/manifest.webmanifest','https://lnwlawyer.github.io/Land-KM/sw.js']);
+  await assert.rejects(invoke('verify_live_site',{url:'https://example.com'},async()=>{},siteFetch),/Unexpected argument/);
+  const unhealthy=await invoke('verify_live_site',{},async()=>{},async url=>({ok:true,status:200,headers:{get:()=>''},json:async()=>({id:'/wrong/',start_url:'/Land-KM/',scope:'/Land-KM/'})}));
+  assert.equal(unhealthy.healthy,false);
 });

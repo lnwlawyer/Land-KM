@@ -12,6 +12,7 @@ const API = 'https://api.github.com';
 const TOOLS = [
   { name: 'deploy_land_km', description: 'Manually dispatch the approved Land-KM GitHub Pages workflow on main. Only call after the user explicitly requests production deployment.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'get_deploy_status', description: 'Read the latest Land-KM GitHub Pages workflow runs and their status.', inputSchema: { type: 'object', properties: { run_id: { type: 'integer', minimum: 1 } }, additionalProperties: false } },
+  { name: 'verify_live_site', description: 'Check the public Land-KM GitHub Pages site and manifest without credentials or production writes.', inputSchema: { type: 'object', properties: {}, additionalProperties: false } },
   { name: 'get_deploy_logs', description: 'Read failed step summaries and job annotations for a Land-KM deployment (no raw archive downloads).', inputSchema: { type: 'object', properties: { run_id: { type: 'integer', minimum: 1 } }, required: ['run_id'], additionalProperties: false } }
 ];
 export async function github(path, { method = 'GET', body, token = process.env.LAND_KM_GITHUB_TOKEN, fetchImpl = fetch } = {}) {
@@ -27,12 +28,31 @@ export async function github(path, { method = 'GET', body, token = process.env.L
   return response.json();
 }
 const base = '/repos/' + OWNER + '/' + REPO;
-export async function invoke(name, args = {}, api = github) {
+export async function verifyLiveSite(fetchImpl = fetch) {
+  const origin = 'https://lnwlawyer.github.io';
+  const paths = ['/Land-KM/', '/Land-KM/manifest.webmanifest', '/Land-KM/sw.js'];
+  const results = [];
+  for (const path of paths) {
+    try {
+      const response = await fetchImpl(origin + path, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(10000) });
+      const contentType = response.headers?.get?.('content-type') || '';
+      let valid = response.ok;
+      if (valid && path.endsWith('manifest.webmanifest')) {
+        const manifest = await response.json();
+        valid = manifest.id === '/Land-KM/' && manifest.start_url === '/Land-KM/' && manifest.scope === '/Land-KM/';
+      }
+      results.push({ path, status: response.status, content_type: contentType, valid });
+    } catch { results.push({ path, status: null, valid: false }); }
+  }
+  return { site: origin + '/Land-KM/', healthy: results.every(result => result.valid), checks: results, note: 'HTTP and manifest checks only; does not prove a particular commit was deployed.' };
+}
+export async function invoke(name, args = {}, api = github, siteFetch = fetch) {
   if (!TOOLS.some(tool => tool.name === name)) throw new Error('Unknown tool');
   if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error('Invalid arguments');
-  const allowed = name === 'deploy_land_km' ? [] : ['run_id'];
+  const allowed = name === 'deploy_land_km' || name === 'verify_live_site' ? [] : ['run_id'];
   if (Object.keys(args).some(key => !allowed.includes(key))) throw new Error('Unexpected argument');
   if ('run_id' in args && (!Number.isSafeInteger(args.run_id) || args.run_id < 1)) throw new Error('Invalid run_id');
+  if (name === 'verify_live_site') return verifyLiveSite(siteFetch);
   if (name === 'deploy_land_km') {
     await api(base + '/actions/workflows/' + WORKFLOW + '/dispatches', { method: 'POST', body: { ref: BRANCH } });
     return { dispatched: true, repository: OWNER + '/' + REPO, workflow: WORKFLOW, branch: BRANCH, note: 'Dispatch accepted; use get_deploy_status to confirm outcome.' };
