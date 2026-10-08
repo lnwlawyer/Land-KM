@@ -9,7 +9,7 @@ function runScenario({ shellVisible, gateVisible }) {
   const listeners = new Map();
   const elements = new Map();
   const createElement = tag => ({
-    tag, hidden:false, style:{}, children:[],
+    tag, hidden:false, style:{}, dataset:{}, children:[],
     setAttribute(){}, addEventListener(name, fn){this['on'+name]=fn;},
     append(...nodes){this.children.push(...nodes);},
     textContent:'', type:''
@@ -50,6 +50,7 @@ test('blank startup reveals accessible recovery and retry action',()=>{
   const {panel,listeners}=runScenario({shellVisible:false,gateVisible:false});
   listeners.get('timeout')();
   assert.equal(panel.hidden,false);
+  assert.equal(panel.dataset.reason,'timeout');
   assert.equal(panel.children[1].textContent,'ลองโหลดใหม่');
   panel.children[1].onclick();
   assert.equal(listeners.get('reloaded'),true);
