@@ -7,9 +7,10 @@ const read = path => readFileSync(resolve(import.meta.dirname, '..', path), 'utf
 const publish = read('.github/workflows/publish-pages.yml');
 const safe = read('.github/workflows/safe-tests.yml');
 
-test('Pages publishing runs only for main push or explicit manual dispatch', () => {
-  assert.match(publish, /^on:\s*\n\s+workflow_dispatch:\s*$/m);
-  assert.doesNotMatch(publish, /\b(?:push|pull_request|schedule|repository_dispatch):/);
+test('Pages publishing requires main push or manual dispatch only', () => {
+  assert.match(publish, /^  push:\s*\n    branches:\s*\n      - main\s*$/m);
+  assert.match(publish, /^  workflow_dispatch:\s*$/m);
+  assert.doesNotMatch(publish, /^  (?:pull_request|schedule|repository_dispatch):/m);
   assert.match(publish, /github\.ref == 'refs\/heads\/main'/);
 });
 
