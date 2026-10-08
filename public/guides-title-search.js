@@ -66,6 +66,24 @@
       } else empty?.remove();
     };
     input.addEventListener('input',update);
+    input.addEventListener('keydown', event => {
+      if (event.key !== 'Escape') return;
+      if (input.value) {
+        event.preventDefault();
+        event.stopPropagation();
+        input.value = '';
+        update();
+      } else input.blur();
+    });
+    document.addEventListener('keydown', event => {
+      if (event.key !== '/' || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event.isComposing) return;
+      if (!view.classList.contains('active') || view.closest('[hidden]')) return;
+      const target = event.target;
+      if (target?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]')) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      input.focus();
+    }, true);
     const readCategories = () => [...(selectedCategories?.querySelectorAll('.selected-item') || [])].map(button => normalize(button.textContent.replace(/\s*×\s*$/, ''))).filter(Boolean);
     applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
     clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
