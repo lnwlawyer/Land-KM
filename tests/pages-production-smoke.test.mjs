@@ -50,3 +50,10 @@ test('generated Pages artifact has valid project-scoped manifest, icons and HTML
     assert.ok(html.includes('src="/Land-KM/startup-recovery.js"'));
   } finally { rmSync(dir, { recursive:true, force:true }); }
 });
+
+// Pages releases must validate local emulator configuration before artifact publication.
+import { readFileSync as readSafetyWorkflow } from 'node:fs';
+import { join as joinSafetyPath } from 'node:path';
+const pagesWorkflowSafety = readSafetyWorkflow(joinSafetyPath(process.cwd(), '.github/workflows/publish-pages.yml'), 'utf8');
+assert.match(pagesWorkflowSafety, /node scripts\/check-safe-project\.mjs/);
+assert.match(pagesWorkflowSafety, /FIREBASE_PROJECT: demo-land-km/);
