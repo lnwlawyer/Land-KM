@@ -1,0 +1,8 @@
+#guidesView .guide-title-search{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:10px 0 18px}
+#guidesView .guide-title-search label{font-weight:700;font-size:13px}
+#guidesView .guide-title-search input{flex:1;min-width:180px;max-width:480px;padding:11px 13px;border:1px solid var(--line,#e3e8ef);border-radius:10px;background:#fff;color:var(--ink,#17233b);font:inherit}
+#guidesView .guide-title-search input:focus-visible{outline:2px solid var(--brand,#087f73);outline-offset:2px}
+#guidesView .guide-title-search #guideTitleSearchStatus{font-size:12px;color:var(--muted,#667085)}
+#guidesView .panel > .doc[hidden]{display:none!important}
+#guidesView #guideTitleSearchEmpty{padding:18px}
+@media(max-width:600px){#guidesView .guide-title-search{align-items:stretch;flex-direction:column}#guidesView .guide-title-search input{width:100%;max-width:none}}
