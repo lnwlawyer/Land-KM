@@ -78,3 +78,16 @@ test('release preparation refuses manifest icon path traversal',()=>{
     assert.match(result.stderr,/Unsafe manifest icon path/);
   });
 });
+
+test('Pages release includes homepage shortcuts exactly once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const js=readFileSync(join(dir,'home-navigation.js'),'utf8');
+    assert.equal(html.split('src="/Land-KM/home-navigation.js"').length-1,1);
+    assert.equal(html.split('href="/Land-KM/home-navigation.css"').length-1,1);
+    assert.match(js,/homeQuickAccess/);
+    assert.match(js,/target\.click\(\)/);
+  });
+});
