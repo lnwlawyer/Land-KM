@@ -50,10 +50,16 @@
         }
         const title = normalize(card.querySelector('.doc-title')?.textContent);
         const metadata = normalize(card.querySelector('.doc-meta')?.textContent);
-        const type = normalize((card.querySelector('.doc-meta')?.textContent || '').split('•').map(part => part.trim())[1]);
+        // Category display can contain both group and name, separated by •.
+        // Match the selected media type by an exact metadata segment, not a fixed index.
+        const segments = metadata.split('•').map(normalize).filter(Boolean);
+        const knownTypes = new Set([...(typeSelect?.options || [])].map(option => normalize(option.value || option.textContent)).filter(type => type && type !== normalize('สื่อทุกประเภท')));
+        const typeIndex = segments.findIndex(segment => knownTypes.has(segment));
+        const type = typeIndex < 0 ? '' : segments[typeIndex];
+        const categorySegments = typeIndex < 0 ? segments.slice(0, 2) : segments.slice(0, typeIndex);
         const matchesText = !query || title.includes(query) || metadata.includes(query);
         const matchesType = !filterType || type === selectedType;
-        const matchesCategory = !filterCategory || appliedCategories.some(name => metadata.split('•')[0]?.includes(name));
+        const matchesCategory = !filterCategory || appliedCategories.some(name => categorySegments.includes(name));
         const matches = matchesText && matchesType && matchesCategory;
         card.hidden = !matches;
         if (matches) visible++;
