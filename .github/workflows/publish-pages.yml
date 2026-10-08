@@ -31,6 +31,8 @@ jobs:
         run: node --test tests/github-pages.test.mjs
       - name: Verify production Pages safety and artifact
         run: node --test tests/pages-production-smoke.test.mjs
+      - name: Test release asset integrity
+        run: node --test tests/pages-release-integrity.test.mjs
       - name: Test startup recovery behavior
         run: node --test tests/startup-recovery.test.mjs
       - name: Validate browser startup scripts
