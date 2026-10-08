@@ -1,0 +1,21 @@
+/* Keyboard and touch accessibility improvements for the published Land-KM UI. */
+:where(button,a[href],input,select,textarea,summary,[role="button"],[tabindex="0"]):focus-visible {
+  outline: 3px solid #087f73;
+  outline-offset: 3px;
+}
+:where(.nav button,.btn,.iconbtn,.tabs button,.search button):focus-visible {
+  box-shadow: 0 0 0 4px rgba(8,127,115,.16);
+}
+@media (max-width:700px) {
+  :where(.nav button,.iconbtn,.btn,.tabs button,.search button) {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,*::before,*::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
