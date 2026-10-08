@@ -143,3 +143,10 @@ test('Pages release includes guide title search once',()=>{
     assert.match(js,/guideTitleSearchStatus/);
   });
 });
+
+test('Guide search combines title query and selected guide type',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/typeSelect\?\.addEventListener\('change',update\)/);
+  assert.match(source,/matchesText && matchesType/);
+  assert.match(source,/split\('•'\)/);
+});
