@@ -22,18 +22,24 @@ const showRecovery = () => {
   recovered = true;
   root.hidden = false;
 };
+// Only show a global recovery prompt when the application cannot be displayed.
+// Individual Firestore requests may fail while the rest of the app is usable.
+const isAppUnavailable = () => {
+  const shell = document.getElementById('appShell');
+  const gate = document.getElementById('authGate');
+  const visible = element => element && !element.hidden && getComputedStyle(element).display !== 'none';
+  return !visible(shell) && !visible(gate);
+};
 window.addEventListener('error', event => {
   if (event.target && event.target !== window) return;
-  showRecovery();
+  if (isAppUnavailable()) showRecovery();
 });
-window.addEventListener('unhandledrejection', showRecovery);
+window.addEventListener('unhandledrejection', () => {
+  if (isAppUnavailable()) showRecovery();
+});
 
 // A stuck sign-in screen is actionable without inspecting sensitive Firebase state.
 // Do not display a warning if the application shell is already visible.
 window.setTimeout(() => {
-  const shell = document.getElementById('appShell');
-  const gate = document.getElementById('authGate');
-  const shellVisible = shell && !shell.hidden && getComputedStyle(shell).display !== 'none';
-  const gateVisible = gate && !gate.hidden && getComputedStyle(gate).display !== 'none';
-  if (!shellVisible && !gateVisible) showRecovery();
+  if (isAppUnavailable()) showRecovery();
 }, 20000);
