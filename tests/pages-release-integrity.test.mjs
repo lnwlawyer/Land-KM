@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, cpSync, rmSync, unlinkSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+
+const root = new URL('../', import.meta.url);
+function artifact(fn) {
+  const dir = mkdtempSync(join(tmpdir(), 'land-km-release-'));
+  try { cpSync(new URL('../public/', import.meta.url), dir, { recursive:true }); return fn(dir); }
+  finally { rmSync(dir, { recursive:true, force:true }); }
+}
+const prepare = dir => spawnSync(process.execPath, ['scripts/prepare-github-pages.mjs',dir], {cwd:new URL('../',import.meta.url),encoding:'utf8'});
+
+test('release preparation refuses missing recovery script',()=>{
+  artifact(dir=>{
+    unlinkSync(join(dir,'startup-recovery.js'));
+    const result=prepare(dir);
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/Missing Pages release asset: startup-recovery\.js/);
+  });
+});
+
+test('release preparation refuses missing app icon',()=>{
+  artifact(dir=>{
+    unlinkSync(join(dir,'icons/icon-192.png'));
+    const result=prepare(dir);
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/Missing Pages release asset: icons\/icon-192\.png/);
+  });
+});
+
+test('release preparation is idempotent and retains recovery loader',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    assert.equal(html.split('src="/Land-KM/startup-recovery.js"').length-1,1);
+  });
+});
