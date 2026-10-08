@@ -104,3 +104,16 @@ test('Pages release includes search keyboard shortcut assets once',()=>{
     assert.match(js,/isEditing\(event\.target\)/);
   });
 });
+
+test('Pages release ships readable search result cards exactly once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const css=readFileSync(join(dir,'search-results-readable.css'),'utf8');
+    assert.equal(html.split('href="/Land-KM/search-results-readable.css"').length-1,1);
+    assert.match(css,/search-result-row/);
+    assert.match(css,/search-result-meta/);
+    assert.match(css,/max-width:600px/);
+  });
+});
