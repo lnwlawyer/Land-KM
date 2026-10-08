@@ -11,6 +11,9 @@ for (const name of ['manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-t
   html = html.replaceAll(`"/${name}"`, `"${prefix}${name}"`);
 }
 html = html.replaceAll("'/sw.js'", "'/Land-KM/sw.js'").replaceAll('"/sw.js"', '"/Land-KM/sw.js"');
+if (!html.includes('src="/Land-KM/startup-recovery.js"')) {
+  html = html.replace('</head>', '  <script defer src="/Land-KM/startup-recovery.js"></script>\n</head>');
+}
 writeFileSync(htmlPath, html);
 
 const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
