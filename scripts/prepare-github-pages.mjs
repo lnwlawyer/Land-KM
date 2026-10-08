@@ -14,6 +14,9 @@ for (const name of ['manifest.webmanifest', 'icons/icon-192.png', 'icons/apple-t
   html = html.replaceAll(`"/${name}"`, `"${prefix}${name}"`);
 }
 html = html.replaceAll("'/sw.js'", "'/Land-KM/sw.js'").replaceAll('"/sw.js"', '"/Land-KM/sw.js"');
+// A project-scoped service worker cannot claim the GitHub Pages origin root.
+// Rewrite only the known service worker registration scope in generated HTML.
+html = html.replace("navigator.serviceWorker.register('/Land-KM/sw.js', { scope: '/' })", "navigator.serviceWorker.register('/Land-KM/sw.js', { scope: '/Land-KM/' })");
 if (!html.includes('href="/Land-KM/home-navigation.css"')) {
   html = html.replace('</head>', '  <link rel="stylesheet" href="/Land-KM/home-navigation.css">\n</head>');
 }
