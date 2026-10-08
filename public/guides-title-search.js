@@ -26,6 +26,13 @@
     status.setAttribute('aria-live','polite');
     wrapper.append(label,input,status);
     toolbar.insertAdjacentElement('afterend',wrapper);
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.id = 'guideResetAllFilters';
+    reset.className = 'btn guide-reset-all';
+    reset.textContent = 'ล้างตัวกรองทั้งหมด';
+    reset.hidden = true;
+    wrapper.appendChild(reset);
     const normalize = value => String(value || '').normalize('NFC').toLocaleLowerCase('th-TH').trim();
     const update = () => {
       const query = normalize(input.value);
