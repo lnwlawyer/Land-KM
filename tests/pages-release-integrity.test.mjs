@@ -175,3 +175,10 @@ test('Guide search keyboard shortcuts respect editing contexts',()=>{
   assert.match(source,/event\.key !== 'Escape'/);
   assert.match(source,/input\.focus\(\)/);
 });
+
+test('Guide filter feedback reports visible results and offers reset on no match',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/count\.textContent = 'พบ ' \+ visible/);
+  assert.match(source,/clear\.addEventListener\('click', \(\) => reset\.click\(\)\)/);
+  assert.match(source,/ไม่พบคู่มือที่ตรงกับตัวกรองที่เลือก/);
+});
