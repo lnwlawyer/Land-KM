@@ -53,14 +53,22 @@
         if (matches) visible++;
       });
       reset.hidden = !(query || filterType || filterCategory);
-      status.textContent = query || filterType || filterCategory ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
+      status.textContent = 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว';
+      const count = document.getElementById('guideResultCount');
+      if (count && cards.length) count.textContent = 'พบ ' + visible + ' รายการ';
       let empty = document.getElementById('guideTitleSearchEmpty');
       if ((query || filterType || filterCategory) && cards.length && !visible) {
         if (!empty) {
           empty = document.createElement('p');
           empty.id = 'guideTitleSearchEmpty';
           empty.className = 'empty-note';
-          empty.textContent = 'ไม่พบคู่มือที่ตรงกับคำค้น ลองใช้คำค้นอื่น';
+          empty.textContent = 'ไม่พบคู่มือที่ตรงกับตัวกรองที่เลือก';
+          const clear = document.createElement('button');
+          clear.type = 'button';
+          clear.className = 'btn';
+          clear.textContent = 'ล้างตัวกรองทั้งหมด';
+          clear.addEventListener('click', () => reset.click());
+          empty.appendChild(clear);
           panel.appendChild(empty);
         }
       } else empty?.remove();
