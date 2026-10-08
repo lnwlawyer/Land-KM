@@ -5,7 +5,7 @@ import { resolve, join, relative, isAbsolute } from 'node:path';
 const dir = resolve(process.argv[2] || '_site');
 const prefix = '/Land-KM/';
 const htmlPath = join(dir, 'index.html');
-for (const required of ['index.html', 'manifest.webmanifest', 'sw.js', 'startup-recovery.js', 'home-navigation.js', 'home-navigation.css', 'search-shortcuts.js', 'search-shortcuts.css', 'search-results-readable.css', 'back-to-top.js', 'back-to-top.css', 'guides-title-search.js', 'guides-title-search.css', 'icons/icon-192.png', 'icons/apple-touch-icon.png']) {
+for (const required of ['index.html', 'manifest.webmanifest', 'sw.js', 'startup-recovery.js', 'home-navigation.js', 'home-navigation.css', 'search-shortcuts.js', 'search-shortcuts.css', 'search-results-readable.css', 'back-to-top.js', 'back-to-top.css', 'guides-title-search.js', 'guides-title-search.css', 'detail-reading-layout.css', 'icons/icon-192.png', 'icons/apple-touch-icon.png']) {
   if (!existsSync(join(dir, required))) throw new Error('Missing Pages release asset: ' + required);
 }
 const manifestPath = join(dir, 'manifest.webmanifest');
@@ -27,6 +27,7 @@ if (!html.includes('href="/Land-KM/back-to-top.css"')) html = html.replace('</he
 if (!html.includes('src="/Land-KM/back-to-top.js"')) html = html.replace('</head>', '  <script defer src="/Land-KM/back-to-top.js"></script>\n</head>');
 if (!html.includes('href="/Land-KM/guides-title-search.css"')) html = html.replace('</head>', '  <link rel="stylesheet" href="/Land-KM/guides-title-search.css">\n</head>');
 if (!html.includes('src="/Land-KM/guides-title-search.js"')) html = html.replace('</head>', '  <script defer src="/Land-KM/guides-title-search.js"></script>\n</head>');
+if (!html.includes('href="/Land-KM/detail-reading-layout.css"')) html = html.replace('</head>', '  <link rel="stylesheet" href="/Land-KM/detail-reading-layout.css">\n</head>');
 if (!html.includes('src="/Land-KM/startup-recovery.js"')) {
   html = html.replace('</head>', '  <script defer src="/Land-KM/startup-recovery.js"></script>\n</head>');
 }
