@@ -27,6 +27,7 @@ jobs:
       - run: node scripts/check-safe-project.mjs
       - run: node --test tests/project-safety.test.mjs
       - run: node --test tests/pages-production-smoke.test.mjs
+      - run: node --test tests/pages-live-verification.test.mjs
       - run: node --test tests/pages-release-integrity.test.mjs
       - run: node --test tests/startup-recovery.test.mjs
       - run: node --test tests/startup-reliability.test.mjs
