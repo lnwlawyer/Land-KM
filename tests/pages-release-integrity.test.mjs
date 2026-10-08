@@ -215,3 +215,17 @@ test('Guide search advertises accessible keyboard shortcuts',()=>{
   assert.match(source,/input\.setAttribute\('aria-keyshortcuts', '\/'\)/);
   assert.match(source,/guide-search-help/);
 });
+
+test('Pages PWA registration uses the project scope and remains idempotent',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    assert.match(html,/navigator\.serviceWorker\.register\('\/Land-KM\/sw\.js', \{ scope: '\/Land-KM\/' \}\)/);
+    assert.doesNotMatch(html,/navigator\.serviceWorker\.register\('\/Land-KM\/sw\.js', \{ scope: '\/' \}\)/);
+    const manifest=JSON.parse(readFileSync(join(dir,'manifest.webmanifest'),'utf8'));
+    assert.equal(manifest.id,'/Land-KM/');
+    assert.equal(manifest.start_url,'/Land-KM/');
+    assert.equal(manifest.scope,'/Land-KM/');
+  });
+});
