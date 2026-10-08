@@ -1,0 +1,47 @@
+name: Publish Land-KM to GitHub Pages
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - name: Verify Pages artifact build
+        run: node --test tests/github-pages.test.mjs
+      - name: Run app tests
+        run: npm run test:app
+      - name: Run emulator rules tests
+        run: npm run test:rules
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          cp -R public/. _site/
+          touch _site/.nojekyll
+          node scripts/prepare-github-pages.mjs _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
