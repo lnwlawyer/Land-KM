@@ -78,3 +78,15 @@ test('release preparation refuses manifest icon path traversal',()=>{
     assert.match(result.stderr,/Unsafe manifest icon path/);
   });
 });
+
+test('Pages release includes keyboard accessibility stylesheet exactly once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const css=readFileSync(join(dir,'ux-accessibility.css'),'utf8');
+    assert.equal(html.split('href="/Land-KM/ux-accessibility.css"').length-1,1);
+    assert.match(css,/:focus-visible/);
+    assert.match(css,/prefers-reduced-motion/);
+  });
+});
