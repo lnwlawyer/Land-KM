@@ -58,7 +58,7 @@
       } else empty?.remove();
     };
     input.addEventListener('input',update);
-    const readCategories = () => [...(selectedCategories?.querySelectorAll('.selected-item') || [])].map(button => normalize(button.textContent.replace(/\\s*×\\s*$/, ''))).filter(Boolean);
+    const readCategories = () => [...(selectedCategories?.querySelectorAll('.selected-item') || [])].map(button => normalize(button.textContent.replace(/\s*×\s*$/, ''))).filter(Boolean);
     applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
     clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
     typeSelect?.addEventListener('change',update);
