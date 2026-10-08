@@ -47,6 +47,6 @@ test('generated Pages artifact has valid project-scoped manifest, icons and HTML
     assert.ok(existsSync(join(dir, 'index.html')));
     assert.ok(existsSync(join(dir, 'sw.js')));
     assert.ok(existsSync(join(dir, 'startup-recovery.js')));
-    assert.match(html, /src="\\/Land-KM\\/startup-recovery\\.js"/);
+    assert.ok(html.includes('src="/Land-KM/startup-recovery.js"'));
   } finally { rmSync(dir, { recursive:true, force:true }); }
 });
