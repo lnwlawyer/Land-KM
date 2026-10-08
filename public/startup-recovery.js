@@ -17,9 +17,12 @@ if (document.body) document.body.append(root);
 else document.addEventListener('DOMContentLoaded', () => document.body.append(root), { once:true });
 
 let recovered = false;
-const showRecovery = () => {
+let recoveryReason = '';
+const showRecovery = reason => {
   if (recovered) return;
   recovered = true;
+  recoveryReason = reason || 'startup';
+  root.dataset.reason = recoveryReason;
   root.hidden = false;
 };
 // Only show a global recovery prompt when the application cannot be displayed.
@@ -32,7 +35,7 @@ const isAppUnavailable = () => {
 };
 window.addEventListener('error', event => {
   if (event.target && event.target !== window) return;
-  if (isAppUnavailable()) showRecovery();
+  if (isAppUnavailable()) showRecovery('startup');
 });
 window.addEventListener('unhandledrejection', () => {
   if (isAppUnavailable()) showRecovery();
@@ -41,5 +44,5 @@ window.addEventListener('unhandledrejection', () => {
 // A stuck sign-in screen is actionable without inspecting sensitive Firebase state.
 // Do not display a warning if the application shell is already visible.
 window.setTimeout(() => {
-  if (isAppUnavailable()) showRecovery();
+  if (isAppUnavailable()) showRecovery('timeout');
 }, 20000);
