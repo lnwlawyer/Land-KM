@@ -201,3 +201,9 @@ test('Pages release includes reading layout exactly once',()=>{
     assert.match(css,/@media print/);
   });
 });
+
+test('Guide search advertises accessible keyboard shortcuts',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/input\.setAttribute\('aria-keyshortcuts', '\/'\)/);
+  assert.match(source,/guide-search-help/);
+});
