@@ -1,20 +1,21 @@
 #!/usr/bin/env node
-// Safety gate for local/CI development. Never accesses Firebase services.
+// Offline development safety gate. No Firebase API requests are made.
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
-const root = resolve(import.meta.dirname, '..');
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const config = JSON.parse(readFileSync(resolve(root, '.firebaserc'), 'utf8'));
-const project = process.env.GCLOUD_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || process.env.FIREBASE_PROJECT || process.env.FIREBASE_PROJECT_ID || '';
 const allowed = 'demo-land-km';
+const vars = ['GCLOUD_PROJECT', 'GOOGLE_CLOUD_PROJECT', 'FIREBASE_PROJECT', 'FIREBASE_PROJECT_ID'];
 
-if (project && project !== allowed) {
-  console.error('BLOCKED: Firebase project must be demo-land-km for development and CI.');
-  process.exit(1);
+let unsafe = config.projects?.default !== allowed;
+if (unsafe) console.error('BLOCKED: .firebaserc default must be demo-land-km on the development branch.');
+for (const key of vars) {
+  if (process.env[key] && process.env[key] !== allowed) {
+    console.error(`BLOCKED: ${key} must be demo-land-km.`);
+    unsafe = true;
+  }
 }
-if (config.projects?.default === allowed) {
-  console.log('SAFE: default Firebase project is demo-land-km.');
-} else {
-  console.log('NOTICE: .firebaserc default is production; use --project demo-land-km explicitly.');
-}
-console.log('SAFE: no Firebase API calls or deployments performed.');
+if (unsafe) process.exit(1);
+console.log('PASS: development project settings are emulator-only (demo-land-km).');
