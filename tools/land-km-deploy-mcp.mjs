@@ -1,6 +1,8 @@
 // Standalone, dependency-free MCP stdio server for one approved GitHub Pages workflow.
 // Secrets are read from the process environment, never from chat arguments.
 import { createInterface } from 'node:readline';
+import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
 
 export const OWNER = 'lnwlawyer';
 export const REPO = 'Land-KM';
@@ -69,15 +71,15 @@ export async function handle(message, api = github) {
   }
   return { jsonrpc: '2.0', id: message.id, error: { code: -32601, message: 'Method not found' } };
 }
-if (process.argv[1] && import.meta.url === new URL('file://' + process.argv[1].replaceAll('\\', '/')).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const lines = createInterface({ input: process.stdin, crlfDelay: Infinity });
   for await (const line of lines) {
     try {
       const message = JSON.parse(line);
       const response = await handle(message);
-      if (response) process.stdout.write(JSON.stringify(response) + '\\n');
+      if (response) process.stdout.write(JSON.stringify(response) + '\n');
     } catch {
-      process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }) + '\\n');
+      process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Parse error' } }) + '\n');
     }
   }
 }
