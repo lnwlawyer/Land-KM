@@ -4,6 +4,7 @@
     const view = document.getElementById('guidesView');
     const toolbar = view?.querySelector('.guide-toolbar');
     const panel = view?.querySelector('.panel');
+    const typeSelect = document.getElementById('guideType');
     if (!toolbar || !panel || document.getElementById('guideTitleSearch')) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'guide-title-search';
@@ -24,18 +25,23 @@
     const normalize = value => String(value || '').normalize('NFC').toLocaleLowerCase('th-TH').trim();
     const update = () => {
       const query = normalize(input.value);
+      const selectedType = normalize(typeSelect?.value);
+      const filterType = selectedType && selectedType !== normalize('สื่อทุกประเภท');
       const cards = [...panel.querySelectorAll(':scope > .doc')];
       let visible = 0;
       cards.forEach(card => {
         const title = normalize(card.querySelector('.doc-title')?.textContent);
         const metadata = normalize(card.querySelector('.doc-meta')?.textContent);
-        const matches = !query || title.includes(query) || metadata.includes(query);
+        const type = normalize(card.dataset.guideType);
+        const matchesText = !query || title.includes(query) || metadata.includes(query);
+        const matchesType = !filterType || type === selectedType;
+        const matches = matchesText && matchesType;
         card.hidden = !matches;
         if (matches) visible++;
       });
-      status.textContent = query ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
+      status.textContent = query || filterType ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
       let empty = document.getElementById('guideTitleSearchEmpty');
-      if (query && cards.length && !visible) {
+      if ((query || filterType) && cards.length && !visible) {
         if (!empty) {
           empty = document.createElement('p');
           empty.id = 'guideTitleSearchEmpty';
@@ -46,6 +52,7 @@
       } else empty?.remove();
     };
     input.addEventListener('input',update);
+    typeSelect?.addEventListener('change',update);
     const observer = new MutationObserver(update);
     observer.observe(panel,{childList:true});
     update();
