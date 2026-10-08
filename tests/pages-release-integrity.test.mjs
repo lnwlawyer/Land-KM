@@ -117,3 +117,16 @@ test('Pages release ships readable search result cards exactly once',()=>{
     assert.match(css,/max-width:600px/);
   });
 });
+
+test('Pages release bundles accessible back-to-top control once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const js=readFileSync(join(dir,'back-to-top.js'),'utf8');
+    assert.equal(html.split('src="/Land-KM/back-to-top.js"').length-1,1);
+    assert.equal(html.split('href="/Land-KM/back-to-top.css"').length-1,1);
+    assert.match(js,/window\.scrollY < 450/);
+    assert.match(js,/prefers-reduced-motion/);
+  });
+});
