@@ -51,3 +51,18 @@ test('release preparation refuses a missing icon referenced by the manifest',()=
     assert.match(result.stderr,/Missing manifest icon/);
   });
 });
+
+test('prepared HTML uses scoped PWA assets and no duplicated prefix',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const manifest=JSON.parse(readFileSync(join(dir,'manifest.webmanifest'),'utf8'));
+    assert.match(html,/href="\/Land-KM\/manifest\.webmanifest"/);
+    assert.match(html,/href="\/Land-KM\/icons\/icon-192\.png"/);
+    assert.match(html,/href="\/Land-KM\/icons\/apple-touch-icon\.png"/);
+    assert.doesNotMatch(html,/\/Land-KM\/Land-KM\//);
+    assert.doesNotMatch(JSON.stringify(manifest),/\/Land-KM\/Land-KM\//);
+    for(const icon of manifest.icons) assert.ok(icon.src.startsWith('/Land-KM/'));
+  });
+});
