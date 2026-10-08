@@ -106,7 +106,7 @@
     }, true);
     const readCategories = () => [...(selectedCategories?.querySelectorAll('.selected-item') || [])].map(button => normalize(button.textContent.replace(/\s*×\s*$/, ''))).filter(Boolean);
     applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
-    clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
+    clearCategories?.addEventListener('click', () => { appliedCategories = []; queueMicrotask(update); });
     typeSelect?.addEventListener('change',update);
     reset.addEventListener('click', () => {
       input.value = '';
