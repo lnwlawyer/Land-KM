@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { readFileSync, mkdtempSync, cpSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -8,8 +8,9 @@ import { spawnSync } from 'node:child_process';
 test('Pages preparation rewrites only generated artifact paths', () => {
   const dir = mkdtempSync(join(tmpdir(), 'land-km-pages-'));
   try {
-    mkdirSync(join(dir, 'icons'));
-    const source = '<link href="/manifest.webmanifest"><link href="/icons/icon-192.png"><link href="/icons/apple-touch-icon.png">';
+    // The release preparer requires the complete public asset set.
+    cpSync(new URL('../public/', import.meta.url), dir, { recursive: true });
+    const source = '<html><head><link href="/manifest.webmanifest"><link href="/icons/icon-192.png"><link href="/icons/apple-touch-icon.png"></head><body></body></html>';
     writeFileSync(join(dir, 'index.html'), source);
     writeFileSync(join(dir, 'manifest.webmanifest'), JSON.stringify({ id:'/', start_url:'/', scope:'/', icons:[{src:'/icons/icon-192.png'}] }));
     const result = spawnSync(process.execPath, ['scripts/prepare-github-pages.mjs', dir], { encoding:'utf8' });
