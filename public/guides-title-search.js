@@ -45,6 +45,7 @@
         card.hidden = !matches;
         if (matches) visible++;
       });
+      reset.hidden = !(query || filterType || filterCategory);
       status.textContent = query || filterType || filterCategory ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
       let empty = document.getElementById('guideTitleSearchEmpty');
       if ((query || filterType || filterCategory) && cards.length && !visible) {
@@ -62,6 +63,14 @@
     applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
     clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
     typeSelect?.addEventListener('change',update);
+    reset.addEventListener('click', () => {
+      input.value = '';
+      if (typeSelect) typeSelect.selectedIndex = 0;
+      clearCategories?.click();
+      appliedCategories = [];
+      update();
+      input.focus();
+    });
     const observer = new MutationObserver(update);
     observer.observe(panel,{childList:true});
     update();
