@@ -166,3 +166,12 @@ test('Guide filters offer one-click reset without additional data requests',()=>
   assert.match(source,/clearCategories\?\.click\(\)/);
   assert.match(source,/reset\.hidden = !/);
 });
+
+test('Guide search keyboard shortcuts respect editing contexts',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/event\.key !== '\/'/);
+  assert.match(source,/event\.isComposing/);
+  assert.match(source,/contenteditable/);
+  assert.match(source,/event\.key !== 'Escape'/);
+  assert.match(source,/input\.focus\(\)/);
+});
