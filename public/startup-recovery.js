@@ -2,6 +2,8 @@
 const root = document.createElement('div');
 root.id = 'landKmStartupRecovery';
 root.setAttribute('role', 'alert');
+root.setAttribute('aria-live', 'assertive');
+root.setAttribute('aria-label', 'การกู้คืนระบบ Land-KM');
 root.hidden = true;
 root.style.cssText = 'position:fixed;bottom:20px;left:20px;right:20px;max-width:540px;margin:auto;z-index:99999;background:#fff;border:1px solid #e3e8ef;border-radius:14px;box-shadow:0 10px 40px #17233b33;padding:18px;font:15px/1.6 Tahoma,sans-serif;color:#17233b';
 const message = document.createElement('p');
@@ -9,6 +11,7 @@ message.textContent = 'ระบบเริ่มต้นไม่สำเร
 message.style.margin = '0 0 12px';
 const retry = document.createElement('button');
 retry.type = 'button';
+retry.setAttribute('aria-label', 'ลองโหลดหน้า Land-KM ใหม่');
 retry.textContent = 'ลองโหลดใหม่';
 retry.style.cssText = 'background:#087f73;color:white;border:0;border-radius:8px;padding:9px 18px;cursor:pointer';
 retry.addEventListener('click', () => window.location.reload());
@@ -24,6 +27,7 @@ const showRecovery = reason => {
   recoveryReason = reason || 'startup';
   root.dataset.reason = recoveryReason;
   root.hidden = false;
+  retry.focus?.();
 };
 // Only show a global recovery prompt when the application cannot be displayed.
 // Individual Firestore requests may fail while the rest of the app is usable.
