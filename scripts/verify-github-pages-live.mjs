@@ -28,10 +28,10 @@ export async function verify(fetchImpl = fetch, { attempts = 12, delayMs = 10000
 if (process.argv[1] && import.meta.url === new URL('file://' + process.argv[1].replace(/\\/g, '/')).href) {
   const result = await verify();
   const lines = ['### GitHub Pages post-deploy verification', '', '- Site: ' + SITE, '- Result: ' + (result.ok ? 'PASS' : 'FAIL'), '- Attempts: ' + result.attempts, ...result.checks.map(x => '- ' + x.path + ': ' + (x.ok ? 'PASS' : 'FAIL') + ' (HTTP ' + (x.status ?? 'unavailable') + ')')];
-  console.log(lines.join('\\n'));
+  console.log(lines.join('\n'));
   if (process.env.GITHUB_STEP_SUMMARY) {
     const { appendFileSync } = await import('node:fs');
-    appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\\n') + '\\n');
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
   }
   if (!result.ok) process.exitCode = 1;
 }
