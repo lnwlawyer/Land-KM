@@ -32,7 +32,7 @@
       cards.forEach(card => {
         const title = normalize(card.querySelector('.doc-title')?.textContent);
         const metadata = normalize(card.querySelector('.doc-meta')?.textContent);
-        const type = normalize(card.dataset.guideType);
+        const type = normalize((card.querySelector('.doc-meta')?.textContent || '').split('•').map(part => part.trim())[1]);
         const matchesText = !query || title.includes(query) || metadata.includes(query);
         const matchesType = !filterType || type === selectedType;
         const matches = matchesText && matchesType;
