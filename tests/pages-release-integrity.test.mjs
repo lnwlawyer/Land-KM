@@ -189,3 +189,15 @@ test('Guide filter feedback shows visible count and reset for empty matches',()=
   assert.match(source,/count\.textContent = 'พบ ' \+ visible/);
   assert.match(source,/clear\.addEventListener\('click', \(\) => reset\.click\(\)\)/);
 });
+
+test('Pages release includes reading layout exactly once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    assert.equal(html.split('href="/Land-KM/detail-reading-layout.css"').length-1,1);
+    const css=readFileSync(join(dir,'detail-reading-layout.css'),'utf8');
+    assert.match(css,/#detailView #dynamicDetailBody/);
+    assert.match(css,/@media print/);
+  });
+});
