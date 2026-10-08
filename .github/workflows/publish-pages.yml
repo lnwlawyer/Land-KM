@@ -27,6 +27,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci
+      - name: Verify release workflow policy
+        run: node --test tests/workflow-release-policy.test.mjs
       - name: Verify emulator-only project configuration
         env:
           FIREBASE_PROJECT: demo-land-km
