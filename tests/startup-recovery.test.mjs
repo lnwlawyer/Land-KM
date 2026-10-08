@@ -66,3 +66,13 @@ test('hidden ancestor is not mistaken for visible application',()=>{
   listeners.get('timeout')();
   assert.equal(panel.hidden,false);
 });
+
+test('recovery message can be dismissed without reloading the page',()=>{
+  const {panel,listeners}=runScenario({shellVisible:false,gateVisible:false});
+  listeners.get('timeout')();
+  assert.equal(panel.hidden,false);
+  assert.equal(panel.children[2].textContent,'ปิดข้อความ');
+  panel.children[2].onclick();
+  assert.equal(panel.hidden,true);
+  assert.equal(listeners.has('reloaded'),false);
+});
