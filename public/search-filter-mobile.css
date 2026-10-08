@@ -1,0 +1,9 @@
+.search-filter-toggle{display:none}
+@media(max-width:700px){
+ #searchView .results-layout{display:flex;flex-direction:column;gap:12px}
+ #searchView .search-filter-toggle{display:block;width:100%;min-height:44px;text-align:left;font-weight:700;background:#eaf7f4;border-color:#9bd5ca;color:#07675f}
+ #searchView .results-layout > aside.filters.filters-collapsed{display:none!important}
+ #searchView .results-layout > aside.filters{width:100%;position:static!important;height:auto!important;max-height:none;overflow:visible}
+ #searchView .results-layout > div{min-width:0}
+ #searchView .results-head{gap:8px;flex-wrap:wrap}
+}
