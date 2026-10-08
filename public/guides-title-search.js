@@ -26,6 +26,13 @@
     status.setAttribute('aria-live','polite');
     wrapper.append(label,input,status);
     toolbar.insertAdjacentElement('afterend',wrapper);
+    const reset = document.createElement('button');
+    reset.type = 'button';
+    reset.id = 'guideResetAllFilters';
+    reset.className = 'btn guide-reset-all';
+    reset.textContent = 'ล้างตัวกรองทั้งหมด';
+    reset.hidden = true;
+    wrapper.appendChild(reset);
     const normalize = value => String(value || '').normalize('NFC').toLocaleLowerCase('th-TH').trim();
     const update = () => {
       const query = normalize(input.value);
@@ -45,6 +52,7 @@
         card.hidden = !matches;
         if (matches) visible++;
       });
+      reset.hidden = !(query || filterType || filterCategory);
       status.textContent = query || filterType || filterCategory ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
       let empty = document.getElementById('guideTitleSearchEmpty');
       if ((query || filterType || filterCategory) && cards.length && !visible) {
@@ -62,6 +70,14 @@
     applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
     clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
     typeSelect?.addEventListener('change',update);
+    reset.addEventListener('click', () => {
+      input.value = '';
+      if (typeSelect) typeSelect.selectedIndex = 0;
+      clearCategories?.click();
+      appliedCategories = [];
+      update();
+      input.focus();
+    });
     const observer = new MutationObserver(update);
     observer.observe(panel,{childList:true});
     update();

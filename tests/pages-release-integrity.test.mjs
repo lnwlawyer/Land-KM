@@ -158,3 +158,11 @@ test('Guide filters combine category, type and text over loaded cards',()=>{
   assert.match(source,/appliedCategories = \[\]/);
   assert.match(source,/guideSelected/);
 });
+
+test('Guide filters offer one-click reset without additional data requests',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/guideResetAllFilters/);
+  assert.match(source,/typeSelect\.selectedIndex = 0/);
+  assert.match(source,/clearCategories\?\.click\(\)/);
+  assert.match(source,/reset\.hidden = !/);
+});

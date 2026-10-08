@@ -6,3 +6,6 @@
 #guidesView .panel > .doc[hidden]{display:none!important}
 #guidesView #guideTitleSearchEmpty{padding:18px}
 @media(max-width:600px){#guidesView .guide-title-search{align-items:stretch;flex-direction:column}#guidesView .guide-title-search input{width:100%;max-width:none}}
+
+#guidesView .guide-title-search .guide-reset-all{min-height:42px;white-space:nowrap}
+#guidesView .guide-title-search .guide-reset-all[hidden]{display:none!important}
