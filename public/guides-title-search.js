@@ -5,6 +5,10 @@
     const toolbar = view?.querySelector('.guide-toolbar');
     const panel = view?.querySelector('.panel');
     const typeSelect = document.getElementById('guideType');
+    const applyCategories = document.getElementById('guideApply');
+    const clearCategories = document.getElementById('guideClear');
+    const selectedCategories = document.getElementById('guideSelected');
+    let appliedCategories = [];
     if (!toolbar || !panel || document.getElementById('guideTitleSearch')) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'guide-title-search';
@@ -28,6 +32,7 @@
       const selectedType = normalize(typeSelect?.value);
       const filterType = selectedType && selectedType !== normalize('สื่อทุกประเภท');
       const cards = [...panel.querySelectorAll(':scope > .doc')];
+      const filterCategory = appliedCategories.length > 0;
       let visible = 0;
       cards.forEach(card => {
         const title = normalize(card.querySelector('.doc-title')?.textContent);
@@ -35,13 +40,14 @@
         const type = normalize((card.querySelector('.doc-meta')?.textContent || '').split('•').map(part => part.trim())[1]);
         const matchesText = !query || title.includes(query) || metadata.includes(query);
         const matchesType = !filterType || type === selectedType;
-        const matches = matchesText && matchesType;
+        const matchesCategory = !filterCategory || appliedCategories.some(name => metadata.split('•')[0]?.includes(name));
+        const matches = matchesText && matchesType && matchesCategory;
         card.hidden = !matches;
         if (matches) visible++;
       });
-      status.textContent = query || filterType ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
+      status.textContent = query || filterType || filterCategory ? 'แสดง ' + visible + ' จาก ' + cards.length + ' รายการที่โหลดแล้ว' : '';
       let empty = document.getElementById('guideTitleSearchEmpty');
-      if ((query || filterType) && cards.length && !visible) {
+      if ((query || filterType || filterCategory) && cards.length && !visible) {
         if (!empty) {
           empty = document.createElement('p');
           empty.id = 'guideTitleSearchEmpty';
@@ -52,6 +58,9 @@
       } else empty?.remove();
     };
     input.addEventListener('input',update);
+    const readCategories = () => [...(selectedCategories?.querySelectorAll('.selected-item') || [])].map(button => normalize(button.textContent.replace(/\\s*×\\s*$/, ''))).filter(Boolean);
+    applyCategories?.addEventListener('click', () => { appliedCategories = readCategories(); update(); });
+    clearCategories?.addEventListener('click', () => { appliedCategories = []; update(); });
     typeSelect?.addEventListener('change',update);
     const observer = new MutationObserver(update);
     observer.observe(panel,{childList:true});
