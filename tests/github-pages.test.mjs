@@ -8,7 +8,8 @@ import { spawnSync } from 'node:child_process';
 test('Pages preparation rewrites only generated artifact paths', () => {
   const dir = mkdtempSync(join(tmpdir(), 'land-km-pages-'));
   try {
-    // The release preparer requires the complete public asset set.\n    cpSync(new URL('../public/', import.meta.url), dir, { recursive: true });
+    // The release preparer requires the complete public asset set.
+    cpSync(new URL('../public/', import.meta.url), dir, { recursive: true });
     const source = '<html><head><link href="/manifest.webmanifest"><link href="/icons/icon-192.png"><link href="/icons/apple-touch-icon.png"></head><body></body></html>';
     writeFileSync(join(dir, 'index.html'), source);
     writeFileSync(join(dir, 'manifest.webmanifest'), JSON.stringify({ id:'/', start_url:'/', scope:'/', icons:[{src:'/icons/icon-192.png'}] }));
