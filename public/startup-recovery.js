@@ -21,8 +21,16 @@ else document.addEventListener('DOMContentLoaded', () => document.body.append(ro
 
 let recovered = false;
 let recoveryReason = '';
+let appReady = false;
+const markReady = () => {
+  if (!isAppUnavailable()) {
+    appReady = true;
+    recovered = false;
+    root.hidden = true;
+  }
+};
 const showRecovery = reason => {
-  if (recovered) return;
+  if (recovered || appReady) return;
   recovered = true;
   recoveryReason = reason || 'startup';
   root.dataset.reason = recoveryReason;
@@ -57,4 +65,8 @@ window.addEventListener('unhandledrejection', () => {
 // Do not display a warning if the application shell is already visible.
 window.setTimeout(() => {
   if (isAppUnavailable()) showRecovery('timeout');
+  else markReady();
 }, 20000);
+
+// Once the sign-in gate or app shell becomes available, ignore late background errors.
+window.addEventListener('load', markReady);
