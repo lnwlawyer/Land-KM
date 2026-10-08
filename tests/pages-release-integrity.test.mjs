@@ -209,3 +209,9 @@ test('Guide category and media type filtering supports grouped category metadata
   assert.match(source,/categorySegments\.includes\(name\)/);
   assert.doesNotMatch(source,/metadata\.split\('•'\)\[0\]/);
 });
+
+test('Guide category apply and clear update filtered count after app click handlers',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/appliedCategories = readCategories\(\); queueMicrotask\(update\)/);
+  assert.match(source,/appliedCategories = \[\]; queueMicrotask\(update\)/);
+});
