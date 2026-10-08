@@ -29,6 +29,8 @@ jobs:
           distribution: temurin
           java-version: '21'
       - run: npm ci
+      - name: Verify Pages artifact build
+        run: node --test tests/github-pages.test.mjs
       - name: Run app tests
         run: npm run test:app
       - name: Run emulator rules tests
