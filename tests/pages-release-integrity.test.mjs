@@ -150,3 +150,11 @@ test('Guide search combines title query and selected guide type',()=>{
   assert.match(source,/matchesText && matchesType/);
   assert.match(source,/split\('•'\)/);
 });
+
+test('Guide filters combine category, type and text over loaded cards',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/matchesText && matchesType && matchesCategory/);
+  assert.match(source,/appliedCategories = readCategories\(\)/);
+  assert.match(source,/appliedCategories = \[\]/);
+  assert.match(source,/guideSelected/);
+});
