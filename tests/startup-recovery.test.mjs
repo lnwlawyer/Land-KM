@@ -66,3 +66,11 @@ test('hidden ancestor is not mistaken for visible application',()=>{
   listeners.get('timeout')();
   assert.equal(panel.hidden,false);
 });
+
+test('late errors do not revive startup warning after app is ready',()=>{
+  const {panel,listeners}=runScenario({shellVisible:true,gateVisible:false});
+  listeners.get('load')();
+  listeners.get('error')({target:null});
+  listeners.get('unhandledrejection')();
+  assert.equal(panel.hidden,true);
+});
