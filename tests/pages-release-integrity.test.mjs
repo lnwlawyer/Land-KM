@@ -209,3 +209,9 @@ test('Guide category and media type filtering supports grouped category metadata
   assert.match(source,/categorySegments\.includes\(name\)/);
   assert.doesNotMatch(source,/metadata\.split\('•'\)\[0\]/);
 });
+
+test('Guide search advertises accessible keyboard shortcuts',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/input\.setAttribute\('aria-keyshortcuts', '\/'\)/);
+  assert.match(source,/guide-search-help/);
+});
