@@ -1,0 +1,5 @@
+.land-km-back-to-top{position:fixed;right:24px;bottom:24px;z-index:30;padding:11px 16px;min-height:44px;border:1px solid #087f73;border-radius:999px;background:#087f73;color:white;font:600 13px "Noto Sans Thai",Tahoma,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.17);cursor:pointer}
+.land-km-back-to-top:hover{background:#07675f}
+.land-km-back-to-top:focus-visible{outline:3px solid #17233b;outline-offset:3px}
+.land-km-back-to-top[hidden]{display:none!important}
+@media(max-width:700px){.land-km-back-to-top{right:14px;bottom:calc(14px + env(safe-area-inset-bottom));padding:10px 13px}}
