@@ -66,3 +66,15 @@ test('prepared HTML uses scoped PWA assets and no duplicated prefix',()=>{
     for(const icon of manifest.icons) assert.ok(icon.src.startsWith('/Land-KM/'));
   });
 });
+
+test('release preparation refuses manifest icon path traversal',()=>{
+  artifact(dir=>{
+    const path=join(dir,'manifest.webmanifest');
+    const manifest=JSON.parse(readFileSync(path,'utf8'));
+    manifest.icons.push({src:'/Land-KM/../outside.png',sizes:'64x64',type:'image/png'});
+    writeFileSync(path,JSON.stringify(manifest));
+    const result=prepare(dir);
+    assert.notEqual(result.status,0);
+    assert.match(result.stderr,/Unsafe manifest icon path/);
+  });
+});
