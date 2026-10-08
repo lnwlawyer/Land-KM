@@ -42,6 +42,12 @@
       const filterCategory = appliedCategories.length > 0;
       let visible = 0;
       cards.forEach(card => {
+        // Rows already open on click; make the same action available to keyboard users.
+        if (!card.hasAttribute('tabindex')) {
+          card.tabIndex = 0;
+          card.setAttribute('role', 'link');
+          card.setAttribute('aria-label', 'เปิดอ่าน ' + (card.querySelector('.doc-title')?.textContent || 'คู่มือ'));
+        }
         const title = normalize(card.querySelector('.doc-title')?.textContent);
         const metadata = normalize(card.querySelector('.doc-meta')?.textContent);
         const type = normalize((card.querySelector('.doc-meta')?.textContent || '').split('•').map(part => part.trim())[1]);
@@ -95,6 +101,13 @@
       appliedCategories = [];
       update();
       input.focus();
+    });
+    panel.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const row = event.target?.closest?.('.doc');
+      if (!row || event.target !== row || row.hidden) return;
+      event.preventDefault();
+      row.click();
     });
     const observer = new MutationObserver(update);
     observer.observe(panel,{childList:true});

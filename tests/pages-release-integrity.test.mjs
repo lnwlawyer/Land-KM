@@ -175,3 +175,11 @@ test('Guide search keyboard shortcuts respect editing contexts',()=>{
   assert.match(source,/event\.key !== 'Escape'/);
   assert.match(source,/input\.focus\(\)/);
 });
+
+test('Guide rows are keyboard accessible without hijacking nested controls',()=>{
+  const source=readFileSync(join(process.cwd(),'public','guides-title-search.js'),'utf8');
+  assert.match(source,/card\.tabIndex = 0/);
+  assert.match(source,/card\.setAttribute\('role', 'link'\)/);
+  assert.match(source,/event\.target !== row/);
+  assert.match(source,/row\.click\(\)/);
+});
