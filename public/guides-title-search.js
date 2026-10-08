@@ -33,6 +33,11 @@
     reset.textContent = 'ล้างตัวกรองทั้งหมด';
     reset.hidden = true;
     wrapper.appendChild(reset);
+    input.setAttribute('aria-keyshortcuts', '/');
+    const help = document.createElement('small');
+    help.className = 'guide-search-help';
+    help.textContent = 'กด / เพื่อค้นหาคู่มือ · Esc เพื่อล้างคำค้น';
+    wrapper.appendChild(help);
     const normalize = value => String(value || '').normalize('NFC').toLocaleLowerCase('th-TH').trim();
     const update = () => {
       const query = normalize(input.value);
