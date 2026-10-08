@@ -130,3 +130,16 @@ test('Pages release bundles accessible back-to-top control once',()=>{
     assert.match(js,/prefers-reduced-motion/);
   });
 });
+
+test('Pages release includes guide title search once',()=>{
+  artifact(dir=>{
+    assert.equal(prepare(dir).status,0);
+    assert.equal(prepare(dir).status,0);
+    const html=readFileSync(join(dir,'index.html'),'utf8');
+    const js=readFileSync(join(dir,'guides-title-search.js'),'utf8');
+    assert.equal(html.split('src="/Land-KM/guides-title-search.js"').length-1,1);
+    assert.equal(html.split('href="/Land-KM/guides-title-search.css"').length-1,1);
+    assert.match(js,/MutationObserver/);
+    assert.match(js,/guideTitleSearchStatus/);
+  });
+});
