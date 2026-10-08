@@ -9,3 +9,6 @@
 
 #guidesView .guide-title-search .guide-reset-all{min-height:42px;white-space:nowrap}
 #guidesView .guide-title-search .guide-reset-all[hidden]{display:none!important}
+
+#guidesView #guideTitleSearchEmpty{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#guidesView #guideTitleSearchEmpty .btn{min-height:42px}
