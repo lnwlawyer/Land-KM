@@ -1,0 +1,36 @@
+/* Improve scanability of existing search results without changing their data or actions. */
+#searchView #searchResultList .search-result-row {
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) auto;
+  align-items:start;
+  gap:14px;
+  padding:19px;
+  border:1px solid var(--line,#e3e8ef);
+  border-radius:14px;
+  background:var(--white,#fff);
+  margin-bottom:12px;
+}
+#searchView #searchResultList .search-result-row .file {
+  grid-column:1;
+  grid-row:1;
+  width:44px;
+  height:44px;
+  font-size:12px;
+  font-weight:800;
+  overflow-wrap:anywhere;
+}
+#searchView #searchResultList .search-result-main { grid-column:2;grid-row:1;min-width:0; }
+#searchView #searchResultList .search-result-actions { grid-column:3;grid-row:1; }
+#searchView #searchResultList .doc-title { font-size:16px;line-height:1.55;margin:7px 0; }
+#searchView #searchResultList .search-result-snippet { line-height:1.7;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden; }
+#searchView #searchResultList .search-result-snippet[hidden] { display:none; }
+#searchView #searchResultList .search-result-meta { margin-top:10px;font-size:12px;line-height:1.65; }
+#searchView #searchResultList .search-result-actions .save-result { min-width:44px;min-height:44px;font-size:20px; }
+#searchView #searchResultList .search-result-row:hover { border-color:var(--brand,#087f73);box-shadow:0 6px 20px rgba(23,35,59,.06); }
+#searchView #searchResultList .search-result-row:focus-within { outline:2px solid var(--brand,#087f73);outline-offset:2px; }
+@media(max-width:600px){
+ #searchView #searchResultList .search-result-row { grid-template-columns:38px minmax(0,1fr) auto;gap:10px;padding:13px; }
+ #searchView #searchResultList .search-result-row .file { width:38px;height:38px;font-size:10px; }
+ #searchView #searchResultList .doc-title { font-size:14px; }
+ #searchView #searchResultList .search-result-actions .save-result { min-width:40px;min-height:44px; }
+}
