@@ -4723,7 +4723,7 @@
         const seen = new Set();
         for (const row of rows) {
           if (!row || typeof row.question !== 'string' || !row.question.trim()) { invalid++; continue; }
-          const key = row.question.normalize('NFKC').replace(/\\s+/g, ' ').trim();
+          const key = row.question.normalize('NFKC').replace(/\s+/g, ' ').trim();
           if (seen.has(key)) duplicate++;
           seen.add(key);
           if (!(typeof row.answer === 'string' && row.answer.trim()) && !(typeof row.expert_reply === 'string' && row.expert_reply.trim())) missingAnswer++;
