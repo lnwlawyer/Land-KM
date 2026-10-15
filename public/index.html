@@ -4881,11 +4881,64 @@
         card.querySelector('.callout').hidden = false;
         card.querySelector('.callout span').textContent = answer.legal_references;
       }
+      const isAuthor = answer.answered_by === auth.currentUser?.email;
+      const isAdmin = currentUserProfile?.role === 'admin';
+      if (isAdmin || (isAuthor && answer.is_accepted !== true)) {
+        const edit = document.createElement('button');
+        edit.className = 'btn';
+        edit.type = 'button';
+        edit.textContent = 'แก้ไขคำตอบ';
+        edit.onclick = () => editQuestionAnswer(answer);
+        card.appendChild(edit);
+      }
       answerForm.before(card);
     });
     const answerTitle = detailView.querySelector('.section-title h2');
     if (answerTitle) answerTitle.textContent = `คำตอบ ${answers.length} รายการ`;
     window.show('qaDetailView', 'รายละเอียดคำถาม');
+  }
+
+  async function editQuestionAnswer(answer) {
+    if (!answer?.id || !currentQuestionId) return;
+    const isAdmin = currentUserProfile?.role === 'admin';
+    const isAuthor = answer.answered_by === auth.currentUser?.email;
+    if (!isAdmin && (!isAuthor || answer.is_accepted === true)) {
+      window.toast('ไม่มีสิทธิ์แก้ไขคำตอบนี้');
+      return;
+    }
+    const updated = window.prompt('แก้ไขคำตอบ (คำตอบที่รับรองแล้วต้องตรวจสอบการเปลี่ยนแปลงอีกครั้ง)', answer.answer_text || '');
+    if (updated === null) return;
+    const text = updated.trim();
+    if (!text || text === answer.answer_text || text.length > 20000) {
+      window.toast('กรุณากรอกคำตอบที่เปลี่ยนแปลงและมีความยาวไม่เกิน 20,000 ตัวอักษร');
+      return;
+    }
+    if (answer.is_accepted && !window.confirm('คำตอบนี้ได้รับการรับรองแล้ว การแก้ไขจะยกเลิกการรับรองเดิม ยืนยันหรือไม่?')) return;
+    try {
+      const batch = writeBatch(db);
+      const answerRef = doc(db, 'answers', answer.id);
+      const updates = { answer_text: text, updated_at: serverTimestamp() };
+      if (answer.is_accepted) {
+        updates.is_accepted = false;
+        updates.accepted_by = null;
+        updates.accepted_at = null;
+      }
+      batch.update(answerRef, updates);
+      if (answer.is_accepted) {
+        const question = questionsData.find(item => (item.question_id || item.id) === currentQuestionId);
+        if (question?.accepted_answer_id === answer.id) {
+          batch.update(doc(db, 'questions', question.id), { accepted_answer_id: null, updated_at: serverTimestamp() });
+        }
+      }
+      await batch.commit();
+      await loadQuestions();
+      const question = questionsData.find(item => (item.question_id || item.id) === currentQuestionId);
+      if (question) openQuestionFromFirestore(question, answersData.filter(item => item.question_id === currentQuestionId));
+      window.toast('แก้ไขคำตอบแล้ว');
+    } catch (error) {
+      console.error('Edit answer failed:', error);
+      window.toast('แก้ไขคำตอบไม่สำเร็จ กรุณาตรวจสอบสิทธิ์');
+    }
   }
 
   async function postAnswerToFirestore() {
