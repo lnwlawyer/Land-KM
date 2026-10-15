@@ -20,7 +20,7 @@ export function auditQaFiles(knowledge, unresolved) {
       }
       if (kind === 'knowledge' && (typeof row.id !== 'string' || ids.has(row.id))) issues.push({ source: kind, row: i + 1, code: 'INVALID_OR_DUPLICATE_ID' });
       if (kind === 'knowledge') ids.add(row.id);
-      const normalized = row.question.normalize('NFKC').trim().replace(/\\s+/g, ' ');
+      const normalized = row.question.normalize('NFKC').trim().replace(/\s+/g, ' ');
       if (questions.has(normalized)) duplicates++;
       questions.add(normalized);
       if (!row.answer?.trim() && !row.expert_reply?.trim()) missingAnswers++;
