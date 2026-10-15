@@ -630,6 +630,14 @@ match /comments/{commentId} {
 }
 
 // Private staging only: no public, editor or reviewer reads; never exposed through public Q&A.
+// Public Q&A projection: never expose the private staging collection.
+match /qaPublished/{itemId} {
+  allow get: if isAdmin() || resource.data.is_published == true;
+  allow list: if isAdmin() || resource.data.is_published == true;
+  allow create, update: if isAdmin();
+  allow delete: if false;
+}
+
 match /qaImportItems/{itemId} {
   allow read, create, update, delete: if isAdmin();
 }
