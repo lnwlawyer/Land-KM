@@ -2163,12 +2163,12 @@
       else renderSearchState();
       renderKnowledgeContents();
       renderLegalReferenceViews();
-      await loadLaws();
-      await loadGuides();
-      await loadLessons();
-      await loadQuestions();
-      await loadNotifications();
-      await loadKnowledgePackages();
+      // Independent views must not remain in their initial loading state if one
+      // collection fails. Each loader reports its own error/empty state.
+      await Promise.allSettled([
+        loadLaws(), loadGuides(), loadLessons(), loadQuestions(),
+        loadNotifications(), loadKnowledgePackages()
+      ]);
       renderGovernanceCenter();
       await loadKnowledgeGapDashboard();
       await openSharedContentFromHash();
@@ -4149,6 +4149,8 @@
       governanceDetailLoadState.law = 'error';
       lawsData = [];
       console.error('Load laws failed:', error);
+      const lawsBody = document.querySelector('#lawsView tbody');
+      if (lawsBody) lawsBody.innerHTML = '<tr><td colspan="6" class="doc-meta">โหลดข้อมูลกฎหมายไม่สำเร็จ กรุณาลองโหลดหน้าเว็บใหม่ หรือติดต่อผู้ดูแลระบบ</td></tr>';
       window.toast('อ่านข้อมูลกฎหมายจาก Firestore ไม่สำเร็จ');
     }
   }
@@ -4381,6 +4383,10 @@
       workspaceLearningState = 'error';
       renderWorkspaceLearningState();
       renderHomeDashboard(contentItems);
+      const courseGrid = document.getElementById('courseGrid');
+      if (courseGrid) courseGrid.innerHTML = '<div class="empty-note">โหลดบทเรียนไม่สำเร็จ กรุณาลองโหลดหน้าเว็บใหม่ หรือติดต่อผู้ดูแลระบบ</div>';
+      const lessonCount = document.querySelector('#learningView .section-title .doc-meta');
+      if (lessonCount) lessonCount.textContent = 'โหลดบทเรียนไม่สำเร็จ';
       window.toast('อ่านบทเรียนจาก Firestore ไม่สำเร็จ');
     }
   }
