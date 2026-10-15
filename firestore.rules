@@ -631,6 +631,22 @@ match /comments/{commentId} {
 
 // Private staging only: no public, editor or reviewer reads; never exposed through public Q&A.
 // Public Q&A projection: never expose the private staging collection.
+match /qaFollowups/{followupId} {
+  allow create: if isActive()
+    && request.resource.data.keys().hasOnly(['parent_id','question_text','created_by','created_at','status'])
+    && request.resource.data.parent_id is string
+    && request.resource.data.question_text is string
+    && request.resource.data.question_text.size() >= 10
+    && request.resource.data.question_text.size() <= 3000
+    && request.resource.data.created_by == request.auth.uid
+    && request.resource.data.status == 'pending'
+    && request.resource.data.created_at == request.time
+    && exists(/databases/$(database)/documents/qaPublished/$(request.resource.data.parent_id))
+    && get(/databases/$(database)/documents/qaPublished/$(request.resource.data.parent_id)).data.is_published == true;
+  allow read: if isAdmin();
+  allow update, delete: if isAdmin();
+}
+
 match /qaPublished/{itemId} {
   allow get: if isAdmin() || resource.data.is_published == true;
   allow list: if isAdmin() || resource.data.is_published == true;
