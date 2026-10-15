@@ -629,6 +629,11 @@ match /comments/{commentId} {
     );
 }
 
+// Private staging only: no public, editor or reviewer reads; never exposed through public Q&A.
+match /qaImportItems/{itemId} {
+  allow read, create, update, delete: if isAdmin();
+}
+
 match /answers/{answerId} {
   allow read: if isActive()
     && canReadContent(resource.data.question_id)
