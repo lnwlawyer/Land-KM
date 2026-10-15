@@ -496,7 +496,7 @@
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js';
   import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut, connectAuthEmulator } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js';
-  import { arrayUnion, collection, doc, documentId, getDoc, getDocs, getCountFromServer, getFirestore, limit, orderBy, query, runTransaction, serverTimestamp, setDoc, startAfter, where, writeBatch, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
+  import { addDoc, arrayUnion, collection, doc, documentId, getDoc, getDocs, getCountFromServer, getFirestore, limit, orderBy, query, runTransaction, serverTimestamp, setDoc, startAfter, where, writeBatch, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js';
 
   const isLocalReview = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const firebaseConfig = {
