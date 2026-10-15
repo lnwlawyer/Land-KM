@@ -2111,15 +2111,38 @@
   }
 
   async function loadAccessibleDetailDocuments(collectionName) {
-    const contentIds = [...new Set(contentItems.map(item => item.content_id || item.id).filter(Boolean))];
+    const role = currentUserProfile?.role;
+    const allowedTypes = {
+      laws: ['law', 'judgment', 'committeeDecision'],
+      lessons: ['lesson'],
+      lessonUnits: ['lesson'],
+      guides: ['guide'],
+      files: []
+    };
+    const relevantContents = contentItems.filter(item => {
+      const type = String(item.content_type || '');
+      return !allowedTypes[collectionName]?.length || allowedTypes[collectionName].includes(type);
+    });
+    const contentIds = [...new Set(relevantContents.map(item => item.content_id || item.id).filter(Boolean))];
     const documents = [];
-    for (let index = 0; index < contentIds.length; index += 30) {
-      const ids = contentIds.slice(index, index + 30);
-      const snapshot = await getDocs(query(
-        collection(db, collectionName),
-        where('content_id', 'in', ids)
+    if (role === 'admin' || role === 'reviewer') {
+      for (let index = 0; index < contentIds.length; index += 30) {
+        const snapshot = await getDocs(query(
+          collection(db, collectionName),
+          where('content_id', 'in', contentIds.slice(index, index + 30))
+        ));
+        documents.push(...snapshot.docs);
+      }
+      return documents;
+    }
+    // Firestore rules authorize each detail using its parent content. A multi-ID
+    // "in" query can exceed rule document-access limits for viewer accounts.
+    // Query one authorized parent at a time, with bounded concurrency.
+    for (let index = 0; index < contentIds.length; index += 5) {
+      const snapshots = await Promise.all(contentIds.slice(index, index + 5).map(id =>
+        getDocs(query(collection(db, collectionName), where('content_id', '==', id)))
       ));
-      documents.push(...snapshot.docs);
+      snapshots.forEach(snapshot => documents.push(...snapshot.docs));
     }
     return documents;
   }
