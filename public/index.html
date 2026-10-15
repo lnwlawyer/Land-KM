@@ -5151,6 +5151,7 @@
       search.addEventListener('submit', event => {
         event.preventDefault();
         qaSearchText = (document.getElementById('qaSearchInput')?.value || '').normalize('NFKC').trim().toLocaleLowerCase();
+        renderQaPublished();
         renderQuestionCards();
       });
     }
