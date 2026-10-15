@@ -10,7 +10,7 @@ test('publish action is admin-only and requires reviewed answers',()=>{
 });
 test('public listing queries only published projections and uses textContent',()=>{
  const body=html.slice(html.indexOf('async function loadQaPublished()'),html.indexOf('const qaReviewSelected ='));
- for(const marker of ["collection(db,'qaPublished')", "where('is_published','==',true)", 'heading.textContent', 'answer.textContent', 'renderQaPublished()']) assert.ok(body.includes(marker),marker);
+ for(const marker of ["collection(db,'qaPublished')", "where('is_published','==',true)", 'qtext.textContent', 'atext.textContent', 'renderQaPublished()']) assert.ok(body.includes(marker),marker);
  assert.ok(!body.includes('innerHTML'));
 });
 test('rules isolate private staging and public projection',()=>{
