@@ -1098,7 +1098,7 @@
     document.getElementById('userAvatar').textContent = (profile.display_name || user.displayName || user.email || 'U').trim().charAt(0).toUpperCase();
     applyRoleAccess(profile.role);
     const inbox=document.getElementById('qaFollowupAdminInbox');
-    if(inbox){inbox.hidden=profile.role!=='admin';if(profile.role==='admin')void loadQaFollowupAdminInbox();}
+    if(inbox){inbox.hidden=profile.role!=='admin';if(profile.role==='admin'){document.getElementById('qaFollowupAdminRefresh').onclick=loadQaFollowupAdminInbox;void loadQaFollowupAdminInbox();}}
   }
 
   function notificationStorageKey() {
@@ -5209,7 +5209,6 @@
     panel.hidden = currentUserProfile?.role !== 'admin';
     if (panel.dataset.bound) return;
     panel.dataset.bound = 'true';
-    document.getElementById('qaFollowupAdminRefresh').onclick = loadQaFollowupAdminInbox;
     document.getElementById('qaFollowupReviewLoad').onclick = async () => {
       if (currentUserProfile?.role !== 'admin') return;
       const target = document.getElementById('qaFollowupReviewResults');
