@@ -5005,8 +5005,9 @@
     return words.every(word => text.includes(word) || (word.length >= 4 && text.split(' ').some(token => token.includes(word.slice(0,Math.max(3,word.length-1))))));
   }
   function qaKeywords(row) {
-    const explicit = Array.isArray(row.keywords) ? row.keywords : [];
-    const refs = Array.isArray(row.legal_refs) ? row.legal_refs : [];
+    const parse = value => Array.isArray(value) ? value : (typeof value === 'string' ? value.split(/[,;\n，、]+/) : []);
+    const explicit = [...parse(row.keywords),...parse(row.keyword),...parse(row.tags),...parse(row.keywords_text)];
+    const refs = parse(row.legal_refs);
     return [...new Set([...explicit,...refs].map(x=>String(x||'').trim()).filter(Boolean))].slice(0,12);
   }
   async function loadQaPublished() {
@@ -5092,7 +5093,7 @@
       const metaCategory=document.createElement('div');metaCategory.className='qa-public-meta';metaCategory.textContent='หมวดหมู่: '+qaForumCategoryValue(row);card.append(metaCategory);
       if(!selected){const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='อ่านกระทู้และความคิดเห็น →';open.style.margin='12px 20px';open.onclick=()=>{qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};card.append(open);}
       const tags=qaKeywords(row);
-      if(tags.length){const meta=document.createElement('div');meta.className='qa-public-meta';const label=document.createElement('strong');label.textContent='คำสำคัญ: ';meta.append(label);tags.forEach(tag=>{const b=document.createElement('button');b.type='button';b.className='qa-keyword-chip';b.textContent=tag;b.onclick=()=>{document.getElementById('qaSearchInput').value=tag;qaPublicPage=0;renderQaPublished();};meta.append(b);});card.append(meta);}
+      if(tags.length){const meta=document.createElement('div');meta.className='qa-public-meta';meta.setAttribute('aria-label','คำสำคัญของคำถาม');const label=document.createElement('strong');label.textContent='คำสำคัญ: ';meta.append(label);tags.forEach(tag=>{const b=document.createElement('button');b.type='button';b.className='qa-keyword-chip';b.textContent=tag;b.onclick=()=>{document.getElementById('qaSearchInput').value=tag;qaPublicPage=0;renderQaPublished();};meta.append(b);});card.append(meta);}
       const follow=document.createElement('div');follow.className='qa-public-followup';
       const button=document.createElement('button');button.type='button';button.className='btn';button.textContent='＋ ถามเพิ่มเติมเกี่ยวกับเรื่องนี้';
       button.onclick=()=>{
