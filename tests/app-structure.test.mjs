@@ -739,7 +739,7 @@ test('continue learning reuses bounded learningProgress and the existing lesson 
   const learningEnd = productionHtml.indexOf('\n  async function loadKnowledgeWorkspace()', learningStart);
   const lessonLoader = productionHtml.slice(lessonsStart, lessonsEnd);
   const workspaceLearning = productionHtml.slice(learningStart, learningEnd);
-  assert.match(lessonLoader, /collection\(db, 'learningProgress'\), where\('user_email', '==', progressUser\.email\), limit\(APP_LIMITS\.workspaceLearningProgress\)/);
+  assert.match(lessonLoader, /collection\(db, 'learningProgress'\),\s*where\('user_email', '==', progressUser\.email\),\s*limit\(APP_LIMITS\.workspaceLearningProgress\)/);
   assert.match(workspaceLearning, /workspaceLearningProgressData/);
   assert.match(workspaceLearning, /item\.completed > 0 && item\.completed < item\.units\.length/);
   assert.match(workspaceLearning, /openLessonPlayer\(item\.id\)/);
