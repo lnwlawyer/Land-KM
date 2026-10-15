@@ -4808,7 +4808,8 @@
           const question = typeof data.question_text === 'string' ? data.question_text.trim() : '';
           if (!question) issues.push({id:item.id, issue:'missing_question_text'});
           const answer = typeof data.answer_text === 'string' ? data.answer_text.trim() : '';
-          if (!answer) issues.push({id:item.id, issue:'missing_answer_text'});
+          const expertReply = typeof data.expert_reply === 'string' ? data.expert_reply.trim() : '';
+          if (!answer && !expertReply) issues.push({id:item.id, issue:'missing_answer_text'});
           if (data.visibility !== 'admin_only') issues.push({id:item.id, issue:'unexpected_visibility'});
           if (question) {
             const key = question.normalize('NFKC').replace(/\\s+/g, ' ').toLocaleLowerCase();
