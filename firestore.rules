@@ -643,8 +643,19 @@ match /qaFollowups/{followupId} {
     && request.resource.data.created_at == request.time
     && exists(/databases/$(database)/documents/qaPublished/$(request.resource.data.parent_id))
     && get(/databases/$(database)/documents/qaPublished/$(request.resource.data.parent_id)).data.is_published == true;
-  allow read: if isAdmin();
-  allow update, delete: if isAdmin();
+  allow read: if isAdmin() || (request.auth != null && resource.data.created_by == request.auth.uid);
+  allow update: if isAdmin() || (
+    isActive()
+    && resource.data.created_by == request.auth.uid
+    && resource.data.status == 'needs_info'
+    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['question_text','status','answer_text'])
+    && request.resource.data.status == 'pending'
+    && request.resource.data.answer_text == ''
+    && request.resource.data.question_text is string
+    && request.resource.data.question_text.size() <= 6000
+    && request.resource.data.question_text.size() > resource.data.question_text.size()
+  );
+  allow delete: if false;
 }
 
 match /qaPublished/{itemId} {
