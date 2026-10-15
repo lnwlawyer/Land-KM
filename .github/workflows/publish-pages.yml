@@ -49,7 +49,7 @@ jobs:
       - name: Validate browser startup scripts
         run: node --test tests/startup-reliability.test.mjs
       - name: Test Q&A import audit and answer editing
-        run: node --test tests/qa-json-audit.test.mjs tests/qa-answer-edit.test.mjs
+        run: node --test tests/qa-json-audit.test.mjs tests/qa-answer-edit.test.mjs tests/qa-search-import-preview.test.mjs
       - name: Run app tests
         run: npm run test:app
       - name: Run emulator rules tests
