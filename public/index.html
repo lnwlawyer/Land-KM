@@ -5034,6 +5034,20 @@
     select.onchange=()=>{qaPublicPage=0;qaForumSelectedId=null;renderQaPublished();};
     const back=document.getElementById('qaForumBack');back.onclick=()=>{qaForumSelectedId=null;qaPublicPage=0;renderQaPublished();document.getElementById('qaPublishedList')?.scrollIntoView({behavior:'smooth',block:'start'});};
   }
+  function qaForumDate(row) {
+    const raw=row.created_at||row.published_at||row.updated_at||row.date||row.createdAt||row.publishedAt;
+    if(!raw)return '';
+    let date;
+    if(typeof raw.toDate==='function')date=raw.toDate();
+    else if(typeof raw.seconds==='number')date=new Date(raw.seconds*1000);
+    else if(typeof raw==='number')date=new Date(raw < 1e11 ? raw*1000 : raw);
+    else if(typeof raw==='string'&&/^\d{4}-\d{2}-\d{2}/.test(raw))date=new Date(raw);
+    else return '';
+    if(!Number.isFinite(date.getTime()))return '';
+    const hasTime=typeof raw!=='string'||/T\d{2}:\d{2}| \d{2}:\d{2}/.test(raw);
+    return new Intl.DateTimeFormat('th-TH',{timeZone:'Asia/Bangkok',day:'numeric',month:'short',year:'numeric',...(hasTime?{hour:'2-digit',minute:'2-digit'}:{})}).format(date)+(hasTime?' น.':'');
+  }
+  function qaForumExcerpt(value,max=190){const text=String(value||'').replace(/\s+/g,' ').trim();return text.length>max?text.slice(0,max).trimEnd()+'…':text;}
   function renderQaPublished() {
     const section = document.getElementById('qaPublishedList');
     const filters = document.getElementById('qaKeywordFilters');
@@ -5061,13 +5075,20 @@
     displayed.slice(qaPublicPage*QA_PUBLIC_PAGE_SIZE,(qaPublicPage+1)*QA_PUBLIC_PAGE_SIZE).forEach(row=>{
       const card=document.createElement('article');card.className='qa-public-card';
       if(!selected){card.style.cursor='pointer';card.onclick=event=>{if(event.target.closest('button,textarea,input,a'))return;qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};}
+      const dateLabel=qaForumDate(row);
+      const publicReplyCount=qaPublishedRows.filter(child=>child.parent_id===row.id&&child.is_published===true).length;
+      const head=document.createElement('div');head.className='qa-public-meta';head.style.cssText='display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 20px';
+      const when=document.createElement('span');when.textContent=dateLabel||'ไม่ระบุวันที่';
+      const topicCount=document.createElement('span');topicCount.textContent='ความคิดเห็นที่เผยแพร่ '+publicReplyCount+' รายการ';
+      head.append(when,topicCount);card.append(head);
       const question=document.createElement('section');question.className='qa-public-part qa-public-question';
-      const qlabel=document.createElement('div');qlabel.className='qa-public-label';qlabel.textContent='Q  คำถาม';
-      const qtext=document.createElement('p');qtext.className='qa-public-text';qtext.textContent=row.question_text||'';question.append(qlabel,qtext);
+      const qlabel=document.createElement('div');qlabel.className='qa-public-label';qlabel.textContent=selected?'Q  คำถาม':'คำถาม';
+      const qtext=document.createElement('p');qtext.className='qa-public-text';qtext.textContent=selected?(row.question_text||''):qaForumExcerpt(row.question_text,240);
+      question.append(qlabel,qtext);
       const answer=document.createElement('section');answer.className='qa-public-part qa-public-answer';
-      const alabel=document.createElement('div');alabel.className='qa-public-label';alabel.textContent='A  คำตอบ';
-      const atext=document.createElement('p');atext.className='qa-public-text';atext.textContent=row.answer_text||'';answer.append(alabel,atext);
-      card.append(question,answer);
+      const alabel=document.createElement('div');alabel.className='qa-public-label';alabel.textContent=selected?'A  คำตอบ':'สรุปคำตอบ';
+      const atext=document.createElement('p');atext.className='qa-public-text';atext.textContent=selected?(row.answer_text||''):qaForumExcerpt(row.answer_text,200);
+      answer.append(alabel,atext);card.append(question,answer);
       const metaCategory=document.createElement('div');metaCategory.className='qa-public-meta';metaCategory.textContent='หมวดหมู่: '+qaForumCategoryValue(row);card.append(metaCategory);
       if(!selected){const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='อ่านกระทู้และความคิดเห็น →';open.style.margin='12px 20px';open.onclick=()=>{qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};card.append(open);}
       const tags=qaKeywords(row);
