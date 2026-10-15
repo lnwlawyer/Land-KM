@@ -31,6 +31,6 @@ jobs:
       - run: node --test tests/pages-release-integrity.test.mjs
       - run: node --test tests/startup-recovery.test.mjs
       - run: node --test tests/startup-reliability.test.mjs
-      - run: node --test tests/qa-json-audit.test.mjs tests/qa-answer-edit.test.mjs tests/qa-search-import-preview.test.mjs tests/qa-private-batch-import.test.mjs tests/qa-private-review-console.test.mjs tests/qa-private-review-complete.test.mjs tests/qa-readonly-audit.test.mjs tests/qa-audit-report-v2.test.mjs tests/qa-import-reconciliation.test.mjs tests/qa-admin-workflow-bundle.test.mjs
+      - run: node --test tests/qa-json-audit.test.mjs tests/qa-answer-edit.test.mjs tests/qa-search-import-preview.test.mjs tests/qa-private-batch-import.test.mjs tests/qa-private-review-console.test.mjs tests/qa-private-review-complete.test.mjs tests/qa-readonly-audit.test.mjs tests/qa-audit-report-v2.test.mjs tests/qa-import-reconciliation.test.mjs tests/qa-admin-workflow-bundle.test.mjs tests/qa-publication-workflow.test.mjs
       - run: npm run test:app
       - run: npm run test:rules
