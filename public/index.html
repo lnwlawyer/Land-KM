@@ -5075,7 +5075,6 @@
     displayed.slice(qaPublicPage*QA_PUBLIC_PAGE_SIZE,(qaPublicPage+1)*QA_PUBLIC_PAGE_SIZE).forEach(row=>{
       const card=document.createElement('article');card.className='qa-public-card';
       if(!selected){card.style.cursor='pointer';card.onclick=event=>{if(event.target.closest('button,textarea,input,a'))return;qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};}
-      const tags=qaKeywords(row);
       const dateLabel=qaForumDate(row);
       const publicReplyCount=qaPublishedRows.filter(child=>child.parent_id===row.id&&child.is_published===true).length;
       const head=document.createElement('div');head.className='qa-public-meta';head.style.cssText='display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:12px 20px';
