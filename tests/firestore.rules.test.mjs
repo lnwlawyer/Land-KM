@@ -1246,3 +1246,17 @@ test('Feature 14A supports revision through review, approval, and atomic republi
   });
   await assertFails(getDoc(doc(dbAs('user'), 'contents', seeded.contentId)));
 });
+
+test('private QA staging is accessible only to admin', async () => {
+  const record = { import_id: 'QI-test', review_status: 'pending_private_review', visibility: 'admin_only', question_text: 'private legal question' };
+  const ref = role => doc(dbAs(role), 'qaImportItems', 'QI-test');
+  await assertSucceeds(setDoc(ref('admin'), record));
+  await assertSucceeds(getDoc(ref('admin')));
+  for (const role of ['editor', 'reviewer', 'user', 'inactive']) {
+    await assertFails(getDoc(ref(role)));
+    await assertFails(setDoc(ref(role), record));
+    await assertFails(updateDoc(ref(role), { question_text: 'tamper' }));
+    await assertFails(deleteDoc(ref(role)));
+  }
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'qaImportItems', 'QI-test')));
+});
