@@ -5034,6 +5034,17 @@
     select.onchange=()=>{qaPublicPage=0;qaForumSelectedId=null;renderQaPublished();};
     const back=document.getElementById('qaForumBack');back.onclick=()=>{qaForumSelectedId=null;qaPublicPage=0;renderQaPublished();document.getElementById('qaPublishedList')?.scrollIntoView({behavior:'smooth',block:'start'});};
   }
+  function qaForumDate(row){
+    const value=row.published_at||row.created_at||row.updated_at||row.date||row.published_date;
+    if(!value)return '';
+    let date=null;
+    if(typeof value?.toDate==='function')date=value.toDate();
+    else if(typeof value?.seconds==='number')date=new Date(value.seconds*1000);
+    else if(typeof value==='string'||typeof value==='number')date=new Date(value);
+    if(!date||Number.isNaN(date.getTime()))return '';
+    return new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Bangkok'}).format(date);
+  }
+  function qaForumExcerpt(value,max=185){const text=String(value||'').replace(/\\s+/g,' ').trim();return text.length>max?text.slice(0,max).trimEnd()+'…':text;}
   function renderQaPublished() {
     const section = document.getElementById('qaPublishedList');
     const filters = document.getElementById('qaKeywordFilters');
@@ -5061,12 +5072,14 @@
     displayed.slice(qaPublicPage*QA_PUBLIC_PAGE_SIZE,(qaPublicPage+1)*QA_PUBLIC_PAGE_SIZE).forEach(row=>{
       const card=document.createElement('article');card.className='qa-public-card';
       if(!selected){card.style.cursor='pointer';card.onclick=event=>{if(event.target.closest('button,textarea,input,a'))return;qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};}
+      const date=qaForumDate(row);
+      if(date){const timestamp=document.createElement('div');timestamp.className='qa-public-meta';timestamp.textContent=date;timestamp.style.padding='12px 20px 0';card.append(timestamp);}
       const question=document.createElement('section');question.className='qa-public-part qa-public-question';
-      const qlabel=document.createElement('div');qlabel.className='qa-public-label';qlabel.textContent='Q  คำถาม';
-      const qtext=document.createElement('p');qtext.className='qa-public-text';qtext.textContent=row.question_text||'';question.append(qlabel,qtext);
+      const qlabel=document.createElement('div');qlabel.className='qa-public-label';qlabel.textContent=selected?'Q  คำถาม':'คำถาม';
+      const qtext=document.createElement('p');qtext.className='qa-public-text';qtext.textContent=selected?(row.question_text||''):qaForumExcerpt(row.question_text,230);question.append(qlabel,qtext);
       const answer=document.createElement('section');answer.className='qa-public-part qa-public-answer';
-      const alabel=document.createElement('div');alabel.className='qa-public-label';alabel.textContent='A  คำตอบ';
-      const atext=document.createElement('p');atext.className='qa-public-text';atext.textContent=row.answer_text||'';answer.append(alabel,atext);
+      const alabel=document.createElement('div');alabel.className='qa-public-label';alabel.textContent=selected?'A  คำตอบ':'ตัวอย่างคำตอบ';
+      const atext=document.createElement('p');atext.className='qa-public-text';atext.textContent=selected?(row.answer_text||''):qaForumExcerpt(row.answer_text,170);answer.append(alabel,atext);
       card.append(question,answer);
       const metaCategory=document.createElement('div');metaCategory.className='qa-public-meta';metaCategory.textContent='หมวดหมู่: '+qaForumCategoryValue(row);card.append(metaCategory);
       if(!selected){const open=document.createElement('button');open.type='button';open.className='btn';open.textContent='อ่านกระทู้และความคิดเห็น →';open.style.margin='12px 20px';open.onclick=()=>{qaForumSelectedId=row.id;qaPublicPage=0;renderQaPublished();};card.append(open);}
