@@ -4251,17 +4251,30 @@
     governanceDetailLoadState.lesson = 'loading';
     try {
       const progressUser = auth.currentUser;
-      const [lessonDocuments, unitDocuments, progressSnapshot] = await Promise.all([
+      // Public lesson catalogue must not depend on optional private progress permissions.
+      const [lessonDocuments, unitDocuments] = await Promise.all([
         loadAccessibleDetailDocuments('lessons'),
-        loadAccessibleDetailDocuments('lessonUnits'),
-        getDocs(query(collection(db, 'learningProgress'), where('user_email', '==', progressUser.email), limit(APP_LIMITS.workspaceLearningProgress)))
+        loadAccessibleDetailDocuments('lessonUnits')
       ]);
-      if (workspaceOwnerUid !== progressUser.uid) return;
+      if (progressUser && auth.currentUser?.uid !== progressUser.uid) return;
+      let progressDocuments = [];
+      if (progressUser?.email) {
+        try {
+          const progressSnapshot = await getDocs(query(
+            collection(db, 'learningProgress'),
+            where('user_email', '==', progressUser.email),
+            limit(APP_LIMITS.workspaceLearningProgress)
+          ));
+          progressDocuments = progressSnapshot.docs;
+        } catch (progressError) {
+          console.warn('Learning progress unavailable; showing lessons without progress:', progressError);
+        }
+      }
       const lessons = lessonDocuments.map(item => ({ id: item.id, ...item.data() }));
       const units = unitDocuments.map(item => ({ id: item.id, ...item.data() }));
-      const userProgress = progressSnapshot.docs
+      const userProgress = progressDocuments
         .map(item => ({ id: item.id, ...item.data() }))
-        .filter(item => item.user_email === auth.currentUser?.email && item.completed === true);
+        .filter(item => item.user_email === progressUser?.email && item.completed === true);
       workspaceLearningProgressData = userProgress;
       workspaceLearningState = 'ready';
       lessonsData = lessons;
