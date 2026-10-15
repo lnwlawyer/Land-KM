@@ -2165,10 +2165,9 @@
       renderLegalReferenceViews();
       // Independent views must not remain in their initial loading state if one
       // collection fails. Each loader reports its own error/empty state.
-      await Promise.allSettled([
-        loadLaws(), loadGuides(), loadLessons(), loadQuestions(),
-        loadNotifications(), loadKnowledgePackages()
-      ]);
+      await Promise.allSettled([loadLaws(), loadLessons(), loadQuestions(), loadNotifications(), loadKnowledgePackages()]);
+      // Guides include law-derived decisions, so wait for the law loader first.
+      await loadGuides();
       renderGovernanceCenter();
       await loadKnowledgeGapDashboard();
       await openSharedContentFromHash();
@@ -2239,6 +2238,12 @@
       console.error('Load contents failed:', error);
       searchDataStatus = 'error';
       renderSearchState();
+      const lawsBody = document.querySelector('#lawsView tbody');
+      if (lawsBody) lawsBody.innerHTML = '<tr><td colspan="6" class="doc-meta">โหลดรายการกฎหมายไม่สำเร็จ กรุณาลองใหม่</td></tr>';
+      const courseGrid = document.getElementById('courseGrid');
+      if (courseGrid) courseGrid.innerHTML = '<div class="empty-note">โหลดรายการบทเรียนไม่สำเร็จ กรุณาลองใหม่</div>';
+      const lessonCount = document.querySelector('#learningView .section-title .doc-meta');
+      if (lessonCount) lessonCount.textContent = 'โหลดข้อมูลไม่สำเร็จ';
       window.toast('อ่านรายการเนื้อหาจาก Firestore ไม่สำเร็จ');
       showSystemBanner('โหลดเนื้อหาไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่', 'error', loadContents);
     } finally {
