@@ -4788,13 +4788,13 @@
     const answer = window.prompt('แก้ไขคำตอบ (เว้นว่างได้หากยังไม่มีคำตอบ)', row.answer_text || row.expert_reply || '');
     if (answer === null) return;
     if (answer.length > 30000) return window.toast('คำตอบต้องไม่เกิน 30,000 ตัวอักษร');
-    const refs = window.prompt('เอกสารอ้างอิง (หนึ่งรายการต่อบรรทัด)', Array.isArray(row.legal_refs) ? row.legal_refs.join('\\n') : '');
+    const refs = window.prompt('เอกสารอ้างอิง (หนึ่งรายการต่อบรรทัด)', Array.isArray(row.legal_refs) ? row.legal_refs.join('\n') : '');
     if (refs === null) return;
     if (!window.confirm('บันทึกการแก้ไขในคลังพัก โดยยังไม่เผยแพร่ ใช่หรือไม่?')) return;
     try {
       const changes = {
         question_text: question.trim(), title: question.trim().slice(0, 1000),
-        answer_text: answer, legal_refs: refs.split(/\\r?\\n/).map(v => v.trim()).filter(Boolean).slice(0, 50),
+        answer_text: answer, legal_refs: refs.split(/\r?\n/).map(v => v.trim()).filter(Boolean).slice(0, 50),
         review_status: 'pending_private_review', visibility: 'admin_only',
         updated_at: serverTimestamp(), updated_by: auth.currentUser.uid
       };
