@@ -4693,7 +4693,7 @@
 
   let qaPrivateImportCancelled = false;
   async function qaPrivateImportKey(source, row, index) {
-    const identifier = source === 'knowledge' ? String(row.id || index) : String(row.question || index).normalize('NFKC').trim().replace(/\\s+/g, ' ');
+    const identifier = source === 'knowledge' ? String(row.id || index) : String(row.question || index).normalize('NFKC').trim().replace(/\s+/g, ' ');
     const bytes = new TextEncoder().encode(source + ':' + identifier);
     const hash = await crypto.subtle.digest('SHA-256', bytes);
     return 'QI-' + Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
