@@ -5212,6 +5212,26 @@
       const qlabel=document.createElement('div');qlabel.className='qa-public-label';qlabel.textContent=selected?'Q  คำถาม':'คำถาม';
       const qtext=document.createElement('p');qtext.className='qa-public-text';qtext.textContent=selected?(row.question_text||''):qaForumExcerpt(row.question_text,240);
       question.append(qlabel,qtext);
+      if(selected){
+        const collapseThread=()=>{
+          qaForumSelectedId=null;
+          qaPublicPage=0;
+          renderQaPublished();
+          document.getElementById('qaPublishedList')?.scrollIntoView({behavior:'smooth',block:'start'});
+        };
+        question.style.cursor='pointer';
+        question.setAttribute('role','button');
+        question.setAttribute('tabindex','0');
+        question.setAttribute('aria-label','ย่อกระทู้และกลับไปรายการคำถาม');
+        question.setAttribute('title','คลิกเพื่อย่อกระทู้');
+        question.onclick=collapseThread;
+        question.onkeydown=event=>{
+          if(event.key==='Enter'||event.key===' '){
+            event.preventDefault();
+            collapseThread();
+          }
+        };
+      }
       const answer=document.createElement('section');answer.className='qa-public-part qa-public-answer';
       const alabel=document.createElement('div');alabel.className='qa-public-label';alabel.textContent=selected?'A  คำตอบ':'สรุปคำตอบ';
       const atext=document.createElement('p');atext.className='qa-public-text';atext.textContent=selected?(row.answer_text||''):qaForumExcerpt(row.answer_text,200);
